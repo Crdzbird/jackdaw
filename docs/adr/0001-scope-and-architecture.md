@@ -380,17 +380,21 @@ Delivered:
   warning flags, and `<algorithm>` is force-included for the llama target to
   work around a missing include in v0.6.0 under libstdc++. CI gains an
   explicit GCC job.
-- Windows: MSVC warning flags and a Windows CI build were added. Not yet
-  verified; CI will be the first real build.
+- Windows: MSVC warning flags and a Windows CI build were added. The first CI
+  build showed that llama.cpp v0.6.0 does not compile as C++20 under MSVC
+  (`u8` literals become `char8_t`), so llama.cpp now builds as C++17 and only
+  jackdaw's own targets use C++20.
 
 Known limitations recorded here:
 
 - Browser coverage cannot be collected for `jackdaw_web`: package:test's
   Chrome coverage crashes on the `data:` URL test module. Its tests run in CI
   on both dart2js and dart2wasm, outside the coverage gate.
-- Grammar-constrained decoding costs about 3x in tokens per second on CPU,
-  because the grammar sampler scores the whole vocabulary. Sampling first and
-  checking the grammar only on rejection is planned for Phase 6.
+- Grammar-constrained decoding used to cost about 2.5x in tokens per second
+  on CPU, because the grammar sampler scored the whole vocabulary. Fixed: the
+  grammar now checks only the sampled token and rescores the vocabulary only
+  on rejection, so constrained and free decoding run at the same speed
+  (75.2 vs 75.0 tok/s on CPU), with 50/50 schema-valid answers on the Pixel.
 - Debug (JIT) iOS builds started without the Flutter tool attached do not
   load the model; profile and release builds are the supported way to
   measure.

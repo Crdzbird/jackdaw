@@ -34,12 +34,12 @@ class Run {
     if (tokens.size() >= llama_n_ctx(s_.context)) {
       return fail(JACKDAW_ERR_CONTEXT_FULL, "prompt does not fit the context");
     }
-    auto sampler = make_sampler(vocab_, job_);
-    if (!sampler) return fail(JACKDAW_ERR_GRAMMAR, "grammar does not parse");
+    auto samplers = make_samplers(vocab_, job_);
+    if (!samplers) return fail(JACKDAW_ERR_GRAMMAR, "grammar does not parse");
     stats_.prompt_tokens = static_cast<int32_t>(tokens.size());
     if (const auto step = ingest(tokens); step != Step::next) return end(step);
     stats_.prompt_ms = elapsed_ms(start_);
-    end(sample(sampler.get()));
+    end(generate_tokens(*samplers));
   }
 
  private:
@@ -71,7 +71,7 @@ class Run {
     return Step::next;
   }
 
-  Step sample(llama_sampler* sampler) {
+  Step generate_tokens(Samplers& samplers) {
     const auto limit = job_.params.max_tokens > 0 ? job_.params.max_tokens : INT32_MAX;
     const auto context = llama_n_ctx(s_.context);
     for (;;) {
@@ -79,7 +79,7 @@ class Run {
       if (stats_.generated_tokens >= limit || s_.cached.size() >= context) {
         return Step::length;
       }
-      auto token = llama_sampler_sample(sampler, s_.context, -1);
+      auto token = sample(samplers, s_.context, vocab_);
       if (llama_vocab_is_eog(vocab_, token)) return Step::stop;
       if (const auto step = emit(piece(vocab_, token)); step != Step::next) return step;
       ++stats_.generated_tokens;

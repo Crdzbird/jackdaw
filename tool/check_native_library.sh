@@ -9,6 +9,7 @@ bin="${2:-}"
 nm="${bin:+$bin/}llvm-nm"
 readelf="${bin:+$bin/}llvm-readelf"
 command -v "$nm" >/dev/null || nm="nm"
+command -v "$readelf" >/dev/null || readelf="readelf"
 
 if [[ "$library" == *.dylib ]]; then
   symbols=$("$nm" -gU "$library" | awk '{print $3}' | sed 's/^_//')

@@ -79,3 +79,17 @@ apps/jackdaw_bench/tool/run_android.sh <device-id> ~/.cache/jackdaw/models/qwen2
 
 A comma separated third argument selects benchmarks:
 `throughput,cancel,prefix,structured,memory`.
+
+## Update 2026-10-13: grammar sampling
+
+The sampler now lets the normal sampling chain pick a token and asks the
+grammar only whether that token is allowed; the whole vocabulary is scored
+against the grammar only when it is not. llama.cpp's own sampler works the
+same way.
+
+| Measurement | Before | After |
+|---|---|---|
+| Mac M3 Max, CPU only, `benchmark/grammar_speed.dart`: free text | 74.4 tok/s | 75.0 tok/s |
+| Same, with the grammar | 30.6 tok/s | 75.2 tok/s |
+| Pixel 7 Pro, 50-case structured suite, both conditions | 479 s | 364 s |
+| Pixel 7 Pro, schema-valid answers with the grammar | 50/50 | 50/50 |

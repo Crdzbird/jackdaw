@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "llama.h"
 #include "session.hpp"
@@ -13,8 +14,19 @@ struct SamplerDeleter {
 
 using Sampler = std::unique_ptr<llama_sampler, SamplerDeleter>;
 
-/// Builds the sampler chain for job, or returns null when its grammar does
+/// The sampling chain for a job plus its optional grammar.
+struct Samplers {
+  Sampler chain;
+  Sampler grammar;
+};
+
+/// Builds the samplers for job, or returns nothing when its grammar does
 /// not parse.
-Sampler make_sampler(const llama_vocab* vocab, const Job& job);
+std::optional<Samplers> make_samplers(const llama_vocab* vocab, const Job& job);
+
+/// Picks the next token. The grammar only checks the token the chain chose
+/// and scores the whole vocabulary when that token is rejected, which keeps
+/// constrained decoding close to the speed of free text.
+llama_token sample(Samplers& samplers, llama_context* context, const llama_vocab* vocab);
 
 }
