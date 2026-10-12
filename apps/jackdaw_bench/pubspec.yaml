@@ -1,0 +1,31 @@
+name: jackdaw_bench
+description: On-device benchmarks for jackdaw's native core.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  jackdaw:
+    path: ../../packages/jackdaw
+  jackdaw_native:
+    path: ../../packages/jackdaw_native
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  very_good_analysis: ^11.0.0
+
+hooks:
+  user_defines:
+    jackdaw_native:
+      build: source
+
+dependency_overrides:
+  jackdaw:
+    path: ../../packages/jackdaw

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 status=0
-files=$(find packages -name '*.dart' -not -path '*/.dart_tool/*' -not -path '*/build/*')
+files=$(find packages -name '*.dart' -not -name '*.g.dart' -not -path '*/.dart_tool/*' -not -path '*/build/*')
 
 for file in $files; do
   lines=$(wc -l < "$file")

@@ -1,5 +1,6 @@
 import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/model/generation_options.dart';
+import 'package:jackdaw/src/schema/schema.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
 
 /// Everything a language model needs for one call.
@@ -9,12 +10,14 @@ final class ModelRequest {
     required List<Message> messages,
     List<ToolSpec> tools,
     GenerationOptions options,
+    Schema? responseSchema,
   }) = ModelRequest._;
 
   const new _({
     required this.messages,
     this.tools = const [],
     this.options = const GenerationOptions(),
+    this.responseSchema,
   });
 
   /// The conversation so far, oldest first.
@@ -25,4 +28,7 @@ final class ModelRequest {
 
   /// Sampling settings.
   final GenerationOptions options;
+
+  /// Shape the answer must have, when structured output is wanted.
+  final Schema? responseSchema;
 }

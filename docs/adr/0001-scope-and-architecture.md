@@ -309,3 +309,46 @@ If criteria 2 to 4 fail, revisit Decision 1 before building more.
 - Q4 Android ABIs: ship both 64-bit and 32-bit (arm64-v8a, armeabi-v7a, plus
   x86_64 for emulators).
 - Q5 Repository: keep `genkit-ai-bird` for now; the owner renames it later.
+
+## Phase 2 results (2026-10-12)
+
+Measured on the reference device; details in
+[benchmarks/phase2-pixel-7-pro.md](../benchmarks/phase2-pixel-7-pro.md).
+
+| Exit criterion | Status |
+|---|---|
+| 1. Hook fetches a verified CI-built library; fresh app needs no toolchain | Hook, SHA-256 check and tag-gated release workflow are done and tested against a local server. No release is published yet, so apps still use `build: source` |
+| 2. Stream tokens; cancel p95 under 100 ms (C3) | Met: p95 8.1 ms |
+| 3. 50-schema slice at least 99% valid | Met: 50/50 with the grammar, 42/50 without |
+| 4. RSS stable over 100 load and dispose cycles (C4) | Met: +2.3% |
+| 5. Stripped size per ABI | arm64 4.3 MB, armeabi-v7a 3.1 MB, x86_64 4.8 MB, macOS arm64 9.0 MB |
+| 6. Benchmarks checked in and reproducible | Met: `apps/jackdaw_bench` |
+
+Decisions taken during the spike:
+
+- Android arm64 is built for `armv8.2-a+dotprod+fp16`. Without dot-product
+  kernels prompt processing was 2.6x slower (26 vs 67 tokens/s). The cost is
+  that phones with only ARMv8.0 cores (for example Cortex-A53-only devices)
+  are not supported. Shipping runtime-selected CPU variants
+  (`GGML_BACKEND_DL`) would remove that limit and is a Phase 3 candidate.
+- armeabi-v7a is built with `GGML_LLAMAFILE=OFF`, because llama.cpp's
+  llamafile kernels need fp16 intrinsics that ARMv7 lacks.
+- Requests on one native session run strictly one after another. A request
+  waits until the previous one, cancelled or not, has stopped natively, so
+  cancel-and-resend can never hit `JACKDAW_ERR_BUSY`.
+- For local models the response schema is enforced by the grammar and also
+  described in the system message, so the model knows what fields mean.
+- iOS and Windows builds move to Phase 3, alongside the first release.
+- Fuzzing moves to Phase 6. Note for that work: grammars are compiled from
+  schemas, and schemas can come from untrusted tool sources such as MCP
+  servers, so llama.cpp's GBNF parser is reachable from outside input.
+
+Open for sign-off:
+
+- C5 as written (turn-20 first token within 1.2x of turn 2) was missed at
+  1.35x. The growth is attention cost over a longer context, not
+  reprocessing; caching cut turn-20 from about 12 s to 527 ms. Proposed
+  restatement: "turn-20 time to first token within 1.5x of turn 2 and at
+  least 10x faster than reprocessing the full prompt".
+- C6 (no UI-thread frames during inference) is not measured yet; it needs a
+  Flutter frame-timing harness and is planned with the widgets in Phase 5.

@@ -6,5 +6,11 @@ environment:
 
 workspace:
   - packages/jackdaw
+  - packages/jackdaw_native
   - packages/jackdaw_openai
   - packages/jackdaw_test
+
+hooks:
+  user_defines:
+    jackdaw_native:
+      build: source

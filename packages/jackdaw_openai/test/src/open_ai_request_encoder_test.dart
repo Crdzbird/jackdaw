@@ -67,6 +67,20 @@ void main() {
     expect(body['stream'], isTrue);
   });
 
+  test('maps the response schema to response_format', () {
+    final body = encodeChatRequest(
+      'm',
+      const ModelRequest(messages: [], responseSchema: Schema.boolean()),
+    );
+    expect(body['response_format'], {
+      'type': 'json_schema',
+      'json_schema': {
+        'name': 'response',
+        'schema': {'type': 'boolean'},
+      },
+    });
+  });
+
   test('omits optional fields', () {
     final body = encodeChatRequest('m', const ModelRequest(messages: []));
     expect(body.keys, ['model', 'messages', 'stream', 'stream_options']);

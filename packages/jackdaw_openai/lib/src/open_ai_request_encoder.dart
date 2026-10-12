@@ -10,6 +10,11 @@ Map<String, Object?> encodeChatRequest(String model, ModelRequest request) => {
     'tools': [for (final tool in request.tools) _tool(tool)],
   'temperature': ?request.options.temperature,
   'max_completion_tokens': ?request.options.maxOutputTokens,
+  if (request.responseSchema case final schema?)
+    'response_format': {
+      'type': 'json_schema',
+      'json_schema': {'name': 'response', 'schema': schema.toJson()},
+    },
   'stream': true,
   'stream_options': {'include_usage': true},
 };
