@@ -1,0 +1,19 @@
+name: jackdaw_test
+description: >-
+  Test utilities for jackdaw: a scripted language model that records requests
+  and replays prepared responses without network access.
+version: 0.1.0-dev.1
+repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_test
+topics: [ai, llm, testing]
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+dependencies:
+  jackdaw: ^0.1.0-dev.1
+
+dev_dependencies:
+  test: ^1.33.0
+  very_good_analysis: ^11.0.0

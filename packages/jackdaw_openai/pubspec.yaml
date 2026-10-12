@@ -1,0 +1,20 @@
+name: jackdaw_openai
+description: >-
+  OpenAI provider for jackdaw. Streams chat completions with tool calls and
+  works with OpenAI-compatible servers such as Ollama, LM Studio and vLLM.
+version: 0.1.0-dev.1
+repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_openai
+topics: [ai, llm, openai]
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+dependencies:
+  http: ^1.6.0
+  jackdaw: ^0.1.0-dev.1
+
+dev_dependencies:
+  test: ^1.33.0
+  very_good_analysis: ^11.0.0
