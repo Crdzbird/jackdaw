@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:jackdaw/jackdaw.dart';
-import 'package:jackdaw_openai/src/open_ai_error.dart';
 import 'package:jackdaw_openai/src/open_ai_request_encoder.dart';
 import 'package:jackdaw_openai/src/open_ai_stream_decoder.dart';
 
@@ -49,36 +47,24 @@ final class OpenAiModel implements LanguageModel {
   String get id => 'openai/$model';
 
   @override
-  Stream<ModelEvent> generate(ModelRequest request) async* {
-    final abort = Completer<void>();
-    final client = _client ?? http.Client();
-    var finished = false;
-    try {
-      final response = await client.send(_build(request, abort.future));
-      if (response.statusCode != 200) throw await readOpenAiError(response);
-      final decoder = OpenAiStreamDecoder();
-      yield* response.stream
-          .transform(const SseDecoder())
-          .takeWhile((event) => event.data != '[DONE]')
-          .expand((event) => decoder.accept(jsonDecode(event.data)));
-      yield* Stream.fromIterable(decoder.finish());
-      finished = true;
-    } finally {
-      if (!finished) abort.complete();
-      if (_client == null) client.close();
-    }
+  Stream<ModelEvent> generate(ModelRequest request) {
+    final decoder = OpenAiStreamDecoder();
+    final transport = HttpTransport(provider: 'openai', client: _client);
+    final body = transport.postJson(
+      _endpoint(),
+      headers: {
+        ...headers,
+        if (_apiKey case final key?) 'authorization': 'Bearer ${key.reveal()}',
+        'accept': 'text/event-stream',
+      },
+      body: encodeChatRequest(model, request),
+    );
+    return body
+        .transform(const SseDecoder())
+        .takeWhile((event) => event.data != '[DONE]')
+        .expand((event) => decoder.accept(jsonDecode(event.data)))
+        .transform(appendOnDone(decoder.finish));
   }
-
-  http.BaseRequest _build(ModelRequest request, Future<void> abort) =>
-      http.AbortableRequest('POST', _endpoint(), abortTrigger: abort)
-        ..headers.addAll({
-          ...headers,
-          if (_apiKey case final key?)
-            'authorization': 'Bearer ${key.reveal()}',
-          'content-type': 'application/json',
-          'accept': 'text/event-stream',
-        })
-        ..body = jsonEncode(encodeChatRequest(model, request));
 
   Uri _endpoint() {
     final root = baseUrl ?? Uri.parse('https://api.openai.com/v1/');

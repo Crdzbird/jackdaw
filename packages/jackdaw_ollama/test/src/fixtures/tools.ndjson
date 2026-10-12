@@ -1,0 +1,2 @@
+{"model":"qwen2.5:3b-instruct","created_at":"2026-10-12T21:48:43.645633Z","message":{"role":"assistant","content":"","tool_calls":[{"id":"call_5la8k3mh","function":{"index":0,"name":"get_weather","arguments":{"city":"Lima"}}}]},"done":false}
+{"model":"qwen2.5:3b-instruct","created_at":"2026-10-12T21:48:43.684736Z","message":{"role":"assistant","content":""},"done":true,"done_reason":"stop","total_duration":553979708,"load_duration":2317542,"prompt_eval_count":150,"prompt_eval_cached_count":18,"prompt_eval_duration":153233000,"eval_count":21,"eval_duration":394709000}

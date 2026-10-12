@@ -20,16 +20,28 @@ jobs:
         include:
           - os: ubuntu-latest
             sanitize: ''
+            cc: clang
+            cxx: clang++
+          - os: ubuntu-latest
+            sanitize: ''
+            cc: gcc
+            cxx: g++
           - os: ubuntu-latest
             sanitize: address,undefined
+            cc: clang
+            cxx: clang++
           - os: ubuntu-latest
             sanitize: thread
+            cc: clang
+            cxx: clang++
           - os: macos-latest
             sanitize: ''
+            cc: clang
+            cxx: clang++
     runs-on: ${{ matrix.os }}
     env:
-      CC: clang
-      CXX: clang++
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: sudo apt-get install -y ninja-build
@@ -93,6 +105,10 @@ jobs:
             key: linux-x64
             file: libjackdaw.so
             args: ''
+          - os: windows-latest
+            key: windows-x64
+            file: jackdaw.dll
+            args: ''
     runs-on: ${{ matrix.os }}
     env:
       CC: clang
@@ -101,11 +117,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: sudo apt-get install -y ninja-build
         if: runner.os == 'Linux'
-      - run: |
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        run: |
           cmake -S native -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJACKDAW_STRIP=ON ${{ matrix.args }}
           cmake --build build --target jackdaw -j
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        env:
+          CC: cl
+          CXX: cl
+        run: |
+          cmake -S native -B build
+          cmake --build build --config Release --target jackdaw -j
       - run: ./tool/check_native_library.sh build/${{ matrix.file }}
+        if: runner.os != 'Windows'
       - run: mv build/${{ matrix.file }} "${{ matrix.key }}-${{ matrix.file }}"
+        shell: bash
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.key }}

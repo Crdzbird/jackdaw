@@ -10,10 +10,15 @@ final class ToolCallPart extends Part {
     required String id,
     required String name,
     required Object? arguments,
+    Map<String, Object?> providerData,
   }) = ToolCallPart._;
 
-  const new _({required this.id, required this.name, required this.arguments})
-    : super._();
+  const new _({
+    required this.id,
+    required this.name,
+    required this.arguments,
+    this.providerData = const {},
+  }) : super._();
 
   /// Identifier that links this call to its [ToolResultPart].
   final String id;
@@ -23,4 +28,8 @@ final class ToolCallPart extends Part {
 
   /// Arguments chosen by the model.
   final Object? arguments;
+
+  /// Provider data that must accompany the call when it is sent back, such
+  /// as a reasoning signature.
+  final Map<String, Object?> providerData;
 }

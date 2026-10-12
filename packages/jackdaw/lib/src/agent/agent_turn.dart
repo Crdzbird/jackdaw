@@ -14,6 +14,7 @@ final class AgentTurn {
   new _();
 
   final StringBuffer _text = StringBuffer();
+  final List<Part> _parts = [];
 
   /// Tool calls requested during the turn.
   final List<ToolCallPart> calls = [];
@@ -32,8 +33,14 @@ final class AgentTurn {
       case TextDelta(:final text):
         _text.write(text);
         return [AgentTextDelta(text)];
+      case ReasoningEvent(:final part):
+        _flushText();
+        _parts.add(part);
+        return [AgentReasoning(part)];
       case ToolCallEvent(:final call):
+        _flushText();
         calls.add(call);
+        _parts.add(call);
         return [AgentToolCall(call)];
       case FinishEvent(usage: final reported):
         usage = reported;
@@ -41,9 +48,16 @@ final class AgentTurn {
     }
   }
 
-  /// The assistant message produced by the turn.
-  Message get message => Message(
-    role: Role.assistant,
-    parts: [if (_text.isNotEmpty) TextPart('$_text'), ...calls],
-  );
+  /// The assistant message produced by the turn, with every part in the
+  /// order the model produced it.
+  Message toMessage() {
+    _flushText();
+    return Message(role: Role.assistant, parts: List.unmodifiable(_parts));
+  }
+
+  void _flushText() {
+    if (_text.isEmpty) return;
+    _parts.add(TextPart('$_text'));
+    _text.clear();
+  }
 }

@@ -352,3 +352,49 @@ Open for sign-off:
   least 10x faster than reprocessing the full prompt".
 - C6 (no UI-thread frames during inference) is not measured yet; it needs a
   Flutter frame-timing harness and is planned with the widgets in Phase 5.
+
+## Phase 3 progress (2026-10-13)
+
+Delivered:
+
+- Providers: `jackdaw_anthropic` (Messages API), `jackdaw_gemini`
+  (`generateContent`) and `jackdaw_ollama` (native `/api/chat`), next to
+  `jackdaw_openai`. Wire formats were taken from the official documentation;
+  Ollama's contract tests replay responses recorded from Ollama 0.33.3 and an
+  opt-in test runs an agent against a live server.
+- Core: `ReasoningPart` and `ToolCallPart.providerData` carry provider data
+  that must come back unchanged (Claude thinking blocks, Gemini thought
+  signatures). Agent turns keep parts in the order the model produced them.
+  `HttpTransport` gives every provider the same streaming, abort and error
+  mapping, and errors sent inside a stream fail it with `ProviderException`.
+- Web: `jackdaw_web` runs GGUF models in the browser through wllama 3.8's
+  OpenAI-compatible API, reusing the OpenAI wire helpers and the shared GBNF
+  compiler. Verified end to end in Chrome with Qwen2.5-1.5B (streaming text
+  and schema-valid JSON). The wllama module and wasm URLs are explicit
+  arguments; nothing is fetched implicitly.
+- iOS: verified on the simulator (streaming, JSON mode, cancel in 4 ms).
+  Simulator builds are CPU-only (`GGML_METAL=OFF`), because llama.cpp's Metal
+  backend produces invalid output on the simulator's virtual GPU; device
+  builds keep Metal.
+- Linux: llama.cpp is now a SYSTEM dependency so its headers cannot trip our
+  warning flags, and `<algorithm>` is force-included for the llama target to
+  work around a missing include in v0.6.0 under libstdc++. CI gains an
+  explicit GCC job.
+- Windows: MSVC warning flags and a Windows CI build were added. Not yet
+  verified; CI will be the first real build.
+
+Known limitations recorded here:
+
+- Browser coverage cannot be collected for `jackdaw_web`: package:test's
+  Chrome coverage crashes on the `data:` URL test module. Its tests run in CI
+  on both dart2js and dart2wasm, outside the coverage gate.
+- Grammar-constrained decoding costs about 3x in tokens per second on CPU,
+  because the grammar sampler scores the whole vocabulary. Sampling first and
+  checking the grammar only on rejection is planned for Phase 6.
+- Debug (JIT) iOS builds started without the Flutter tool attached do not
+  load the model; profile and release builds are the supported way to
+  measure.
+
+Still open in Phase 3: the first prebuilt release (needs the `native-v*` tag),
+the first green Windows build, and runtime-selected CPU variants for older
+Android phones (`GGML_BACKEND_DL`).

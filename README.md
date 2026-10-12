@@ -10,6 +10,9 @@ for scope and [docs/gap-analysis.md](docs/gap-analysis.md) for the reasoning.
 |---|---|---|
 | [jackdaw](packages/jackdaw) | Messages, schemas, tools, agent loop, SSE | All, including web |
 | [jackdaw_openai](packages/jackdaw_openai) | OpenAI and OpenAI-compatible provider | All, including web |
+| [jackdaw_anthropic](packages/jackdaw_anthropic) | Claude through the Messages API | All, including web |
+| [jackdaw_gemini](packages/jackdaw_gemini) | Gemini through generateContent | All, including web |
+| [jackdaw_ollama](packages/jackdaw_ollama) | Native Ollama `/api/chat` | All, including web |
 | [jackdaw_native](packages/jackdaw_native) | On-device GGUF inference through the C++ core | Native only; verified on Android and macOS so far |
 | [jackdaw_test](packages/jackdaw_test) | Scripted model for tests | All, including web |
 

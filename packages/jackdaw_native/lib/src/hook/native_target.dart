@@ -37,6 +37,7 @@ final class NativeTarget {
         '-DCMAKE_OSX_ARCHITECTURES=$_appleArch',
         '-DCMAKE_OSX_SYSROOT=${config.iOS.targetSdk.type}',
         '-DCMAKE_OSX_DEPLOYMENT_TARGET=${config.iOS.targetVersion}',
+        if (config.iOS.targetSdk == IOSSdk.iPhoneSimulator) '-DGGML_METAL=OFF',
       ];
     }
     return const [];

@@ -12,13 +12,12 @@ bool should_abort(void* data) {
 
 }
 
-jackdaw_session::jackdaw_session(jackdaw_model& model, llama_context* context,
-                                 jackdaw_event_callback callback,
-                                 int32_t batch_tokens)
-    : model(model),
-      context(context),
-      callback(callback),
-      batch_tokens(batch_tokens),
+jackdaw_session::jackdaw_session(jackdaw_model& owner, llama_context* ctx,
+                                 jackdaw_event_callback on_event, int32_t batch)
+    : model(owner),
+      context(ctx),
+      callback(on_event),
+      batch_tokens(batch),
       worker_([this] { run(); }) {
   llama_set_abort_callback(context, should_abort, this);
 }

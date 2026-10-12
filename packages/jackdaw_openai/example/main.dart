@@ -31,6 +31,8 @@ Future<void> main() async {
     switch (event) {
       case AgentTextDelta(:final text):
         stdout.write(text);
+      case AgentReasoning(:final part):
+        stdout.writeln('[thinking] ${part.text}');
       case AgentToolCall(:final call):
         stdout.writeln('[call] ${call.name} ${call.arguments}');
       case AgentToolResult(:final result):

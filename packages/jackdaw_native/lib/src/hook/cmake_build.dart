@@ -51,7 +51,15 @@ final class CMakeBuild {
       ...target.cmakeArguments,
       ...extraArguments,
     ]);
-    await _exec('cmake', ['--build', build, '--target', 'jackdaw', '-j']);
+    await _exec('cmake', [
+      '--build',
+      build,
+      '--config',
+      'Release',
+      '--target',
+      'jackdaw',
+      '-j',
+    ]);
     return buildDirectory.resolve(target.fileName);
   }
 

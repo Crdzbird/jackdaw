@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         sdk: [stable, beta]
-        package: [jackdaw, jackdaw_openai, jackdaw_test]
+        package: [jackdaw, jackdaw_anthropic, jackdaw_gemini, jackdaw_ollama, jackdaw_openai, jackdaw_test]
     defaults:
       run:
         working-directory: packages/${{ matrix.package }}
@@ -35,6 +35,21 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test --coverage-path=coverage/lcov.info --coverage-package='^${{ matrix.package }}$'
       - run: ../../tool/check_coverage.sh coverage/lcov.info
+      - run: dart test -p chrome
+      - run: dart test -p chrome --compiler dart2wasm
+      - run: dart pub publish --dry-run
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/jackdaw_web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
       - run: dart test -p chrome
       - run: dart test -p chrome --compiler dart2wasm
       - run: dart pub publish --dry-run

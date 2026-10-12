@@ -4,6 +4,7 @@ import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/model/usage.dart';
 
 part 'agent_finished.dart';
+part 'agent_reasoning.dart';
 part 'agent_text_delta.dart';
 part 'agent_tool_call.dart';
 part 'agent_tool_result.dart';

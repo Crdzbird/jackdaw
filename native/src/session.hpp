@@ -29,8 +29,8 @@ struct Job {
 
 /// A context, its worker thread and the state reused across turns.
 struct jackdaw_session {
-  jackdaw_session(jackdaw_model& model, llama_context* context,
-                  jackdaw_event_callback callback, int32_t batch_tokens);
+  jackdaw_session(jackdaw_model& owner, llama_context* ctx,
+                  jackdaw_event_callback on_event, int32_t batch);
   ~jackdaw_session();
   jackdaw_session(const jackdaw_session&) = delete;
   jackdaw_session& operator=(const jackdaw_session&) = delete;

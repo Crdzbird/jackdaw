@@ -3,6 +3,7 @@ import 'package:jackdaw/src/model/finish_reason.dart';
 import 'package:jackdaw/src/model/usage.dart';
 
 part 'finish_event.dart';
+part 'reasoning_event.dart';
 part 'text_delta.dart';
 part 'tool_call_event.dart';
 

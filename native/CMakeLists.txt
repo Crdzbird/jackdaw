@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.25)
 project(jackdaw VERSION 0.1.0 LANGUAGES C CXX)
 
 option(JACKDAW_BUILD_TESTS "Build the C++ unit tests" OFF)
@@ -40,8 +40,15 @@ FetchContent_Declare(
   llama_cpp
   URL https://github.com/ggml-org/llama.cpp/archive/refs/tags/v0.6.0.tar.gz
   URL_HASH SHA256=09b36dba235fcac180efff18514da7038e65d8e5b9e4aefa59238468abfdec12
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  SYSTEM)
 FetchContent_MakeAvailable(llama_cpp)
+if(MSVC)
+  target_compile_options(llama PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:/FIalgorithm>")
+endif()
+if(NOT MSVC)
+  target_compile_options(llama PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include algorithm>")
+endif()
 
 set(JACKDAW_SOURCES
   src/api.cpp
@@ -54,6 +61,9 @@ set(JACKDAW_SOURCES
   src/text.cpp)
 
 set(JACKDAW_WARNINGS -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror)
+if(MSVC)
+  set(JACKDAW_WARNINGS /W4 /permissive- /utf-8)
+endif()
 
 add_library(jackdaw_core STATIC ${JACKDAW_SOURCES})
 target_include_directories(jackdaw_core PUBLIC include PRIVATE src)
@@ -64,6 +74,11 @@ add_library(jackdaw SHARED ${JACKDAW_SOURCES})
 target_include_directories(jackdaw PUBLIC include PRIVATE src)
 target_link_libraries(jackdaw PRIVATE llama)
 target_compile_options(jackdaw PRIVATE ${JACKDAW_WARNINGS})
+set_target_properties(jackdaw PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 
 option(JACKDAW_STRIP "Strip local symbols from the shared library" OFF)
 if(JACKDAW_STRIP AND APPLE)

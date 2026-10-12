@@ -53,6 +53,7 @@ void main() {
     final ios = NativeTarget(codeConfig(OS.iOS, Architecture.arm64));
     expect(ios.key, 'ios-iphonesimulator-arm64');
     expect(ios.cmakeArguments, contains('-DCMAKE_SYSTEM_NAME=iOS'));
+    expect(ios.cmakeArguments.last, '-DGGML_METAL=OFF');
   });
 
   test('desktop hosts need no extra arguments', () {

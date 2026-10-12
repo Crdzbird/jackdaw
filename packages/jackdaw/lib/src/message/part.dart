@@ -1,3 +1,4 @@
+part 'reasoning_part.dart';
 part 'text_part.dart';
 part 'tool_call_part.dart';
 part 'tool_result_part.dart';

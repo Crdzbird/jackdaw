@@ -41,8 +41,8 @@ final class OpenAiStreamDecoder {
   ];
 
   void _addCall(Object? delta) {
-    if (delta case {'index': final int index}) {
-      final builder = _calls.putIfAbsent(index, ToolCallBuilder.new);
+    if (delta case {'index': final num index}) {
+      final builder = _calls.putIfAbsent(index.toInt(), ToolCallBuilder.new);
       if (delta case {'id': final String id}) builder.id = id;
       if (delta case {'function': final Map<Object?, Object?> function}) {
         if (function case {'name': final String name}) builder.name = name;
@@ -53,7 +53,7 @@ final class OpenAiStreamDecoder {
     }
   }
 
-  static int? _int(Object? value) => value is int ? value : null;
+  static int? _int(Object? value) => value is num ? value.toInt() : null;
 
   static FinishReason _mapReason(String reason) => switch (reason) {
     'stop' => FinishReason.stop,

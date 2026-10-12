@@ -6,9 +6,13 @@ environment:
 
 workspace:
   - packages/jackdaw
+  - packages/jackdaw_anthropic
+  - packages/jackdaw_gemini
   - packages/jackdaw_native
+  - packages/jackdaw_ollama
   - packages/jackdaw_openai
   - packages/jackdaw_test
+  - packages/jackdaw_web
 
 hooks:
   user_defines:

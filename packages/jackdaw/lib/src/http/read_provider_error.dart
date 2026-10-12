@@ -1,15 +1,18 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw/src/error/provider_exception.dart';
+import 'package:jackdaw/src/error/retry_after.dart';
 
 const int _maxErrorBytes = 64 * 1024;
 
-/// Reads a failed response into a [ProviderException].
+/// Reads a failed [response] from [provider] into a [ProviderException].
 ///
 /// At most 64 KiB of the body are kept, so a hostile server cannot exhaust
-/// memory through an error page.
-Future<ProviderException> readOpenAiError(
+/// memory through an error page. The message is taken from the common
+/// `{"error": {"message": ...}}` and `{"error": "..."}` shapes.
+Future<ProviderException> readProviderError(
+  String provider,
   http.StreamedResponse response,
 ) async {
   final bytes = await response.stream.fold<List<int>>(
@@ -22,19 +25,18 @@ Future<ProviderException> readOpenAiError(
     allowMalformed: true,
   );
   return ProviderException(
-    provider: 'openai',
-    message: _message(body, response.statusCode),
+    provider: provider,
+    message: _message(body) ?? 'HTTP ${response.statusCode}',
     statusCode: response.statusCode,
     retryAfter: parseRetryAfter(response.headers['retry-after']),
   );
 }
 
-String _message(String body, int statusCode) {
-  if (_tryDecode(body) case {'error': {'message': final String message}}) {
-    return message;
-  }
-  return 'HTTP $statusCode';
-}
+String? _message(String body) => switch (_tryDecode(body)) {
+  {'error': {'message': final String message}} => message,
+  {'error': final String message} => message,
+  _ => null,
+};
 
 Object? _tryDecode(String body) {
   try {

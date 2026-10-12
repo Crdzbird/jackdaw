@@ -60,7 +60,7 @@ final class Agent {
       final turn = AgentTurn();
       yield* turn.drive(model.generate(_request(transcript, toolBox)));
       usage += turn.usage;
-      transcript.add(turn.message);
+      transcript.add(turn.toMessage());
       if (turn.calls.isEmpty) {
         yield _finish(transcript, usage, AgentStopReason.completed);
         return;
