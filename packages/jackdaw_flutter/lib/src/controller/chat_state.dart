@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_flutter/src/controller/chat_status.dart';
 import 'package:jackdaw_flutter/src/controller/frame_text.dart';
@@ -32,8 +32,14 @@ final class ChatState {
   /// The error of the last failed turn.
   Object? error;
 
+  final Map<int, GlobalKey> _layouts = {};
   List<Message>? _transcript;
   ChatStatus _settled = ChatStatus.idle;
+
+  /// Key for the text of the message at [index] of the transcript, shared
+  /// by the streaming bubble that will become that message, so its layout
+  /// carries over.
+  GlobalKey layoutKey(int index) => _layouts.putIfAbsent(index, GlobalKey.new);
 
   /// Marks the start of a turn.
   void begin() {

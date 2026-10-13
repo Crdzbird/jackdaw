@@ -8,12 +8,15 @@ import 'chat_screen.dart';
 
 /// Claim C6: frame times of a live chat while [model] generates, compared
 /// with the same screen idle. A spinner keeps frames coming in both phases.
+/// One short turn runs first, as in a chat already in use, so first-time
+/// text shaping does not count as inference.
 Future<Map<String, Object>> runFrameBench(
   WidgetTester tester,
   LanguageModel model, {
   Duration idle = const Duration(seconds: 5),
 }) async {
   final chat = await pumpChatScreen(tester, model);
+  await chat.send('In one sentence, what is a bird?');
   final frames = <FrameTiming>[];
   void collect(List<FrameTiming> timings) => frames.addAll(timings);
   SchedulerBinding.instance.addTimingsCallback(collect);
