@@ -82,6 +82,7 @@ final class AgentEngine {
       yield* turn.drive(
         _model.generate(agentRequest(_agent, _tools.specs, state.messages)),
       );
+      if (turn.failed) return;
       usage += turn.usage;
       await record(MessageRecord(turn.toMessage()));
     }

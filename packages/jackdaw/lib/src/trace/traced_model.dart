@@ -31,6 +31,7 @@ final class TracedModel implements LanguageModel {
   Stream<ModelEvent> generate(ModelRequest request) {
     final controller = StreamController<ModelEvent>(sync: true);
     final output = StringBuffer();
+    var finished = false;
     TraceSpan? span;
     void end({Object? error}) {
       span?.end(error: error);
@@ -62,6 +63,7 @@ final class TracedModel implements LanguageModel {
               controller.addError(error, stack);
             },
             onDone: () {
+              finished = true;
               if (content) span?.setAttribute('gen_ai.output.text', '$output');
               end();
               unawaited(controller.close());
@@ -72,7 +74,7 @@ final class TracedModel implements LanguageModel {
         ..onResume = sub.resume
         ..onCancel = () {
           end();
-          return sub.cancel();
+          return finished ? null : sub.cancel();
         };
     };
     return controller.stream;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:jackdaw/src/agent/agent_event.dart';
 import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/message/part.dart';
@@ -22,11 +24,22 @@ final class AgentTurn {
   /// Usage reported by the model for the turn.
   Usage usage = const Usage();
 
+  /// Whether the model call failed; a failed turn is not recorded.
+  bool failed = false;
+
   /// Forwards [events] as agent events and records what they contain.
   ///
   /// Built from stream operators rather than an `async*` loop so that
   /// cancelling the result cancels [events] at once on every compiler.
-  Stream<AgentEvent> drive(Stream<ModelEvent> events) => events.expand(_record);
+  Stream<AgentEvent> drive(Stream<ModelEvent> events) => events.transform(
+    StreamTransformer.fromHandlers(
+      handleData: (event, sink) => _record(event).forEach(sink.add),
+      handleError: (error, stack, sink) {
+        failed = true;
+        sink.addError(error, stack);
+      },
+    ),
+  );
 
   Iterable<AgentEvent> _record(ModelEvent event) {
     switch (event) {
