@@ -71,7 +71,7 @@ final class AgentEngine {
   ModelRequest _request(List<Message> messages) => ModelRequest(
     messages: List.unmodifiable([
       if (_agent.instructions case final text?) Message.system(text),
-      ...messages,
+      ...(_agent.budget?.fit(messages) ?? messages),
     ]),
     tools: _tools.specs,
     options: _agent.options,

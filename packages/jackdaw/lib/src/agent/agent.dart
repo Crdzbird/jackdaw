@@ -1,7 +1,6 @@
 import 'package:jackdaw/src/agent/agent_engine.dart';
 import 'package:jackdaw/src/agent/agent_event.dart';
-import 'package:jackdaw/src/agent/approval_decision.dart';
-import 'package:jackdaw/src/agent/record_decisions.dart';
+import 'package:jackdaw/src/context/context_budget.dart';
 import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/model/generation_options.dart';
 import 'package:jackdaw/src/model/language_model.dart';
@@ -14,8 +13,9 @@ import 'package:jackdaw/src/tool/tool.dart';
 
 /// Runs a model in a loop, executing the tools it asks for, until it
 /// answers, needs approval, or has made [maxSteps] model calls. Each step is
-/// journalled in [store], so a session survives the process being killed;
-/// [policy] checks every tool call and [decide] answers pending approvals.
+/// journalled in [store], so a session survives the process being killed,
+/// and [policy] checks every tool call. Sessions are driven through the
+/// `AgentSessions` methods `send`, `resume` and `decide`.
 final class Agent {
   /// Creates an agent backed by [model].
   const factory({
@@ -26,6 +26,7 @@ final class Agent {
     GenerationOptions options,
     ToolPolicy policy,
     SessionStore? store,
+    ContextBudget? budget,
   }) = Agent._;
 
   const new _({
@@ -36,6 +37,7 @@ final class Agent {
     this.options = const GenerationOptions(),
     this.policy = const ApprovalPolicy(),
     this.store,
+    this.budget,
   });
 
   /// The model that decides what to do.
@@ -56,8 +58,11 @@ final class Agent {
   /// Decides whether each tool call runs, is refused, or needs approval.
   final ToolPolicy policy;
 
-  /// Journal for [send], [resume] and [decide].
+  /// Journal for sessions; required by `send`, `resume` and `decide`.
   final SessionStore? store;
+
+  /// Limit for the transcript sent to the model; the journal keeps all.
+  final ContextBudget? budget;
 
   /// Runs once over [history] without keeping a session.
   Stream<AgentEvent> run(List<Message> history) async* {
@@ -68,33 +73,7 @@ final class Agent {
     yield* AgentEngine(this, scratch, 'run').run();
   }
 
-  /// Adds [message] to [sessionId] and continues it.
-  Stream<AgentEvent> send(String sessionId, Message message) async* {
-    await _store.append(sessionId, MessageRecord(message));
-    yield* AgentEngine(this, _store, sessionId).run();
-  }
-
-  /// Continues [sessionId] from its journal, for example after a crash.
-  Stream<AgentEvent> resume(String sessionId) async* {
-    yield* AgentEngine(this, _store, sessionId).run();
-  }
-
-  /// Records [decisions] on calls of [sessionId] waiting for approval, then
-  /// continues; any other call id fails the stream with [ArgumentError].
-  Stream<AgentEvent> decide(
-    String sessionId,
-    Map<String, ApprovalDecision> decisions,
-  ) async* {
-    await recordDecisions(_store, sessionId, decisions);
-    yield* AgentEngine(this, _store, sessionId).run();
-  }
-
   /// Runs over [history] and returns only the final event.
-  Future<AgentFinished> complete(List<Message> history) async {
-    final events = await run(history).toList();
-    return events.whereType<AgentFinished>().single;
-  }
-
-  SessionStore get _store =>
-      store ?? (throw StateError('this agent has no session store'));
+  Future<AgentFinished> complete(List<Message> history) async =>
+      (await run(history).toList()).whereType<AgentFinished>().single;
 }

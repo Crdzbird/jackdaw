@@ -8,8 +8,15 @@ import 'package:jackdaw/jackdaw.dart' show Agent, LanguageModel, Schema, Tool;
 
 export 'src/agent/agent.dart';
 export 'src/agent/agent_event.dart';
+export 'src/agent/agent_sessions.dart';
 export 'src/agent/agent_stop_reason.dart';
 export 'src/agent/approval_decision.dart';
+export 'src/agent/delegate_tool.dart';
+export 'src/context/context_budget.dart';
+export 'src/context/estimating_token_counter.dart';
+export 'src/context/message_content.dart';
+export 'src/context/text_token_counter.dart';
+export 'src/context/token_counter.dart';
 export 'src/error/provider_exception.dart';
 export 'src/error/retry_after.dart';
 export 'src/grammar/gbnf_compiler.dart';
