@@ -46,4 +46,17 @@ final class HttpTransport {
       if (_client == null) client.close();
     }
   }
+
+  /// Posts [body] as JSON to [url] with [headers] and decodes the JSON
+  /// answer.
+  Future<Object?> postForJson(
+    Uri url, {
+    required Map<String, String> headers,
+    required Object? body,
+  }) async {
+    final text = await utf8.decoder
+        .bind(postJson(url, headers: headers, body: body))
+        .join();
+    return jsonDecode(text);
+  }
 }
