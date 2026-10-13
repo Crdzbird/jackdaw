@@ -1,8 +1,7 @@
-import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/tool/tool.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
 
-/// Looks up tools by name and runs batches of calls concurrently.
+/// The tools an agent may call, looked up by name.
 final class ToolBox {
   /// Creates a tool box; tool names must be unique.
   factory(List<Tool<Object?>> tools) {
@@ -20,21 +19,6 @@ final class ToolBox {
   /// Descriptions of every tool, for the model request.
   List<ToolSpec> get specs => [for (final tool in _tools.values) tool.spec];
 
-  /// Runs every call at once and returns results in call order.
-  Future<List<ToolResultPart>> runAll(List<ToolCallPart> calls) =>
-      Future.wait(calls.map(run));
-
-  /// Runs [call], reporting unknown tools to the model as an error.
-  Future<ToolResultPart> run(ToolCallPart call) async {
-    final tool = _tools[call.name];
-    if (tool == null) {
-      return ToolResultPart(
-        callId: call.id,
-        name: call.name,
-        output: {'error': 'unknown tool ${call.name}'},
-        isError: true,
-      );
-    }
-    return await tool.invoke(call);
-  }
+  /// The tool named [name], or `null` when none is registered.
+  Tool<Object?>? operator [](String name) => _tools[name];
 }

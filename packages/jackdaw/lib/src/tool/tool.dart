@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/schema/schema.dart';
+import 'package:jackdaw/src/tool/tool_context.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
 
 /// A function the model can call, with typed and validated input.
@@ -22,6 +23,8 @@ final class Tool<I> {
     required I Function(Map<String, Object?> json) decode,
     required FutureOr<Object?> Function(I input) run,
     Duration timeout,
+    bool requiresApproval,
+    bool idempotent,
   }) = Tool<I>._;
 
   const new _({
@@ -31,6 +34,8 @@ final class Tool<I> {
     required this._decode,
     required this._run,
     this.timeout = const Duration(seconds: 30),
+    this.requiresApproval = false,
+    this.idempotent = false,
   });
 
   /// Unique name the model uses to call the tool.
@@ -44,6 +49,13 @@ final class Tool<I> {
 
   /// Longest time a single call may take.
   final Duration timeout;
+
+  /// Whether the default policy waits for a person before running a call.
+  final bool requiresApproval;
+
+  /// Whether running a call twice is harmless. After an interruption, a
+  /// call that may already have run is retried only when this is true.
+  final bool idempotent;
 
   final I Function(Map<String, Object?> json) _decode;
   final FutureOr<Object?> Function(I input) _run;
@@ -61,8 +73,10 @@ final class Tool<I> {
     }
     final json = Map<String, Object?>.from(arguments);
     try {
-      final output = await Future<Object?>.sync(() => _run(_decode(json)))
-          .timeout(timeout);
+      final output = await ToolContext.run(
+        call.id,
+        () => Future<Object?>.sync(() => _run(_decode(json))),
+      ).timeout(timeout);
       return ToolResultPart(callId: call.id, name: name, output: output);
     } on TimeoutException {
       return _failure(call, 'timed out after ${timeout.inMilliseconds} ms');

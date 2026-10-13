@@ -3,6 +3,7 @@ import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/model/usage.dart';
 
+part 'agent_approval_requested.dart';
 part 'agent_finished.dart';
 part 'agent_reasoning.dart';
 part 'agent_text_delta.dart';

@@ -5,4 +5,8 @@ enum AgentStopReason {
 
   /// The run hit the agent's step limit.
   stepLimit,
+
+  /// A tool call waits for a person's approval; continue with
+  /// `Agent.decide`.
+  awaitingApproval,
 }

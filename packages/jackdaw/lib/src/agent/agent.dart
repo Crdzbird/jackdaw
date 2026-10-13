@@ -1,20 +1,21 @@
+import 'package:jackdaw/src/agent/agent_engine.dart';
 import 'package:jackdaw/src/agent/agent_event.dart';
-import 'package:jackdaw/src/agent/agent_stop_reason.dart';
-import 'package:jackdaw/src/agent/agent_turn.dart';
+import 'package:jackdaw/src/agent/approval_decision.dart';
+import 'package:jackdaw/src/agent/record_decisions.dart';
 import 'package:jackdaw/src/message/message.dart';
-import 'package:jackdaw/src/message/role.dart';
 import 'package:jackdaw/src/model/generation_options.dart';
 import 'package:jackdaw/src/model/language_model.dart';
-import 'package:jackdaw/src/model/model_request.dart';
-import 'package:jackdaw/src/model/usage.dart';
+import 'package:jackdaw/src/policy/approval_policy.dart';
+import 'package:jackdaw/src/policy/tool_policy.dart';
+import 'package:jackdaw/src/session/in_memory_session_store.dart';
+import 'package:jackdaw/src/session/session_record.dart';
+import 'package:jackdaw/src/session/session_store.dart';
 import 'package:jackdaw/src/tool/tool.dart';
-import 'package:jackdaw/src/tool/tool_box.dart';
 
 /// Runs a model in a loop, executing the tools it asks for, until it
-/// answers or [maxSteps] model calls have been made.
-///
-/// Tool calls from one model turn run concurrently. Cancelling the stream
-/// returned by [run] cancels the in-flight model call.
+/// answers, needs approval, or has made [maxSteps] model calls. Each step is
+/// journalled in [store], so a session survives the process being killed;
+/// [policy] checks every tool call and [decide] answers pending approvals.
 final class Agent {
   /// Creates an agent backed by [model].
   const factory({
@@ -23,6 +24,8 @@ final class Agent {
     String? instructions,
     int maxSteps,
     GenerationOptions options,
+    ToolPolicy policy,
+    SessionStore? store,
   }) = Agent._;
 
   const new _({
@@ -31,47 +34,59 @@ final class Agent {
     this.instructions,
     this.maxSteps = 8,
     this.options = const GenerationOptions(),
+    this.policy = const ApprovalPolicy(),
+    this.store,
   });
 
   /// The model that decides what to do.
   final LanguageModel model;
 
-  /// Tools the model may call.
+  /// Tools the model may call; tools not listed here never run.
   final List<Tool<Object?>> tools;
 
-  /// System instructions placed before the history.
+  /// System instructions sent before the transcript.
   final String? instructions;
 
-  /// Maximum number of model calls in one run.
+  /// Maximum number of model calls in one invocation.
   final int maxSteps;
 
   /// Sampling settings for every model call.
   final GenerationOptions options;
 
-  /// Streams one run over [history].
+  /// Decides whether each tool call runs, is refused, or needs approval.
+  final ToolPolicy policy;
+
+  /// Journal for [send], [resume] and [decide].
+  final SessionStore? store;
+
+  /// Runs once over [history] without keeping a session.
   Stream<AgentEvent> run(List<Message> history) async* {
-    final toolBox = ToolBox(tools);
-    final transcript = [
-      if (instructions case final text?) Message.system(text),
-      ...history,
-    ];
-    var usage = const Usage();
-    for (var step = 0; step < maxSteps; step++) {
-      final turn = AgentTurn();
-      yield* turn.drive(model.generate(_request(transcript, toolBox)));
-      usage += turn.usage;
-      transcript.add(turn.toMessage());
-      if (turn.calls.isEmpty) {
-        yield _finish(transcript, usage, AgentStopReason.completed);
-        return;
-      }
-      final results = await toolBox.runAll(turn.calls);
-      for (final result in results) {
-        yield AgentToolResult(result);
-      }
-      transcript.add(Message(role: Role.tool, parts: results));
+    final scratch = InMemorySessionStore();
+    for (final message in history) {
+      await scratch.append('run', MessageRecord(message));
     }
-    yield _finish(transcript, usage, AgentStopReason.stepLimit);
+    yield* AgentEngine(this, scratch, 'run').run();
+  }
+
+  /// Adds [message] to [sessionId] and continues it.
+  Stream<AgentEvent> send(String sessionId, Message message) async* {
+    await _store.append(sessionId, MessageRecord(message));
+    yield* AgentEngine(this, _store, sessionId).run();
+  }
+
+  /// Continues [sessionId] from its journal, for example after a crash.
+  Stream<AgentEvent> resume(String sessionId) async* {
+    yield* AgentEngine(this, _store, sessionId).run();
+  }
+
+  /// Records [decisions] on calls of [sessionId] waiting for approval, then
+  /// continues; any other call id fails the stream with [ArgumentError].
+  Stream<AgentEvent> decide(
+    String sessionId,
+    Map<String, ApprovalDecision> decisions,
+  ) async* {
+    await recordDecisions(_store, sessionId, decisions);
+    yield* AgentEngine(this, _store, sessionId).run();
   }
 
   /// Runs over [history] and returns only the final event.
@@ -80,20 +95,6 @@ final class Agent {
     return events.whereType<AgentFinished>().single;
   }
 
-  ModelRequest _request(List<Message> transcript, ToolBox toolBox) =>
-      ModelRequest(
-        messages: List.unmodifiable(transcript),
-        tools: toolBox.specs,
-        options: options,
-      );
-
-  AgentFinished _finish(
-    List<Message> messages,
-    Usage usage,
-    AgentStopReason reason,
-  ) => AgentFinished(
-    messages: List.unmodifiable(messages),
-    usage: usage,
-    reason: reason,
-  );
+  SessionStore get _store =>
+      store ?? (throw StateError('this agent has no session store'));
 }

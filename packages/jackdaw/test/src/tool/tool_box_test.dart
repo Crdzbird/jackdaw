@@ -11,24 +11,11 @@ Tool<Object?> echo(String name) => Tool<Object?>(
 );
 
 void main() {
-  test('runs calls concurrently and keeps call order', () async {
+  test('looks tools up by name and lists their specs', () {
     final box = ToolBox([echo('a'), echo('b')]);
-    final results = await box.runAll(const [
-      ToolCallPart(id: '1', name: 'b', arguments: {}),
-      ToolCallPart(id: '2', name: 'a', arguments: {}),
-    ]);
-    expect(results.map((r) => r.output), [
-      {'from': 'b'},
-      {'from': 'a'},
-    ]);
+    expect(box['a']!.name, 'a');
+    expect(box['missing'], isNull);
     expect(box.specs.map((s) => s.name), ['a', 'b']);
-  });
-
-  test('reports unknown tools to the model', () async {
-    final result = await ToolBox(const [])
-        .run(const ToolCallPart(id: '1', name: 'nope', arguments: {}));
-    expect(result.isError, isTrue);
-    expect(result.output, {'error': 'unknown tool nope'});
   });
 
   test('rejects duplicate names', () {

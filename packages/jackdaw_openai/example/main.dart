@@ -31,6 +31,8 @@ Future<void> main() async {
     switch (event) {
       case AgentTextDelta(:final text):
         stdout.write(text);
+      case AgentApprovalRequested(:final call, :final reason):
+        stdout.writeln('[approval needed] ${call.name}: $reason');
       case AgentReasoning(:final part):
         stdout.writeln('[thinking] ${part.text}');
       case AgentToolCall(:final call):
