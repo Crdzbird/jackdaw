@@ -13,4 +13,10 @@ const Map<String, String> gbnfPrimitives = {
       'number ::= "-"? ("0" | [1-9] [0-9]{0,15}) ("." [0-9]{1,15})? '
       '([eE] [-+]? [0-9]{1,3})?',
   'boolean': 'boolean ::= "true" | "false"',
+  'value':
+      'value ::= jobject | jarray | string | number | "true" | "false" | '
+      '"null"\n'
+      'jobject ::= "{" ws (string ws ":" ws value '
+      '(ws "," ws string ws ":" ws value)*)? ws "}"\n'
+      'jarray ::= "[" ws (value (ws "," ws value)*)? ws "]"',
 };

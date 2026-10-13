@@ -5,6 +5,7 @@ part 'boolean_schema.dart';
 part 'integer_schema.dart';
 part 'number_schema.dart';
 part 'object_schema.dart';
+part 'raw_schema.dart';
 part 'string_schema.dart';
 
 /// A JSON Schema subset that describes tool inputs and structured output.
@@ -38,6 +39,9 @@ sealed class Schema {
   /// Describes a JSON array whose elements match [items].
   const factory array({required Schema items, String? description}) =
       ArraySchema;
+
+  /// Passes the JSON Schema document [json] through unchanged.
+  const factory raw(Map<String, Object?> json) = RawSchema;
 
   /// Explanation shown to the model.
   final String? description;

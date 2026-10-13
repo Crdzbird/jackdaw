@@ -1,0 +1,78 @@
+import 'package:jackdaw/src/schema/schema.dart';
+
+const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
+
+/// Reads a JSON Schema document, such as an MCP tool's `inputSchema`.
+///
+/// A document becomes a typed schema only when every keyword in it is
+/// understood, so no constraint is dropped; any other document, such as one
+/// using `anyOf`, `$ref` or `minLength`, is kept whole as a [RawSchema]. A missing
+/// `additionalProperties` means true, as in JSON Schema.
+Schema schemaFromJson(Map<String, Object?> json) {
+  final keys = json.keys.where((k) => !_ignored.contains(k)).toSet();
+  final description = json['description'];
+  if (description != null && description is! String) return RawSchema(json);
+  final text = description as String?;
+  bool only(Set<String> allowed) =>
+      keys.difference({'type', 'description', ...allowed}).isEmpty;
+  return switch (json['type']) {
+    'string' when only({'enum'}) => _string(json, text),
+    'integer' when only({}) => IntegerSchema(description: text),
+    'number' when only({}) => NumberSchema(description: text),
+    'boolean' when only({}) => BooleanSchema(description: text),
+    'array' when only({'items'}) && json['items'] is Map<String, Object?> =>
+      ArraySchema(
+        items: schemaFromJson(json['items']! as Map<String, Object?>),
+        description: text,
+      ),
+    'object' when only({'properties', 'required', 'additionalProperties'}) =>
+      _object(json, text),
+    _ => RawSchema(json),
+  };
+}
+
+/// Reads [json] as the arguments schema of a tool. A document that is not
+/// a plain object schema becomes an object that accepts any keys, with the
+/// document's description.
+ObjectSchema toolInputFromJson(Map<String, Object?> json) =>
+    switch (schemaFromJson(json)) {
+      final ObjectSchema schema => schema,
+      _ => ObjectSchema(
+        properties: const {},
+        additionalProperties: true,
+        description: json['description'] is String
+            ? json['description']! as String
+            : null,
+      ),
+    };
+
+Schema _string(Map<String, Object?> json, String? text) {
+  final values = json['enum'];
+  if (values == null) return StringSchema(description: text);
+  if (values is! List || values.any((v) => v is! String)) {
+    return RawSchema(json);
+  }
+  return StringSchema(enumValues: values.cast<String>(), description: text);
+}
+
+Schema _object(Map<String, Object?> json, String? text) {
+  final properties = json['properties'] ?? const <String, Object?>{};
+  final required = json['required'] ?? const <Object?>[];
+  final extra = json['additionalProperties'] ?? true;
+  if (properties is! Map<String, Object?> ||
+      properties.values.any((p) => p is! Map<String, Object?>) ||
+      required is! List ||
+      required.any((r) => r is! String) ||
+      extra is! bool) {
+    return RawSchema(json);
+  }
+  return ObjectSchema(
+    properties: {
+      for (final MapEntry(:key, :value) in properties.entries)
+        key: schemaFromJson(value! as Map<String, Object?>),
+    },
+    required: required.cast<String>(),
+    additionalProperties: extra,
+    description: text,
+  );
+}

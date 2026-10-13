@@ -51,6 +51,7 @@ export 'src/retrieval/vector_from_json.dart';
 export 'src/retrieval/vector_index.dart';
 export 'src/retrieval/vector_match.dart';
 export 'src/schema/schema.dart';
+export 'src/schema/schema_from_json.dart';
 export 'src/schema/schema_violation.dart';
 export 'src/security/secret.dart';
 export 'src/session/in_memory_session_store.dart';

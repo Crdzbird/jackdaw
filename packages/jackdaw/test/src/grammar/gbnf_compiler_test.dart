@@ -52,4 +52,15 @@ void main() {
     );
     expect('string ::='.allMatches(grammar), hasLength(1));
   });
+
+  test('raw schemas compile to any JSON value', () {
+    final grammar = GbnfCompiler().compile(
+      const ObjectSchema(properties: {'v': Schema.raw({})}),
+    );
+    expect(grammar, contains('ws ":" ws value ws "}"'));
+    expect(grammar, contains('value ::= jobject | jarray | string | number'));
+    expect(grammar, contains('jarray ::='));
+    expect(grammar, contains('string ::='));
+    expect(grammar, contains('number ::='));
+  });
 }

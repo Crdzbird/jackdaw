@@ -39,7 +39,13 @@ final class GbnfCompiler {
     BooleanSchema() => _use('boolean'),
     ArraySchema(:final items) => _array(items),
     ObjectSchema(:final properties) => _object(properties),
+    RawSchema() => _value(),
   };
+
+  String _value() {
+    ['ws', 'string', 'number'].forEach(_use);
+    return _use('value');
+  }
 
   String _object(Map<String, Schema> properties) {
     _use('ws');
