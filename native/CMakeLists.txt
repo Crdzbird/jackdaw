@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(jackdaw VERSION 0.1.0 LANGUAGES C CXX)
 
 option(JACKDAW_BUILD_TESTS "Build the C++ unit tests" OFF)
+set(JACKDAW_CPU_REQUIREMENTS "" CACHE STRING "CPU features the build needs, reported to callers")
 set(JACKDAW_SANITIZE "" CACHE STRING "Comma separated -fsanitize list, for example address,undefined")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -67,12 +68,14 @@ endif()
 
 add_library(jackdaw_core STATIC ${JACKDAW_SOURCES})
 target_compile_features(jackdaw_core PUBLIC cxx_std_20)
+target_compile_definitions(jackdaw_core PUBLIC JACKDAW_CPU_REQUIREMENTS="${JACKDAW_CPU_REQUIREMENTS}")
 target_include_directories(jackdaw_core PUBLIC include PRIVATE src)
 target_link_libraries(jackdaw_core PUBLIC llama)
 target_compile_options(jackdaw_core PRIVATE ${JACKDAW_WARNINGS})
 
 add_library(jackdaw SHARED ${JACKDAW_SOURCES})
 target_compile_features(jackdaw PRIVATE cxx_std_20)
+target_compile_definitions(jackdaw PRIVATE JACKDAW_CPU_REQUIREMENTS="${JACKDAW_CPU_REQUIREMENTS}")
 target_include_directories(jackdaw PUBLIC include PRIVATE src)
 target_link_libraries(jackdaw PRIVATE llama)
 target_compile_options(jackdaw PRIVATE ${JACKDAW_WARNINGS})

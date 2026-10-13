@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /// Version of this ABI. Bumped on every incompatible change.
-#define JACKDAW_ABI_VERSION 1
+#define JACKDAW_ABI_VERSION 2
 
 /// Status codes returned by every fallible function.
 typedef enum jackdaw_status {
@@ -113,6 +113,10 @@ typedef void (*jackdaw_event_callback)(int64_t request_id, int32_t kind,
 
 /// Returns JACKDAW_ABI_VERSION of the loaded library.
 JACKDAW_API int32_t jackdaw_abi_version(void);
+
+/// Returns the CPU features this build requires, such as "dotprod", or an
+/// empty string. The string is static and owned by the library.
+JACKDAW_API const char* jackdaw_cpu_requirements(void);
 
 /// Returns the message for the last failure on the calling thread.
 /// The string is owned by the library and valid until the next call on

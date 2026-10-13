@@ -387,9 +387,10 @@ Delivered:
 
 Known limitations recorded here:
 
-- Browser coverage cannot be collected for `jackdaw_web`: package:test's
-  Chrome coverage crashes on the `data:` URL test module. Its tests run in CI
-  on both dart2js and dart2wasm, outside the coverage gate.
+- Browser coverage for `jackdaw_web` first crashed in package:test because
+  the fake wllama module was a `data:` URL. Serving it as a real file next
+  to the tests fixed that; the package is at 100% line coverage and CI
+  enforces it.
 - Grammar-constrained decoding used to cost about 2.5x in tokens per second
   on CPU, because the grammar sampler scored the whole vocabulary. Fixed: the
   grammar now checks only the sampled token and rescores the vocabulary only
@@ -406,6 +407,17 @@ Known limitations recorded here:
   verified library and produced schema-valid JSON on the Pixel 7 Pro, and a
   fresh Dart app did the same on macOS.
 
-Still open in Phase 3: iOS in the release matrix (iOS uses `build: source`
-until then) and runtime-selected CPU variants for older Android phones
-(`GGML_BACKEND_DL`).
+- Older Android phones: the library reports the CPU features it was built
+  for (`jackdaw_cpu_requirements`, ABI version 2). On Android, `LocalModel`
+  compares them with `/proc/cpuinfo` and throws a clear `UnsupportedError`
+  instead of crashing on an illegal instruction. Apps that target ARMv8.0
+  phones set the user define `android_cpu: baseline`, which selects an
+  ARMv8.0 build, prebuilt as `android-arm64-baseline`. Choosing kernels at
+  runtime (`GGML_BACKEND_DL`) was rejected: it splits the library into
+  several files and exports ggml symbols, undoing the single-library design
+  and symbol isolation.
+- iOS: device and simulator libraries are in the release matrix, built for
+  iOS 15.0; macOS libraries now target macOS 12.0, matching Flutter's app
+  templates.
+
+Phase 3 closes with release `native-v0.1.0-dev.2`.

@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:jackdaw_native/src/ffi/jackdaw_bindings.g.dart';
 import 'package:jackdaw_native/src/native/check_status.dart';
+import 'package:jackdaw_native/src/native/cpu_check.dart';
 
 /// A GGUF model loaded into native memory.
 final class NativeModel {
@@ -20,6 +21,7 @@ final class NativeModel {
     final address = await Isolate.run(
       () => using((arena) {
         checkAbi();
+        checkCpu();
         final out = arena<Pointer<jackdaw_model>>();
         final params = arena<jackdaw_model_params>();
         params.ref

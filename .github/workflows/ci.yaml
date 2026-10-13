@@ -50,6 +50,7 @@ jobs:
       - run: dart pub get
       - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
-      - run: dart test -p chrome
+      - run: dart test -p chrome --coverage-path=coverage/lcov.info
+      - run: ../../tool/check_coverage.sh coverage/lcov.info 'jackdaw_web/lib/'
       - run: dart test -p chrome --compiler dart2wasm
       - run: dart pub publish --dry-run

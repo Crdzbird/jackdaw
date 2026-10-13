@@ -10,6 +10,10 @@ void ignore(int64_t, int32_t, int32_t) {}
 
 TEST(Api, ReportsAbiVersion) { EXPECT_EQ(jackdaw_abi_version(), JACKDAW_ABI_VERSION); }
 
+TEST(Api, ReportsCpuRequirements) {
+  EXPECT_STREQ(jackdaw_cpu_requirements(), JACKDAW_CPU_REQUIREMENTS);
+}
+
 TEST(Api, RejectsMissingArguments) {
   jackdaw_model* model = nullptr;
   EXPECT_EQ(jackdaw_model_load(nullptr, nullptr, &model), JACKDAW_ERR_INVALID_ARGUMENT);

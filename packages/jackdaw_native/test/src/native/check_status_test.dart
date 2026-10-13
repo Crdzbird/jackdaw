@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 void main() {
   test('rejects a library built for another ABI', () {
     expect(() => checkAbiVersion(999), throwsStateError);
-    expect(() => checkAbiVersion(1), returnsNormally);
+    expect(() => checkAbiVersion(2), returnsNormally);
   });
 
   test('native exceptions describe themselves', () {

@@ -8,6 +8,11 @@ import 'dart:ffi' as ffi;
 @ffi.Native<ffi.Int32 Function()>()
 external int jackdaw_abi_version();
 
+/// Returns the CPU features this build requires, such as "dotprod", or an
+/// empty string. The string is static and owned by the library.
+@ffi.Native<ffi.Pointer<ffi.Char> Function()>()
+external ffi.Pointer<ffi.Char> jackdaw_cpu_requirements();
+
 /// Returns the message for the last failure on the calling thread.
 /// The string is owned by the library and valid until the next call on
 /// that thread.
@@ -201,7 +206,7 @@ external int jackdaw_session_read(
   ffi.Pointer<ffi.Int32> out_len,
 );
 
-const int JACKDAW_ABI_VERSION = 1;
+const int JACKDAW_ABI_VERSION = 2;
 
 /// One chat message for jackdaw_model_apply_template.
 final class jackdaw_chat_message extends ffi.Struct {

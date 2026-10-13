@@ -45,6 +45,8 @@ extern "C" {
 
 int32_t jackdaw_abi_version(void) { return JACKDAW_ABI_VERSION; }
 
+const char* jackdaw_cpu_requirements(void) { return JACKDAW_CPU_REQUIREMENTS; }
+
 const char* jackdaw_last_error(void) { return jackdaw::last_error(); }
 
 int32_t jackdaw_model_load(const char* path, const jackdaw_model_params* params,

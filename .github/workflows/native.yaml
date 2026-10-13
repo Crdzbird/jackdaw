@@ -63,6 +63,8 @@ jobs:
         include:
           - abi: arm64-v8a
             key: android-arm64
+          - abi: arm64-v8a
+            key: android-arm64-baseline
           - abi: armeabi-v7a
             key: android-arm
           - abi: x86_64
@@ -75,8 +77,8 @@ jobs:
         run: |
           ndk="$ANDROID_HOME/ndk/$NDK_VERSION"
           extra=""
-          if [ "${{ matrix.abi }}" = "arm64-v8a" ]; then extra="-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16"; fi
-          if [ "${{ matrix.abi }}" = "armeabi-v7a" ]; then extra="-DGGML_LLAMAFILE=OFF"; fi
+          if [ "${{ matrix.key }}" = "android-arm64" ]; then extra="-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DJACKDAW_CPU_REQUIREMENTS=dotprod"; fi
+          if [ "${{ matrix.key }}" = "android-arm" ]; then extra="-DGGML_LLAMAFILE=OFF"; fi
           cmake -S native -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJACKDAW_STRIP=ON \
             -DCMAKE_TOOLCHAIN_FILE="$ndk/build/cmake/android.toolchain.cmake" \
             -DANDROID_ABI=${{ matrix.abi }} -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_static $extra

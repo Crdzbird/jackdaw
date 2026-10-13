@@ -26,7 +26,17 @@ void main() {
       '-DANDROID_PLATFORM=android-24',
       '-DANDROID_STL=c++_static',
       '-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16',
+      '-DJACKDAW_CPU_REQUIREMENTS=dotprod',
     ]);
+  });
+
+  test('baseline android arm64 drops dotprod and has its own key', () {
+    final target = NativeTarget(
+      codeConfig(OS.android, Architecture.arm64, compiler: compiler),
+      baselineCpu: true,
+    );
+    expect(target.key, 'android-arm64-baseline');
+    expect(target.cmakeArguments, hasLength(4));
   });
 
   test('32-bit android drops the fp16-only llamafile kernels', () {

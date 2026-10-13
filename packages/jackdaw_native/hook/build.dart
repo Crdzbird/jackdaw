@@ -9,7 +9,10 @@ import 'package:jackdaw_native/src/hook/prebuilt_library.dart';
 void main(List<String> args) async {
   await build(args, (input, output) async {
     if (!input.config.buildCodeAssets) return;
-    final target = NativeTarget(input.config.code);
+    final target = NativeTarget(
+      input.config.code,
+      baselineCpu: input.userDefines['android_cpu'] == 'baseline',
+    );
     final library = input.userDefines['build'] == 'source'
         ? await _fromSource(input, output, target)
         : await const PrebuiltLibrary().fetch(target, input.outputDirectory);

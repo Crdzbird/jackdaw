@@ -3,18 +3,30 @@ import 'package:code_assets/code_assets.dart';
 /// The platform a build hook is producing `libjackdaw` for.
 final class NativeTarget {
   /// Describes the target selected by [config].
-  factory(CodeConfig config) = NativeTarget._;
+  ///
+  /// With [baselineCpu], Android arm64 is built for plain ARMv8.0 so it also
+  /// runs on phones without dot-product instructions, at lower speed.
+  factory(CodeConfig config, {bool baselineCpu}) = NativeTarget._;
 
-  new _(this.config);
+  new _(this.config, {this.baselineCpu = false});
 
   /// The hook's code configuration.
   final CodeConfig config;
+
+  /// Whether Android arm64 targets ARMv8.0 instead of ARMv8.2 with dotprod.
+  final bool baselineCpu;
+
+  bool get _dotprod =>
+      config.targetArchitecture == Architecture.arm64 && !baselineCpu;
 
   /// Stable name used for build directories and prebuilt downloads.
   String get key {
     final os = config.targetOS;
     final arch = config.targetArchitecture.name;
     if (os == OS.iOS) return 'ios-${config.iOS.targetSdk.type}-$arch';
+    if (os == OS.android && baselineCpu && arch == 'arm64') {
+      return 'android-arm64-baseline';
+    }
     return '${os.name}-$arch';
   }
 
@@ -57,8 +69,10 @@ final class NativeTarget {
       '-DANDROID_ABI=${_androidAbis[config.targetArchitecture.name]}',
       '-DANDROID_PLATFORM=android-${config.android.targetNdkApi}',
       '-DANDROID_STL=c++_static',
-      if (config.targetArchitecture == Architecture.arm64)
+      if (_dotprod) ...[
         '-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16',
+        '-DJACKDAW_CPU_REQUIREMENTS=dotprod',
+      ],
       if (config.targetArchitecture == Architecture.arm) '-DGGML_LLAMAFILE=OFF',
     ];
   }

@@ -43,6 +43,9 @@ hooks:
 ```
 
 On Android the arm64 build uses ARMv8.2 dot-product instructions
-(Cortex-A55/A75 and newer). Models are never bundled; you supply the file and
+(Cortex-A55/A75 and newer). On an older phone `LocalModel.open` throws an
+`UnsupportedError` that says so, instead of crashing. To support such phones,
+add `android_cpu: baseline` under the same `jackdaw_native` user defines;
+that build runs everywhere but processes prompts about 2.5x slower. Models are never bundled; you supply the file and
 its license applies. See `THIRD_PARTY_NOTICES.md` for the code compiled into
 the library.
