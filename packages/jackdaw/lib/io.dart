@@ -2,3 +2,4 @@
 library;
 
 export 'src/io/file_session_store.dart';
+export 'src/io/jsonl_tracer.dart';
