@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,7 @@ import 'package:jackdaw_bench/src/prefix_bench.dart';
 import 'package:jackdaw_bench/src/structured_bench.dart';
 import 'package:jackdaw_bench/src/structured_cases.dart';
 import 'package:jackdaw_bench/src/throughput_bench.dart';
+import 'package:jackdaw_bench/src/vector_bench.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
 const _path = String.fromEnvironment('JACKDAW_MODEL');
@@ -22,7 +24,17 @@ void _report(String name, Map<String, Object> data) =>
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('phase 2 benchmarks', (tester) async {
+  testWidgets('benchmarks', (tester) async {
+    if (_wanted('vectors')) {
+      final directory = File(_path).parent.path;
+      for (final clustered in [true, false]) {
+        _report(
+          'vectors',
+          await runVectorBench(directory, clustered: clustered),
+        );
+      }
+      if (_only == 'vectors') return;
+    }
     final watch = Stopwatch()..start();
     final model = await LocalModel.open(_path);
     _report('load', {'ms': watch.elapsedMilliseconds});

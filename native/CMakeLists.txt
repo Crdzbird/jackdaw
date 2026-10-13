@@ -53,13 +53,17 @@ endif()
 
 set(JACKDAW_SOURCES
   src/api.cpp
+  src/api_retrieval.cpp
+  src/embedder.cpp
   src/error.cpp
   src/generator.cpp
   src/model.cpp
   src/piece_ring.cpp
   src/sampler.cpp
   src/session.cpp
-  src/text.cpp)
+  src/text.cpp
+  src/vector_file.cpp
+  src/vector_index.cpp)
 
 set(JACKDAW_WARNINGS -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror)
 if(MSVC)
@@ -114,8 +118,10 @@ if(JACKDAW_BUILD_TESTS)
   enable_testing()
   add_executable(jackdaw_tests
     tests/api_test.cpp
+    tests/embedder_test.cpp
     tests/model_test.cpp
-    tests/piece_ring_test.cpp)
+    tests/piece_ring_test.cpp
+    tests/vector_index_test.cpp)
   target_include_directories(jackdaw_tests PRIVATE src)
   target_link_libraries(jackdaw_tests PRIVATE jackdaw_core GTest::gtest_main)
   include(GoogleTest)

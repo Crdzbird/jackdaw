@@ -11,6 +11,7 @@
 #include "model.hpp"
 #include "session.hpp"
 #include "text.hpp"
+#include "threads.hpp"
 
 namespace {
 
@@ -32,11 +33,6 @@ int32_t copy_out(const std::string& text, char* buffer, int32_t capacity, int32_
   if (*out_len > capacity) return jackdaw::fail(JACKDAW_ERR_BUFFER_TOO_SMALL, "buffer too small");
   if (!text.empty()) std::memcpy(buffer, text.data(), text.size());
   return JACKDAW_OK;
-}
-
-int32_t default_threads() {
-  const auto hardware = static_cast<int32_t>(std::thread::hardware_concurrency());
-  return std::clamp(hardware, 1, 4);
 }
 
 }
@@ -138,7 +134,7 @@ int32_t jackdaw_session_create(jackdaw_model* model, const jackdaw_session_param
       return jackdaw::fail(JACKDAW_ERR_INVALID_ARGUMENT, "model, callback and out are required");
     }
     const auto context_tokens = params != nullptr && params->context_tokens > 0 ? params->context_tokens : 4096;
-    const auto threads = params != nullptr && params->threads > 0 ? params->threads : default_threads();
+    const auto threads = params != nullptr && params->threads > 0 ? params->threads : jackdaw::default_threads();
     const auto batch = params != nullptr && params->batch_tokens > 0 ? params->batch_tokens : 512;
     auto settings = llama_context_default_params();
     settings.n_ctx = static_cast<uint32_t>(context_tokens);

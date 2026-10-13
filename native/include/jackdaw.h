@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /// Version of this ABI. Bumped on every incompatible change.
-#define JACKDAW_ABI_VERSION 2
+#define JACKDAW_ABI_VERSION 3
 
 /// Status codes returned by every fallible function.
 typedef enum jackdaw_status {
@@ -49,6 +49,8 @@ typedef enum jackdaw_finish_reason {
 
 typedef struct jackdaw_model jackdaw_model;
 typedef struct jackdaw_session jackdaw_session;
+typedef struct jackdaw_embedder jackdaw_embedder;
+typedef struct jackdaw_index jackdaw_index;
 
 /// Options for jackdaw_model_load. Zero-initialise, then set fields.
 typedef struct jackdaw_model_params {
@@ -80,6 +82,14 @@ typedef struct jackdaw_session_params {
   /// Prompt batch size in tokens; 0 uses 512.
   int32_t batch_tokens;
 } jackdaw_session_params;
+
+/// Options for jackdaw_embedder_create. Zero values pick defaults.
+typedef struct jackdaw_embedder_params {
+  /// Longest text in tokens; longer texts are cut. 0 uses 512.
+  int32_t max_tokens;
+  /// Worker threads; 0 picks a value for the device.
+  int32_t threads;
+} jackdaw_embedder_params;
 
 /// Options for one jackdaw_session_generate call.
 typedef struct jackdaw_generate_params {
@@ -192,6 +202,61 @@ JACKDAW_API int32_t jackdaw_session_get_stats(const jackdaw_session* session,
 JACKDAW_API int32_t jackdaw_session_error(const jackdaw_session* session,
                                           char* buffer, int32_t capacity,
                                           int32_t* out_len);
+
+/// Creates an embedding context on model. The model must outlive it.
+JACKDAW_API int32_t jackdaw_embedder_create(jackdaw_model* model,
+                                            const jackdaw_embedder_params* params,
+                                            jackdaw_embedder** out);
+
+/// Frees an embedder.
+JACKDAW_API void jackdaw_embedder_free(jackdaw_embedder* embedder);
+
+/// Returns the number of components of every embedding.
+JACKDAW_API int32_t jackdaw_embedder_dimensions(const jackdaw_embedder* embedder);
+
+/// Embeds count texts of the given byte lengths into out, which holds
+/// count times dimensions floats, as unit-length vectors in text order.
+/// Blocks; call off the UI thread. Calls on one embedder are serialized.
+JACKDAW_API int32_t jackdaw_embedder_embed(jackdaw_embedder* embedder,
+                                           const char* const* texts,
+                                           const int32_t* lengths, int32_t count,
+                                           float* out, int64_t capacity);
+
+/// Creates an empty exact vector index for vectors of dimensions floats.
+/// Vectors are compared by cosine similarity and stored as int8 codes.
+JACKDAW_API int32_t jackdaw_index_create(int32_t dimensions, jackdaw_index** out);
+
+/// Frees an index.
+JACKDAW_API void jackdaw_index_free(jackdaw_index* index);
+
+/// Returns the number of stored vectors.
+JACKDAW_API int64_t jackdaw_index_size(const jackdaw_index* index);
+
+/// Returns the number of components of every vector.
+JACKDAW_API int32_t jackdaw_index_dimensions(const jackdaw_index* index);
+
+/// Stores count vectors, each replacing any earlier one with the same key.
+/// Every component must be finite.
+JACKDAW_API int32_t jackdaw_index_add(jackdaw_index* index, const uint64_t* keys,
+                                      const float* vectors, int32_t count);
+
+/// Removes key; sets *removed to 1 when it was stored and 0 otherwise.
+JACKDAW_API int32_t jackdaw_index_remove(jackdaw_index* index, uint64_t key,
+                                         int32_t* removed);
+
+/// Writes up to k keys closest to query, closest first, with their scores,
+/// and sets *out_count. Safe to call from several threads at once.
+JACKDAW_API int32_t jackdaw_index_search(const jackdaw_index* index,
+                                         const float* query, int32_t k,
+                                         uint64_t* keys, float* scores,
+                                         int32_t* out_count);
+
+/// Saves index to path, replacing the file atomically.
+JACKDAW_API int32_t jackdaw_index_save(const jackdaw_index* index, const char* path);
+
+/// Loads an index saved by jackdaw_index_save. Damaged files fail with
+/// JACKDAW_ERR_IO.
+JACKDAW_API int32_t jackdaw_index_load(const char* path, jackdaw_index** out);
 
 #ifdef __cplusplus
 }

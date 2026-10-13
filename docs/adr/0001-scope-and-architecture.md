@@ -37,7 +37,7 @@ because an agent framework without them is unsafe or unreliable.
 |---|---|---|---|
 | P1 Local inference engine | llama.cpp behind our own C ABI: worker thread, cooperative cancel, KV prefix reuse across turns, memory accounting, exact tokenization, embeddings | Yes | C3, C4, C5, C6, C12 |
 | P2 Constrained generation | JSON Schema compiled to a GBNF grammar in Dart (shared by native and web), applied by the native sampler; tool calls forced through a grammar we own, so no per-family parser | Sampler yes, compiler no | C1, C2 |
-| P3 Local vector index | USearch HNSW behind the same C ABI, persisted to disk and memory-mapped on open; retriever API in Dart | Yes | C7 |
+| P3 Local vector index | Exact int8 index behind the same C ABI, persisted to disk; retriever API in Dart (amended in Phase 4: USearch HNSW is deferred until an index needs more than about a million vectors) | Yes | C7 |
 | P4 Security layer | Server-authoritative tool policy, approval hooks, taint marking of tool and retrieval output, egress checks on tool arguments, redaction by default | No | C10 |
 | P5 Durable agent runtime | Event-sourced step log, checkpoint per step, idempotency keys for tools, resume after process kill | No | C11 |
 
@@ -60,7 +60,7 @@ runs on web without a second implementation.
 | Model execution, sampling, grammar sampler, KV cache | C++ (llama.cpp) | Not possible in Dart |
 | Tokenize and detokenize for local models | C++ (llama.cpp) | Needs the GGUF vocabulary; exactness |
 | Embedding computation for local models | C++ (llama.cpp) | Same model runtime |
-| ANN index build, search, persistence | C++ (USearch) | Speed and memory-mapped files |
+| Vector index build, search, persistence | C++ (our int8 index) | Speed and memory: a quarter of float storage |
 | Worker threads, cancel flag, token ring buffer | C++ (our shim) | Must not block the UI isolate |
 | JSON Schema to GBNF compiler | Dart | Pure string work; shared with web |
 | JSON Schema validator and repair | Dart | Portable, offline, used for cloud too |
@@ -425,3 +425,58 @@ including iOS and the Android baseline build, all pinned by SHA-256. With
 `cmake` and `ninja` blocked, a fresh app on the iOS simulator downloaded the
 pinned library and produced schema-valid JSON, as earlier on Android and
 macOS.
+
+## Phase 4 progress (2026-10-13)
+
+Done, each with tests at 100 percent line coverage on the VM and passing on
+Chrome with dart2js and dart2wasm:
+
+- Tool policies and human approval. `ApprovalPolicy` is the default and
+  asks only for tools marked `requiresApproval`; `RulePolicy` denies every
+  tool it does not list and supports argument guards. Only calls that are
+  pending approval can be decided, so a client message cannot approve a
+  denied call (claim C10, first half).
+- Durable sessions. Every step is an append-only `SessionRecord` in a
+  `SessionStore` (in memory, or JSON lines on disk in `io.dart`). A harness
+  kills the process at each of the nine writes of a two-tool turn and
+  resumes; no non-idempotent tool runs twice (claim C11). Tools get their
+  call id as an idempotency key through `ToolContext.callId`.
+- Sub-agents. `delegateTo` exposes an agent as a tool, with a depth limit
+  carried in a zone.
+- Context budgets. `ContextBudget` trims the oldest turns before each model
+  call and keeps the last user message; the journal keeps everything.
+- Tracing. Agents emit `invoke_agent`, `chat` and `execute_tool` spans with
+  OpenTelemetry GenAI attribute names through a `Tracer` interface. Content
+  is attached only when `traceContent` is on. Every tracer is wrapped so
+  common credential shapes are removed, and `RedactingTracer` also removes
+  registered `Secret` values. A canary test puts a secret in instructions,
+  user text, tool arguments, tool output, tool errors and model errors and
+  checks that it never reaches a span (claim C10, second half).
+- Retrieval. `Embedder` and `VectorIndex` interfaces, `FlatVectorIndex` in
+  pure Dart for the web, `TextChunker`, `Retriever`, and `retrievalTool`,
+  whose output tells the model that passages are data, not instructions.
+  Embedders for OpenAI, Gemini and Ollama.
+- On-device retrieval. ABI version 3 adds `jackdaw_embedder_*` (llama.cpp
+  embeddings with the model's pooling, mean pooling for decoder models) and
+  `jackdaw_index_*`. `NativeEmbedder` and `NativeVectorIndex` wrap them.
+
+### Amendment to P3: exact search instead of HNSW
+
+The plan was USearch HNSW. Measuring first showed that an exact scan over
+int8 codes meets claim C7 on the Pixel 7 Pro with a p95 of 2.7 ms at 100k
+vectors of 384 dimensions, recall@10 of 0.97 to 0.99, and an open time of
+80 to 116 ms (`docs/benchmarks/c7-vector-index.md`). An exact index has no
+build parameters to tune, no recall cliff on updates, needs no new
+dependency, and deletes are exact. Scan time grows linearly, so HNSW
+becomes worth its cost somewhere near a million vectors; that is deferred
+until a user needs it.
+
+### Still open in Phase 4
+
+- Release `native-v0.1.0-dev.3` with ABI 3 binaries and pin their hashes;
+  until then the default prebuilt download is ABI 2 and the Dart package
+  refuses to load it, so only `build: source` works.
+- `jackdaw_web`: embeddings through wllama `createEmbedding`.
+- MCP client, with servers treated as untrusted.
+- Baseline (no dotprod) Android numbers for the vector index.
+

@@ -13,6 +13,148 @@ external int jackdaw_abi_version();
 @ffi.Native<ffi.Pointer<ffi.Char> Function()>()
 external ffi.Pointer<ffi.Char> jackdaw_cpu_requirements();
 
+/// Creates an embedding context on model. The model must outlive it.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_model>,
+    ffi.Pointer<jackdaw_embedder_params>,
+    ffi.Pointer<ffi.Pointer<jackdaw_embedder>>,
+  )
+>()
+external int jackdaw_embedder_create(
+  ffi.Pointer<jackdaw_model> model,
+  ffi.Pointer<jackdaw_embedder_params> params,
+  ffi.Pointer<ffi.Pointer<jackdaw_embedder>> out,
+);
+
+/// Returns the number of components of every embedding.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<jackdaw_embedder>)>()
+external int jackdaw_embedder_dimensions(
+  ffi.Pointer<jackdaw_embedder> embedder,
+);
+
+/// Embeds count texts of the given byte lengths into out, which holds
+/// count times dimensions floats, as unit-length vectors in text order.
+/// Blocks; call off the UI thread. Calls on one embedder are serialized.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_embedder>,
+    ffi.Pointer<ffi.Pointer<ffi.Char>>,
+    ffi.Pointer<ffi.Int32>,
+    ffi.Int32,
+    ffi.Pointer<ffi.Float>,
+    ffi.Int64,
+  )
+>()
+external int jackdaw_embedder_embed(
+  ffi.Pointer<jackdaw_embedder> embedder,
+  ffi.Pointer<ffi.Pointer<ffi.Char>> texts,
+  ffi.Pointer<ffi.Int32> lengths,
+  int count,
+  ffi.Pointer<ffi.Float> out,
+  int capacity,
+);
+
+/// Frees an embedder.
+@ffi.Native<ffi.Void Function(ffi.Pointer<jackdaw_embedder>)>()
+external void jackdaw_embedder_free(ffi.Pointer<jackdaw_embedder> embedder);
+
+/// Stores count vectors, each replacing any earlier one with the same key.
+/// Every component must be finite.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_index>,
+    ffi.Pointer<ffi.Uint64>,
+    ffi.Pointer<ffi.Float>,
+    ffi.Int32,
+  )
+>()
+external int jackdaw_index_add(
+  ffi.Pointer<jackdaw_index> index,
+  ffi.Pointer<ffi.Uint64> keys,
+  ffi.Pointer<ffi.Float> vectors,
+  int count,
+);
+
+/// Creates an empty exact vector index for vectors of dimensions floats.
+/// Vectors are compared by cosine similarity and stored as int8 codes.
+@ffi.Native<
+  ffi.Int32 Function(ffi.Int32, ffi.Pointer<ffi.Pointer<jackdaw_index>>)
+>()
+external int jackdaw_index_create(
+  int dimensions,
+  ffi.Pointer<ffi.Pointer<jackdaw_index>> out,
+);
+
+/// Returns the number of components of every vector.
+@ffi.Native<ffi.Int32 Function(ffi.Pointer<jackdaw_index>)>()
+external int jackdaw_index_dimensions(ffi.Pointer<jackdaw_index> index);
+
+/// Frees an index.
+@ffi.Native<ffi.Void Function(ffi.Pointer<jackdaw_index>)>()
+external void jackdaw_index_free(ffi.Pointer<jackdaw_index> index);
+
+/// Loads an index saved by jackdaw_index_save. Damaged files fail with
+/// JACKDAW_ERR_IO.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Pointer<jackdaw_index>>,
+  )
+>()
+external int jackdaw_index_load(
+  ffi.Pointer<ffi.Char> path,
+  ffi.Pointer<ffi.Pointer<jackdaw_index>> out,
+);
+
+/// Removes key; sets *removed to 1 when it was stored and 0 otherwise.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_index>,
+    ffi.Uint64,
+    ffi.Pointer<ffi.Int32>,
+  )
+>()
+external int jackdaw_index_remove(
+  ffi.Pointer<jackdaw_index> index,
+  int key,
+  ffi.Pointer<ffi.Int32> removed,
+);
+
+/// Saves index to path, replacing the file atomically.
+@ffi.Native<
+  ffi.Int32 Function(ffi.Pointer<jackdaw_index>, ffi.Pointer<ffi.Char>)
+>()
+external int jackdaw_index_save(
+  ffi.Pointer<jackdaw_index> index,
+  ffi.Pointer<ffi.Char> path,
+);
+
+/// Writes up to k keys closest to query, closest first, with their scores,
+/// and sets *out_count. Safe to call from several threads at once.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_index>,
+    ffi.Pointer<ffi.Float>,
+    ffi.Int32,
+    ffi.Pointer<ffi.Uint64>,
+    ffi.Pointer<ffi.Float>,
+    ffi.Pointer<ffi.Int32>,
+  )
+>()
+external int jackdaw_index_search(
+  ffi.Pointer<jackdaw_index> index,
+  ffi.Pointer<ffi.Float> query,
+  int k,
+  ffi.Pointer<ffi.Uint64> keys,
+  ffi.Pointer<ffi.Float> scores,
+  ffi.Pointer<ffi.Int32> out_count,
+);
+
+/// Returns the number of stored vectors.
+@ffi.Native<ffi.Int64 Function(ffi.Pointer<jackdaw_index>)>()
+external int jackdaw_index_size(ffi.Pointer<jackdaw_index> index);
+
 /// Returns the message for the last failure on the calling thread.
 /// The string is owned by the library and valid until the next call on
 /// that thread.
@@ -206,7 +348,7 @@ external int jackdaw_session_read(
   ffi.Pointer<ffi.Int32> out_len,
 );
 
-const int JACKDAW_ABI_VERSION = 2;
+const int JACKDAW_ABI_VERSION = 3;
 
 /// One chat message for jackdaw_model_apply_template.
 final class jackdaw_chat_message extends ffi.Struct {
@@ -221,6 +363,27 @@ final class jackdaw_chat_message extends ffi.Struct {
   }) => $allocator<jackdaw_chat_message>()
     ..ref.role = role
     ..ref.content = content;
+}
+
+final class jackdaw_embedder extends ffi.Opaque {}
+
+/// Options for jackdaw_embedder_create. Zero values pick defaults.
+final class jackdaw_embedder_params extends ffi.Struct {
+  /// Longest text in tokens; longer texts are cut. 0 uses 512.
+  @ffi.Int32()
+  external int max_tokens;
+
+  /// Worker threads; 0 picks a value for the device.
+  @ffi.Int32()
+  external int threads;
+
+  static ffi.Pointer<jackdaw_embedder_params> $allocate(
+    ffi.Allocator $allocator, {
+    required int max_tokens,
+    required int threads,
+  }) => $allocator<jackdaw_embedder_params>()
+    ..ref.max_tokens = max_tokens
+    ..ref.threads = threads;
 }
 
 /// Kinds of events delivered to a jackdaw_event_callback.
@@ -303,6 +466,8 @@ final class jackdaw_generate_params extends ffi.Struct {
     ..ref.max_tokens = max_tokens
     ..ref.grammar = grammar;
 }
+
+final class jackdaw_index extends ffi.Opaque {}
 
 final class jackdaw_model extends ffi.Opaque {}
 
