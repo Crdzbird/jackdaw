@@ -27,7 +27,7 @@ void main() {
     expect(dump, contains('[redacted]'));
     expect(dump, isNot(contains(_canary)));
     expect(dump, isNot(contains(_unregistered)));
-    expect(dump, isNot(contains('AKIAABCDEFGHIJKLMNOP')));
+    expect(dump, isNot(contains(fakeAwsKey)));
     expect(dump, isNot(contains('abcdefghijklmnopqrstuvwxyz')));
   });
 

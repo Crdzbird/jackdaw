@@ -1,5 +1,8 @@
 import 'package:jackdaw/jackdaw.dart';
 
+/// An AWS-shaped access key, built at runtime so scanners do not flag it.
+final String fakeAwsKey = ['AKIA', 'ABCDEFGHIJKLMNOP'].join();
+
 const _anything = ObjectSchema(properties: {}, additionalProperties: true);
 
 /// A tool that returns [secret] and an unregistered access key, and one
@@ -12,7 +15,7 @@ List<Tool<Object?>> leakyTools(String secret) => [
     decode: (json) => json,
     run: (input) => {
       'value': secret,
-      'aws': 'AKIAABCDEFGHIJKLMNOP',
+      'aws': fakeAwsKey,
       'nested': [
         {'auth': 'Bearer abcdefghijklmnopqrstuvwxyz'},
       ],
