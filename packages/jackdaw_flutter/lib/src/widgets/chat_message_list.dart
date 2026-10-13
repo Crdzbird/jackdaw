@@ -32,6 +32,7 @@ final class ChatMessageList extends StatelessWidget {
         valueListenable: controller.status,
         builder: (context, status, _) {
           final live = status == ChatStatus.responding ? 1 : 0;
+          final answer = GlobalObjectKey(controller.state);
           return SelectionArea(
             child: ListView.builder(
               reverse: true,
@@ -39,12 +40,19 @@ final class ChatMessageList extends StatelessWidget {
               itemCount: shown.length + live,
               itemBuilder: (context, index) {
                 if (index < live) {
-                  return StreamingBubble(text: controller.streaming);
+                  return StreamingBubble(
+                    text: controller.streaming,
+                    contentKey: answer,
+                  );
                 }
                 final message = shown[index - live];
+                final latest = live == 0 && index == 0;
                 return ChatBubble(
                   text: message.text,
                   fromUser: message.role == Role.user,
+                  contentKey: latest && message.role == Role.assistant
+                      ? answer
+                      : null,
                 );
               },
             ),

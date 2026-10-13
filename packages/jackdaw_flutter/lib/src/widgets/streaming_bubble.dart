@@ -11,14 +11,21 @@ import 'package:jackdaw_flutter/src/widgets/paragraphs.dart';
 /// readers hear that the assistant is answering, not every token; the full
 /// text is announced once the answer is a message.
 final class StreamingBubble extends StatelessWidget {
-  /// Shows [text] as it grows.
-  const factory({required ValueListenable<String> text, Key? key}) =
-      StreamingBubble._;
+  /// Shows [text] as it grows. Give the finished message the same
+  /// [contentKey] to keep the text's layout when the answer completes.
+  const factory({
+    required ValueListenable<String> text,
+    Key? contentKey,
+    Key? key,
+  }) = StreamingBubble._;
 
-  const new _({required this.text, super.key});
+  const new _({required this.text, this.contentKey, super.key});
 
   /// The growing answer.
   final ValueListenable<String> text;
+
+  /// Key of the text, shared with the finished message.
+  final Key? contentKey;
 
   @override
   Widget build(BuildContext context) => RepaintBoundary(
@@ -33,7 +40,7 @@ final class StreamingBubble extends StatelessWidget {
                   dimension: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Paragraphs(value),
+              : Paragraphs(value, key: contentKey),
         ),
       ),
     ),

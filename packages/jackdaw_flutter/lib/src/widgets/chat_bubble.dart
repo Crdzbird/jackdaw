@@ -6,10 +6,20 @@ import 'package:jackdaw_flutter/src/widgets/paragraphs.dart';
 /// `SelectionArea` of `ChatMessageList`.
 final class ChatBubble extends StatelessWidget {
   /// Shows [text], written by the user when [fromUser] is true.
-  const factory({required String text, required bool fromUser, Key? key}) =
-      ChatBubble._;
+  /// [contentKey] lets the text reuse the layout of a streaming bubble.
+  const factory({
+    required String text,
+    required bool fromUser,
+    Key? contentKey,
+    Key? key,
+  }) = ChatBubble._;
 
-  const new _({required this.text, required this.fromUser, super.key});
+  const new _({
+    required this.text,
+    required this.fromUser,
+    this.contentKey,
+    super.key,
+  });
 
   /// The message text.
   final String text;
@@ -17,10 +27,13 @@ final class ChatBubble extends StatelessWidget {
   /// Whether the user wrote it.
   final bool fromUser;
 
+  /// Key of the text, shared with the streaming bubble of the same answer.
+  final Key? contentKey;
+
   @override
   Widget build(BuildContext context) => BubbleFrame(
     fromUser: fromUser,
     label: fromUser ? 'You said' : 'Assistant said',
-    child: Paragraphs(text),
+    child: Paragraphs(text, key: contentKey),
   );
 }
