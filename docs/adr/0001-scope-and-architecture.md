@@ -466,6 +466,17 @@ Chrome with dart2js and dart2wasm:
   `WebEmbedder` in `jackdaw_web` uses wllama `createEmbedding`, so the web
   pairs it with `FlatVectorIndex`.
 
+- MCP. `jackdaw_mcp` offers two backends behind one `McpSession`: our own
+  `McpClient` over Streamable HTTP (every platform, including the web) or
+  stdio (desktop), and `DartMcpSession` over dart_mcp 0.5. `mcpTools`
+  converts either one's tools with untrusted-server defaults: prefixed
+  names, approval required, size limits, results marked as data, no
+  retries, no inherited environment for stdio servers and no client
+  capabilities. MCP input schemas are read with `schemaFromJson`, which
+  keeps what the typed schemas cannot express as `RawSchema`. Both
+  backends are tested against a server built with dart_mcp, in process
+  and as a real stdio subprocess. This moves MCP from v1.x into v1.
+
 ### Amendment to P3: exact search instead of HNSW
 
 The plan was USearch HNSW. Measuring first showed that an exact scan over
@@ -482,9 +493,6 @@ until a user needs it.
 - Release `native-v0.1.0-dev.3` with ABI 3 binaries and pin their hashes;
   until then the default prebuilt download is ABI 2 and the Dart package
   refuses to load it, so only `build: source` works.
-- MCP client, with servers treated as untrusted. The gap analysis plans it
-  for v1.x on top of `dart_mcp` or `mcp_dart`; adding either is a new
-  dependency and waits for a decision.
 - A live browser run of `WebEmbedder` against real wllama; the tests use a
   fake module.
 

@@ -8,6 +8,7 @@ workspace:
   - packages/jackdaw
   - packages/jackdaw_anthropic
   - packages/jackdaw_gemini
+  - packages/jackdaw_mcp
   - packages/jackdaw_native
   - packages/jackdaw_ollama
   - packages/jackdaw_openai

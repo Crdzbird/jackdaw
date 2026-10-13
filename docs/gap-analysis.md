@@ -144,7 +144,7 @@ Genkit's own report used).
 | Middleware and hooks | v1 | Model, tool and agent-step hooks |
 | Tool interrupts and human approval | v1 | Server-authoritative policy |
 | Prompt templating | later | Dart string builders in v1; a template format later |
-| MCP client | v1.x | Reuse `dart_mcp` or `mcp_dart`; treat servers as untrusted |
+| MCP client | v1 | Own client over HTTP and stdio plus a `dart_mcp` backed session; servers treated as untrusted |
 | Embeddings and retrieval | v1 | Local and cloud embedders, native index, web fallback |
 | Multimodal input | v1.x | Images for cloud providers first; local vision later |
 | Tracing (OpenTelemetry-compatible) | v1 | Own span model, redacted by default, OTel exporter later |
