@@ -477,6 +477,11 @@ Chrome with dart2js and dart2wasm:
   backends are tested against a server built with dart_mcp, in process
   and as a real stdio subprocess. This moves MCP from v1.x into v1.
 
+- Release `native-v0.1.0-dev.3` with ABI 3 binaries for all 11 targets,
+  pinned in `prebuilt_hashes.dart`. Fresh apps outside the repo, with
+  cmake and ninja blocked, download and verify the macOS arm64 and Android
+  arm64 libraries and run the vector index.
+
 ### Amendment to P3: exact search instead of HNSW
 
 The plan was USearch HNSW. Measuring first showed that an exact scan over
@@ -490,9 +495,6 @@ until a user needs it.
 
 ### Still open in Phase 4
 
-- Release `native-v0.1.0-dev.3` with ABI 3 binaries and pin their hashes;
-  until then the default prebuilt download is ABI 2 and the Dart package
-  refuses to load it, so only `build: source` works.
 - A live browser run of `WebEmbedder` against real wllama; the tests use a
   fake module.
 
