@@ -452,6 +452,8 @@ Chrome with dart2js and dart2wasm:
   registered `Secret` values. A canary test puts a secret in instructions,
   user text, tool arguments, tool output, tool errors and model errors and
   checks that it never reaches a span (claim C10, second half).
+- Egress checks. `EgressPolicy` refuses a tool call whose arguments carry
+  a registered secret or a credential shape, before the tool runs.
 - Retrieval. `Embedder` and `VectorIndex` interfaces, `FlatVectorIndex` in
   pure Dart for the web, `TextChunker`, `Retriever`, and `retrievalTool`,
   whose output tells the model that passages are data, not instructions.
@@ -459,6 +461,8 @@ Chrome with dart2js and dart2wasm:
 - On-device retrieval. ABI version 3 adds `jackdaw_embedder_*` (llama.cpp
   embeddings with the model's pooling, mean pooling for decoder models) and
   `jackdaw_index_*`. `NativeEmbedder` and `NativeVectorIndex` wrap them.
+  `WebEmbedder` in `jackdaw_web` uses wllama `createEmbedding`, so the web
+  pairs it with `FlatVectorIndex`.
 
 ### Amendment to P3: exact search instead of HNSW
 
@@ -476,7 +480,9 @@ until a user needs it.
 - Release `native-v0.1.0-dev.3` with ABI 3 binaries and pin their hashes;
   until then the default prebuilt download is ABI 2 and the Dart package
   refuses to load it, so only `build: source` works.
-- `jackdaw_web`: embeddings through wllama `createEmbedding`.
-- MCP client, with servers treated as untrusted.
-- Baseline (no dotprod) Android numbers for the vector index.
+- MCP client, with servers treated as untrusted. The gap analysis plans it
+  for v1.x on top of `dart_mcp` or `mcp_dart`; adding either is a new
+  dependency and waits for a decision.
+- A live browser run of `WebEmbedder` against real wllama; the tests use a
+  fake module.
 

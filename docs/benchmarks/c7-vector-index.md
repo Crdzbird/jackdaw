@@ -36,6 +36,12 @@ under 200 ms, on the reference device.
 | MacBook (Apple silicon) | clustered | 0.970 | 1.10 | 1.14 | 177 | 48 |
 | MacBook (Apple silicon) | random | 0.988 | 1.17 | 1.28 | 151 | 49 |
 
+The baseline Android build (`android_cpu: baseline`, plain ARMv8 without
+dotprod, for older phones) gives the same numbers on the Pixel: p95 2.66 ms
+clustered and 2.72 ms random, open 86 and 119 ms. The index code is
+compiled without CPU-specific flags in both builds, so the result holds for
+any 64-bit ARM phone with NEON, scaled by its core speed.
+
 All three targets are met on the reference device, with margin: p95 is a
 quarter of the budget and open time is under half of it.
 
