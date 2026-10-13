@@ -52,10 +52,10 @@ void main() {
         model.close();
         return;
       }
-      if (_only == 'frames') {
+      if (_only == 'frames' || _only == 'framesweep') {
         binding.framePolicy =
             LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
-        for (final threads in [4, 3, 2]) {
+        for (final threads in _only == 'frames' ? [0] : [4, 3, 2]) {
           final model = await LocalModel.open(
             _path,
             options: LocalModelOptions(

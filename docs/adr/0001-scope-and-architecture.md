@@ -502,4 +502,5 @@ until a user needs it.
 
 ### Phase 4 closed
 
-
+Phase 4 closed on 2026-10-13: claims C7, C10 and C11 are met, embeddings
+agree across native, web and Ollama, and MCP ships in v1.

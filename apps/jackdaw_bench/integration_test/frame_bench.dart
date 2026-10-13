@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jackdaw/jackdaw.dart';
@@ -58,5 +60,20 @@ Map<String, Object> _summary(List<FrameTiming> frames, double rate) {
     'total_over_budget': frames
         .where((f) => f.totalSpan.inMicroseconds > budget)
         .length,
+    'slow_frames': _slow(frames, budget),
   };
+}
+
+List<String> _slow(List<FrameTiming> frames, double budget) {
+  if (frames.isEmpty) return const [];
+  int at(FrameTiming f) => f.timestampInMicroseconds(FramePhase.vsyncStart);
+  final start = at(frames.first);
+  final end = (at(frames.last) - start) ~/ 1000;
+  String describe(FrameTiming f) =>
+      '${f.buildDuration.inMicroseconds / 1000} ms at '
+      '${(at(f) - start) ~/ 1000} of $end';
+  return [
+    for (final f in frames)
+      if (f.buildDuration.inMicroseconds > budget) describe(f),
+  ];
 }
