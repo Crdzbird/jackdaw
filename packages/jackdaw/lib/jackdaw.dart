@@ -33,6 +33,7 @@ export 'src/model/model_event.dart';
 export 'src/model/model_request.dart';
 export 'src/model/usage.dart';
 export 'src/policy/approval_policy.dart';
+export 'src/policy/egress_policy.dart';
 export 'src/policy/rule_policy.dart';
 export 'src/policy/tool_decision.dart';
 export 'src/policy/tool_policy.dart';

@@ -33,6 +33,16 @@ final class Redactor {
     _ => value,
   };
 
+  /// Whether [value], walking maps and lists, holds a secret or a common
+  /// credential shape.
+  bool finds(Object? value) => switch (value) {
+    final String text =>
+      _secrets.any(text.contains) || _patterns.hasMatch(text),
+    final Map<Object?, Object?> map => map.values.any(finds),
+    final List<Object?> list => list.any(finds),
+    _ => false,
+  };
+
   String _text(String text) {
     var out = text;
     for (final secret in _secrets) {
