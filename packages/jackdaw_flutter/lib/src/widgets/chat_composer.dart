@@ -6,7 +6,8 @@ import 'package:jackdaw_flutter/src/controller/chat_status.dart';
 part 'chat_composer_state.dart';
 
 /// A text field that sends to the chat, with a stop button while the agent
-/// is answering.
+/// is answering. The field stays editable during a turn, so the next
+/// message can be typed while waiting; only sending waits.
 final class ChatComposer extends StatefulWidget {
   /// Sends to [controller]; [hint] is shown in the empty field.
   const factory({required ChatController controller, String hint, Key? key}) =

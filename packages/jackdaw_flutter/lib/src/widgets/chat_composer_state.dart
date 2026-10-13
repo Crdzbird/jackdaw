@@ -32,11 +32,12 @@ final class _ChatComposerState extends State<ChatComposer> {
               Expanded(
                 child: TextField(
                   controller: _text,
-                  enabled: !busy,
                   textInputAction: TextInputAction.send,
-                  onSubmitted: (_) async {
-                    await _send();
-                  },
+                  onSubmitted: busy
+                      ? null
+                      : (_) async {
+                          await _send();
+                        },
                   decoration: InputDecoration(hintText: widget.hint),
                 ),
               ),
