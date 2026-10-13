@@ -8,6 +8,7 @@ import 'package:jackdaw/jackdaw.dart' show Agent, LanguageModel, Schema, Tool;
 
 export 'src/agent/agent.dart';
 export 'src/agent/agent_event.dart';
+export 'src/agent/agent_runs.dart';
 export 'src/agent/agent_sessions.dart';
 export 'src/agent/agent_stop_reason.dart';
 export 'src/agent/approval_decision.dart';
@@ -53,6 +54,9 @@ export 'src/retrieval/vector_match.dart';
 export 'src/schema/schema.dart';
 export 'src/schema/schema_from_json.dart';
 export 'src/schema/schema_violation.dart';
+export 'src/security/injection_patterns.dart';
+export 'src/security/injection_screen.dart';
+export 'src/security/output_screen.dart';
 export 'src/security/secret.dart';
 export 'src/session/in_memory_session_store.dart';
 export 'src/session/message_codec.dart';

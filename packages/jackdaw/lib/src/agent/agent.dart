@@ -1,13 +1,10 @@
-import 'package:jackdaw/src/agent/agent_engine.dart';
-import 'package:jackdaw/src/agent/agent_event.dart';
 import 'package:jackdaw/src/context/context_budget.dart';
-import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/model/generation_options.dart';
 import 'package:jackdaw/src/model/language_model.dart';
 import 'package:jackdaw/src/policy/approval_policy.dart';
 import 'package:jackdaw/src/policy/tool_policy.dart';
-import 'package:jackdaw/src/session/in_memory_session_store.dart';
-import 'package:jackdaw/src/session/session_record.dart';
+import 'package:jackdaw/src/security/injection_screen.dart';
+import 'package:jackdaw/src/security/output_screen.dart';
 import 'package:jackdaw/src/session/session_store.dart';
 import 'package:jackdaw/src/tool/tool.dart';
 import 'package:jackdaw/src/trace/noop_tracer.dart';
@@ -17,7 +14,8 @@ import 'package:jackdaw/src/trace/tracer.dart';
 /// answers, needs approval, or has made [maxSteps] model calls. Each step is
 /// journalled in [store], so a session survives the process being killed,
 /// and [policy] checks every tool call. Sessions are driven through the
-/// `AgentSessions` methods `send`, `resume` and `decide`.
+/// `AgentSessions` methods `send`, `resume` and `decide`; one-off runs use
+/// the `AgentRuns` methods `run` and `complete`.
 final class Agent {
   /// Creates an agent backed by [model].
   const factory({
@@ -31,6 +29,7 @@ final class Agent {
     ContextBudget? budget,
     Tracer tracer,
     bool traceContent,
+    OutputScreen? screen,
   }) = Agent._;
 
   const new _({
@@ -44,6 +43,7 @@ final class Agent {
     this.budget,
     this.tracer = const NoopTracer(),
     this.traceContent = false,
+    this.screen = const InjectionScreen(),
   });
 
   /// The model that decides what to do.
@@ -74,21 +74,12 @@ final class Agent {
   /// Common credential shapes are always redacted from them.
   final Tracer tracer;
 
+  /// Checks every successful tool result before the model reads it; pass
+  /// `null` to turn screening off.
+  final OutputScreen? screen;
+
   /// Whether prompts, answers and tool data are attached to spans. Wrap
   /// [tracer] in a `RedactingTracer` with your secrets before turning this
   /// on.
   final bool traceContent;
-
-  /// Runs once over [history] without keeping a session.
-  Stream<AgentEvent> run(List<Message> history) async* {
-    final scratch = InMemorySessionStore();
-    for (final message in history) {
-      await scratch.append('run', MessageRecord(message));
-    }
-    yield* AgentEngine(this, scratch, 'run').run();
-  }
-
-  /// Runs over [history] and returns only the final event.
-  Future<AgentFinished> complete(List<Message> history) async =>
-      (await run(history).toList()).whereType<AgentFinished>().single;
 }

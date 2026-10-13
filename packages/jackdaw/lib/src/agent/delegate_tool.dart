@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:jackdaw/src/agent/agent.dart';
+import 'package:jackdaw/src/agent/agent_runs.dart';
 import 'package:jackdaw/src/agent/agent_stop_reason.dart';
 import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/schema/schema.dart';

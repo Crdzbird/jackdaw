@@ -31,6 +31,7 @@ final class AgentEngine {
     _agent.tools,
     tracer: _tracer,
     content: _agent.traceContent,
+    screen: _agent.screen,
   );
   late final TracedModel _model = TracedModel(
     _agent.model,

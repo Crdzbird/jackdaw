@@ -22,7 +22,7 @@ final class _Caller implements LanguageModel {
 }
 
 void main() {
-  test('MCP tools wait for approval before they reach the server', () async {
+  test('MCP tools wait for approval and their output is screened', () async {
     final session = FakeSession([
       {'name': 'fetch'},
     ]);
@@ -46,7 +46,9 @@ void main() {
     final result =
         done.messages.firstWhere((m) => m.role == Role.tool).parts.single
             as ToolResultPart;
-    expect((result.output! as Map)['note'], mcpOutputNote);
+    final screened = result.output! as Map;
+    expect(screened['warning'], contains('instruction override'));
+    expect((screened['output'] as Map)['note'], mcpOutputNote);
     await session.close();
     expect(session.closed, isTrue);
   });
