@@ -420,4 +420,8 @@ Known limitations recorded here:
   iOS 15.0; macOS libraries now target macOS 12.0, matching Flutter's app
   templates.
 
-Phase 3 closes with release `native-v0.1.0-dev.2`.
+Phase 3 closed with release `native-v0.1.0-dev.2`: eleven libraries,
+including iOS and the Android baseline build, all pinned by SHA-256. With
+`cmake` and `ninja` blocked, a fresh app on the iOS simulator downloaded the
+pinned library and produced schema-valid JSON, as earlier on Android and
+macOS.
