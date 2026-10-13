@@ -1,5 +1,5 @@
 /// Release tag that prebuilt libraries are downloaded from.
-const String prebuiltRelease = 'native-v0.1.0-dev.3';
+const String prebuiltRelease = 'native-v0.1.0-dev.4';
 
 /// SHA-256 of every prebuilt library, keyed by target.
 ///
@@ -7,25 +7,25 @@ const String prebuiltRelease = 'native-v0.1.0-dev.3';
 /// request. A target missing here has no prebuilt library.
 const Map<String, String> prebuiltHashes = {
   'android-arm':
-      'cff3980fca63c1891418a48ca485d1586f5327a7a22bbafe46a1eb6d1799c007',
+      '8b909a510ba7a8adf47d65f1a83bce5f58f10da32aee624ce577687e613b467c',
   'android-arm64':
-      'e30f4af287258f349c19fa38a79136189cb7d7fb626e8d9a9b18e277839f3bd2',
+      '497e3b7555e78ebe00c1bec80ef3c56cf7a539b76480ecf6e77f35cd90a7bef0',
   'android-arm64-baseline':
-      '73298868f896c1e5db4ce28dc2d8f10de30cc8107548320a7a964e86003f764e',
+      'dc024ffd801b3576f0cd8d079dab5e5e42c50f6bbba2f7934d979173fcf53791',
   'android-x64':
-      '5470837258096bd8e940407ea4841ffd72a04cd376563fbdefba9a606500f558',
+      'c94d54608ee53d7e4c8ae69aaa86e67dca1c6f8b5fc37156432be5bdc4afa67c',
   'ios-iphoneos-arm64':
-      'fbeb3ebaab1a908a45109f5630323de8b4bb770d44454e38565fa341d4106c50',
+      'ff6df4c47feaa8522804f20f603a501ce598950e5ad629e35c52bd839fcb55ee',
   'ios-iphonesimulator-arm64':
-      'faf1a00b6f45d38eeba47888da2286930bc886d21122a3f2f69987b18b948448',
+      'd8790f8c71835febd55e531e16916b6522d2c8ee5b743481d9e1e3be8c7b9eb3',
   'ios-iphonesimulator-x64':
-      '8930c43b1d51f2af9341f9f6ceddd374c223ac3245bede438d5783639e83aa7c',
+      '4ae038415dd3fabd43b6b42e95415f394c71166041d3bbb31550359752494e4f',
   'linux-x64':
-      '104868a43fc6d20992c681bcba72760a04c0b8c027c56a7a4a14957a40f67641',
+      'bd7a461df47787c60dc1cc82456ed36e73e3fbc6837f363ceace92fa6165cd04',
   'macos-arm64':
-      'feabce6b398c0dfae0384f0ba250535a945059dd3b7fcc3493db40908a966ec1',
+      '8a963978244ec168b5c0d45357d10190c9a73c5520b9ce3aa955bd9f0273a7eb',
   'macos-x64':
-      '72c906d445e36409dff916dada70c96a2c7ed85733a88d3dfa3bab301455288e',
+      '462ea279e60621f2c2d9c27d240e28fbf85038a3c2d42036d53f15b02e964bac',
   'windows-x64':
-      '20c6e8d8cfed6d5ccd997ab0186968c6138be2cd1aaf5fccf0ab69b295d3409e',
+      '442c71612fc461e7802abdb147bd34129de799a368eae65f54119cd658866155',
 };

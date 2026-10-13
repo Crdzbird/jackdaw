@@ -524,7 +524,9 @@ agree across native, web and Ollama, and MCP ships in v1.
   (`docs/benchmarks/c2-tool-calls.md`).
 - Quitting a macOS app with a model loaded aborted in ggml's Metal
   teardown. libjackdaw now frees live models, sessions and embedders in
-  an exit handler that runs first.
+  an exit handler that runs first. Released as `native-v0.1.0-dev.4` and
+  pinned; a fresh app on the prebuilt library exits with code 0 after
+  generating without closing its model.
 - The demo app is rebuilt on `jackdaw_flutter`, with tools that read the
   clock and save notes behind an approval, and VS Code launch configs.
 
