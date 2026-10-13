@@ -11,8 +11,10 @@ import 'package:jackdaw/src/session/session_record.dart';
 import 'package:jackdaw/src/session/session_state.dart';
 import 'package:jackdaw/src/session/session_store.dart';
 import 'package:jackdaw/src/tool/tool_box.dart';
+import 'package:jackdaw/src/trace/redact_by_default.dart';
 import 'package:jackdaw/src/trace/trace_run.dart';
 import 'package:jackdaw/src/trace/traced_model.dart';
+import 'package:jackdaw/src/trace/tracer.dart';
 
 /// Advances one session: model turns, tool rounds and the journal.
 final class AgentEngine {
@@ -24,19 +26,20 @@ final class AgentEngine {
   final Agent _agent;
   final SessionStore _store;
   final String _sessionId;
+  late final Tracer _tracer = redactByDefault(_agent.tracer);
   late final ToolBox _tools = ToolBox(
     _agent.tools,
-    tracer: _agent.tracer,
+    tracer: _tracer,
     content: _agent.traceContent,
   );
   late final TracedModel _model = TracedModel(
     _agent.model,
-    _agent.tracer,
+    _tracer,
     content: _agent.traceContent,
   );
 
   /// Continues the session until it answers, stops or needs approval.
-  Stream<AgentEvent> run() => traceRun(_agent.tracer, _sessionId, _loop());
+  Stream<AgentEvent> run() => traceRun(_tracer, _sessionId, _loop());
 
   Stream<AgentEvent> _loop() async* {
     final state = SessionState(await _store.load(_sessionId));

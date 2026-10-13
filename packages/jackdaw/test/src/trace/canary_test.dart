@@ -42,6 +42,17 @@ void main() {
     expect(_dump(recorder.spans), contains(_canary));
   });
 
+  test('credential shapes are redacted even from a plain tracer', () async {
+    final recorder = RecordingTracer();
+    await Agent(
+      model: LeakyModel(_unregistered),
+      tools: leakyTools(_unregistered),
+      tracer: recorder,
+      traceContent: true,
+    ).complete([Message.user('key')]);
+    expect(_dump(recorder.spans), isNot(contains(_unregistered)));
+  });
+
   test('a failing model call is traced without its secret', () async {
     final recorder = RecordingTracer();
     final agent = Agent(

@@ -71,10 +71,12 @@ final class Agent {
   final ContextBudget? budget;
 
   /// Receives spans for the run, each model call and each tool call.
+  /// Common credential shapes are always redacted from them.
   final Tracer tracer;
 
   /// Whether prompts, answers and tool data are attached to spans. Wrap
-  /// [tracer] in a `RedactingTracer` before turning this on.
+  /// [tracer] in a `RedactingTracer` with your secrets before turning this
+  /// on.
   final bool traceContent;
 
   /// Runs once over [history] without keeping a session.
