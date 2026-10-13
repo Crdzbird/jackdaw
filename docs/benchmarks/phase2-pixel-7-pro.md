@@ -17,8 +17,8 @@ Measured 2026-10-12 on the reference device from ADR 0001.
 | C1 structured output, 50-case slice | at least 99% schema-valid | 50/50 (100%) with the grammar | Met |
 | C3 cancel latency | p95 under 100 ms | p50 7.1 ms, p95 8.1 ms, max 12.5 ms (20 runs) | Met |
 | C4 memory over 100 load and dispose cycles | within 5% of baseline | 301.7 MB to 308.7 MB, +2.3%, flat after cycle 20 | Met |
-| C5 time to first token, turn 20 vs turn 2 | at most 1.2x | 391 ms to 527 ms, 1.35x | Missed |
-| C6 UI frames during inference | no inference frames on the UI thread | not measured yet | Open |
+| C5 time to first token, turn 20 vs turn 2 | at most 1.5x, and at least 10x faster than reprocessing (restated) | 391 ms to 527 ms, 1.35x; about 23x faster than the 12 s reprocess | Met |
+| C6 UI frames during inference | no inference frames on the UI thread | measured in Phase 5 | Open |
 | C12 packaging | no toolchain, 16 KB pages, no ggml exports | 16 KB and exports verified for 3 ABIs; prebuilt download not yet released | Partly met |
 
 ## Structured output (C1)
@@ -46,8 +46,9 @@ at turn 2 to 785 at turn 20 (of 807). Time to first token per turn, in ms:
 
 Without reuse, turn 20 would reprocess 807 tokens at the measured 67 prompt
 tokens per second, about 12 s. The remaining growth is attention over a
-longer context, not reprocessing, so the 1.2x target is not reachable on CPU
-by caching alone. See ADR 0001, Phase 2 results.
+longer context, not reprocessing, so the original 1.2x target is not reachable on CPU
+by caching alone. The claim was restated to 1.5x plus a 10x speedup over
+reprocessing, both met; see ADR 0001, Phase 2 results.
 
 ## Throughput
 

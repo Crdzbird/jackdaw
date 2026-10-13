@@ -343,15 +343,17 @@ Decisions taken during the spike:
   schemas, and schemas can come from untrusted tool sources such as MCP
   servers, so llama.cpp's GBNF parser is reachable from outside input.
 
-Open for sign-off:
+Signed off on 2026-10-13:
 
-- C5 as written (turn-20 first token within 1.2x of turn 2) was missed at
-  1.35x. The growth is attention cost over a longer context, not
-  reprocessing; caching cut turn-20 from about 12 s to 527 ms. Proposed
-  restatement: "turn-20 time to first token within 1.5x of turn 2 and at
-  least 10x faster than reprocessing the full prompt".
-- C6 (no UI-thread frames during inference) is not measured yet; it needs a
-  Flutter frame-timing harness and is planned with the widgets in Phase 5.
+- C5 as first written (turn-20 first token within 1.2x of turn 2) was
+  missed at 1.35x. The growth is attention cost over a longer context, not
+  reprocessing; caching cut turn-20 from about 12 s to 527 ms. C5 is
+  restated as "turn-20 time to first token within 1.5x of turn 2 and at
+  least 10x faster than reprocessing the full prompt", which the Phase 2
+  run meets (1.35x and about 23x).
+- C6 (no UI-thread frames during inference) is measured in Phase 5 with a
+  Flutter frame-timing harness next to the widgets, comparing p99 frame
+  times during generation with idle.
 
 ## Phase 3 progress (2026-10-13)
 

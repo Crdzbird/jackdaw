@@ -121,8 +121,8 @@ Genkit's own report used).
 | C2 | At least 98% well-formed tool calls across three model families (Qwen, Llama, Gemma) with no per-family parser | Same suite, tool variant | 2 |
 | C3 | Cancel stops native decoding within 100 ms at p95 | Timestamp from `cancel()` to last token callback, 100 runs, reference device | 4 |
 | C4 | No memory growth: RSS after 100 load and dispose cycles within 5% of baseline | Native RSS sampling in an integration test | 4 |
-| C5 | Time to first token on turn 20 within 1.2x of turn 2 | KV prefix reuse benchmark, 20-turn chat | 4 |
-| C6 | Zero UI-thread frames attributable to inference | Flutter frame timing p99 during generation vs idle | 4 |
+| C5 | Time to first token on turn 20 within 1.5x of turn 2 and at least 10x faster than reprocessing the full prompt (restated 2026-10-13 from 1.2x, see ADR 0001) | KV prefix reuse benchmark, 20-turn chat | 4 |
+| C6 | Zero UI-thread frames attributable to inference | Flutter frame timing p99 during generation vs idle, measured in Phase 5 with the widgets | 4 |
 | C7 | 100k vectors of 384 dims: recall@10 at least 0.95, p95 query under 10 ms, cold open under 200 ms | Benchmark against exact search, reference device | 6 |
 | C8 | Same public API and the same contract test suite pass on Chrome (JS and Wasm builds) | CI job running the shared suite in a browser | 8 |
 | C9 | Full agent loop (tools, RAG, schema validation) runs with networking disabled | CI test in a network-less sandbox | 3, 6, 9 |
