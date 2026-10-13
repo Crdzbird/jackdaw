@@ -1,9 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:jackdaw_flutter/src/widgets/chat_bubble.dart';
+import 'package:jackdaw_flutter/src/widgets/bubble_frame.dart';
+import 'package:jackdaw_flutter/src/widgets/paragraphs.dart';
 
 /// The answer being generated. Only this widget rebuilds as text streams
 /// in, inside its own repaint boundary.
+///
+/// The text is split into paragraphs, so finished paragraphs keep their
+/// layout and only the last one is laid out again as it grows. Screen
+/// readers hear that the assistant is answering, not every token; the full
+/// text is announced once the answer is a message.
 final class StreamingBubble extends StatelessWidget {
   /// Shows [text] as it grows.
   const factory({required ValueListenable<String> text, Key? key}) =
@@ -18,18 +24,18 @@ final class StreamingBubble extends StatelessWidget {
   Widget build(BuildContext context) => RepaintBoundary(
     child: ValueListenableBuilder<String>(
       valueListenable: text,
-      builder: (context, value, _) => value.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox.square(
+      builder: (context, value, _) => BubbleFrame(
+        fromUser: false,
+        label: 'Assistant is answering',
+        child: ExcludeSemantics(
+          child: value.isEmpty
+              ? const SizedBox.square(
                   dimension: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            )
-          : ChatBubble(text: value, fromUser: false, selectable: false),
+                )
+              : Paragraphs(value),
+        ),
+      ),
     ),
   );
 }

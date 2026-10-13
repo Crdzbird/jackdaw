@@ -7,7 +7,7 @@ import 'package:jackdaw_flutter/src/widgets/chat_bubble.dart';
 import 'package:jackdaw_flutter/src/widgets/streaming_bubble.dart';
 
 /// The transcript, newest at the bottom, with the answer being generated
-/// below it. Tool messages and empty turns are not shown.
+/// below it, all selectable. Tool messages and empty turns are not shown.
 final class ChatMessageList extends StatelessWidget {
   /// Shows the messages of [controller].
   const factory({required ChatController controller, Key? key}) =
@@ -32,20 +32,22 @@ final class ChatMessageList extends StatelessWidget {
         valueListenable: controller.status,
         builder: (context, status, _) {
           final live = status == ChatStatus.responding ? 1 : 0;
-          return ListView.builder(
-            reverse: true,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: shown.length + live,
-            itemBuilder: (context, index) {
-              if (index < live) {
-                return StreamingBubble(text: controller.streaming);
-              }
-              final message = shown[index - live];
-              return ChatBubble(
-                text: message.text,
-                fromUser: message.role == Role.user,
-              );
-            },
+          return SelectionArea(
+            child: ListView.builder(
+              reverse: true,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: shown.length + live,
+              itemBuilder: (context, index) {
+                if (index < live) {
+                  return StreamingBubble(text: controller.streaming);
+                }
+                final message = shown[index - live];
+                return ChatBubble(
+                  text: message.text,
+                  fromUser: message.role == Role.user,
+                );
+              },
+            ),
           );
         },
       );

@@ -1,6 +1,6 @@
 # Claim C6: UI frames during inference
 
-Date: 2026-10-13. Status: not met yet.
+Date: 2026-10-13. Status: much improved, not yet zero; see "After the fixes".
 
 Claim C6: zero UI-thread frames attributable to inference, measured as
 Flutter frame timing during generation against idle.
@@ -40,12 +40,54 @@ Idle runs never went over budget on the UI thread.
 - Showing the streaming answer as plain text instead of selectable text
   made no measurable difference.
 
+## What the timeline showed
+
+A timeline trace of the generating phase (`tool/run_android.sh <device>
+<model> frametrace`, which wraps one answer in `traceAction` and needs
+`flutter drive --no-dds`) found no garbage collection in the long frames.
+The worst streaming frame spent 5.3 ms in build, 6.1 ms in layout and
+3.5 ms in semantics, almost all of it on the streaming text:
+
+- the whole growing answer was laid out again on every update, so the
+  cost grew with the length of the answer;
+- the whole answer was sent to the semantics tree on every update.
+
+## Fixes in jackdaw_flutter
+
+- The streaming answer is split into paragraphs (`Paragraphs`), so a
+  finished paragraph keeps its layout and only the last one is laid out
+  again.
+- The streaming text is excluded from semantics behind a stable
+  "Assistant is answering" label; the full text is announced once it is a
+  message. Screen readers no longer re-read every token.
+- Finished messages use the same paragraphs under one `SelectionArea`
+  instead of `SelectableText`, which keeps text selectable, across
+  bubbles too, at a lower layout cost.
+
+## After the fixes
+
+Same setup, warm phone, 4, 3 and 2 inference threads per run:
+
+| Semantics | Build p50 | Build p99 | Build over budget per answer | Frames per answer |
+|---|---|---|---|---|
+| off | 1.9 to 2.1 ms | 6.0 to 6.6 ms | 1 to 4 | 2500 to 2850 |
+| on | 1.2 to 2.0 ms | 4.6 to 6.5 ms | 1 to 2 | 2630 to 3040 |
+
+Before the fixes the same runs had a build p99 of 7.1 to 8.6 ms and 7 to
+28 frames over budget per answer. Idle stays at zero. Semantics makes no
+measurable difference any more, because the streaming text no longer
+reaches the semantics tree.
+
+The frames that remain over budget are the swap at the end of an answer,
+when the streamed text becomes a message and the list is laid out again,
+and an occasional spike. That is under 0.2 percent of frames, but C6 as
+written asks for zero.
+
 ## Next steps
 
-1. Record a timeline trace of the generating phase to find what runs in
-   the long frames; the suspects are garbage collection from per-token
-   allocations on the UI isolate and the rebuild when the answer becomes
-   a message.
-2. If per-token work on the UI isolate is the cause, run the native
-   session's event handling in a background isolate and send the UI one
-   merged text update per frame.
+1. Keep the streaming bubble's render objects when the answer becomes a
+   message, for example by giving both the same key, so the final swap
+   does not lay out the whole answer again.
+2. If that is not enough, decide whether C6 should be restated, for
+   example as "UI build p99 under the frame budget during generation and
+   at most one frame over budget per answer".

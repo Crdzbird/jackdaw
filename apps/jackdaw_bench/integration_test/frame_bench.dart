@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jackdaw/jackdaw.dart';
-import 'package:jackdaw_flutter/jackdaw_flutter.dart';
+
+import 'chat_screen.dart';
 
 /// Claim C6: frame times of a live chat while [model] generates, compared
 /// with the same screen idle. A spinner keeps frames coming in both phases.
@@ -11,32 +11,7 @@ Future<Map<String, Object>> runFrameBench(
   LanguageModel model, {
   Duration idle = const Duration(seconds: 5),
 }) async {
-  final chat = ChatController(
-    agent: Agent(
-      model: model,
-      store: InMemorySessionStore(),
-      options: const GenerationOptions(maxOutputTokens: 200, temperature: 0),
-    ),
-    sessionId: 'frames',
-  );
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: Stack(
-          children: [
-            ChatView(controller: chat),
-            const Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
+  final chat = await pumpChatScreen(tester, model);
   final frames = <FrameTiming>[];
   void collect(List<FrameTiming> timings) => frames.addAll(timings);
   SchedulerBinding.instance.addTimingsCallback(collect);
@@ -48,7 +23,7 @@ Future<Map<String, Object>> runFrameBench(
   final idleFrames = [...frames];
   frames.clear();
   final watch = Stopwatch()..start();
-  await chat.send('Write about jackdaws, their nests and their calls.');
+  await chat.send(framePrompt);
   final seconds = watch.elapsedMilliseconds / 1000;
   await Future<void>.delayed(const Duration(milliseconds: 1200));
   final busyFrames = [...frames];

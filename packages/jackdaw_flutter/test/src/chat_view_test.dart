@@ -37,7 +37,7 @@ void main() {
     await tester.pump();
     expect(find.text('What do jackdaws do?'), findsOneWidget);
     expect(find.text('Corvids cache food.'), findsOneWidget);
-    expect(find.bySemanticsLabel('You said'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('^You said')), findsOneWidget);
   });
 
   testWidgets('approval cards run or refuse the call', (tester) async {

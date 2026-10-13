@@ -24,7 +24,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Name one bird.');
     await tester.tap(find.byTooltip('Send'));
     await _until(tester, find.byTooltip('Send'));
-    await _until(tester, find.bySemanticsLabel('Assistant said'));
+    await _until(tester, find.bySemanticsLabel(RegExp('^Assistant said')));
     expect(journal.existsSync(), isTrue);
     await tester.tap(find.text('Playground'));
     await tester.pumpAndSettle();
@@ -32,11 +32,11 @@ void main() {
     await tester.tap(find.text('Chat'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('New chat'));
-    for (var i = 0; i < 50; i++) {
-      if (find.bySemanticsLabel('Assistant said').evaluate().isEmpty) break;
+    final answer = find.bySemanticsLabel(RegExp('^Assistant said'));
+    for (var i = 0; i < 50 && answer.evaluate().isNotEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    expect(find.bySemanticsLabel('Assistant said'), findsNothing);
+    expect(answer, findsNothing);
     await _until(tester, find.text('Ask the model'));
     expect(journal.existsSync(), isFalse);
   }, timeout: const Timeout(Duration(minutes: 5)));
