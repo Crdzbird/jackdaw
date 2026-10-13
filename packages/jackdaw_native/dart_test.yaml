@@ -1,0 +1,2 @@
+# Tests that load a model measure timings, so files run one at a time.
+concurrency: 1

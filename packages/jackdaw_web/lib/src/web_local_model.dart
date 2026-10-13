@@ -10,8 +10,9 @@ import 'package:jackdaw_web/src/js/wllama_module.dart';
 
 /// A [LanguageModel] that runs a GGUF model in the browser with wllama.
 ///
-/// A request's response schema is compiled to the same GBNF grammar the
-/// native core uses, so structured output behaves alike on every platform.
+/// Prompts, tool calls and response schemas use the same format and GBNF
+/// grammars as the native core, so structured output and tool use behave
+/// alike on every platform.
 /// Cancelling the stream aborts generation.
 final class WebLocalModel implements LanguageModel {
   new _(this.id, this._wllama);
@@ -41,7 +42,12 @@ final class WebLocalModel implements LanguageModel {
   final Wllama _wllama;
 
   @override
-  Stream<ModelEvent> generate(ModelRequest request) async* {
+  Stream<ModelEvent> generate(ModelRequest request) {
+    final events = _stream(request);
+    return request.tools.isEmpty ? events : events.transform(ToolCallDecoder());
+  }
+
+  Stream<ModelEvent> _stream(ModelRequest request) async* {
     final decoder = OpenAiStreamDecoder();
     final chunks = StreamController<Object?>();
     final abort = AbortController();

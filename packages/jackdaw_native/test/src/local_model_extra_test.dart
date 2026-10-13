@@ -35,7 +35,7 @@ void main() {
       await subscription.cancel();
     });
 
-    test('local models expose stats, idle and reject tools', () async {
+    test('local models expose stats and idle', () async {
       final local = await LocalModel.open(testModelPath!);
       addTearDown(local.close);
       await local
@@ -49,17 +49,6 @@ void main() {
       await local.idle;
       expect(local.stats.generatedTokens, lessThanOrEqualTo(2));
       expect(local.stats.totalMs, greaterThan(0));
-      const withTools = ModelRequest(
-        messages: [],
-        tools: [
-          ToolSpec(
-            name: 't',
-            description: 'd',
-            input: ObjectSchema(properties: {}),
-          ),
-        ],
-      );
-      expect(local.generate(withTools).toList(), throwsUnsupportedError);
     });
   });
 }

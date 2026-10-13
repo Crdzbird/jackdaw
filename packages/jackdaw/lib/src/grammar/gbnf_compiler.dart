@@ -20,13 +20,30 @@ final class GbnfCompiler {
   int _count = 0;
 
   /// Returns the grammar text for [schema].
-  String compile(Schema schema) {
-    final root = _rule(schema);
-    return [
-      'root ::= $root',
-      ..._rules,
-      for (final name in _primitives) gbnfPrimitives[name]!,
-    ].join('\n');
+  String compile(Schema schema) => render(rule(schema));
+
+  /// Adds the rules that match [schema] and returns the name of its rule,
+  /// for building a grammar from several schemas.
+  String rule(Schema schema) => _rule(schema);
+
+  /// Adds a rule named after a counter with [body] and returns its name.
+  String define(String body) => _named(body);
+
+  /// Returns the grammar with [root] as the body of the root rule and
+  /// every rule added so far.
+  String render(String root) => [
+    'root ::= $root',
+    ..._rules,
+    for (final name in _primitives) gbnfPrimitives[name]!,
+  ].join('\n');
+
+  /// [text] as a GBNF string literal that matches it exactly.
+  static String text(String text) {
+    final escaped = text
+        .replaceAll(r'\', r'\\')
+        .replaceAll('"', r'\"')
+        .replaceAll('\n', r'\n');
+    return '"$escaped"';
   }
 
   String _rule(Schema schema) => switch (schema) {
@@ -74,8 +91,5 @@ final class GbnfCompiler {
     return name;
   }
 
-  static String _literal(String value) {
-    final json = jsonEncode(value);
-    return '"${json.replaceAll(r'\', r'\\').replaceAll('"', r'\"')}"';
-  }
+  static String _literal(String value) => text(jsonEncode(value));
 }

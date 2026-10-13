@@ -4,13 +4,14 @@ import 'package:jackdaw_native/src/native/native_generate_options.dart';
 import 'package:jackdaw_native/src/native/native_model.dart';
 import 'package:jackdaw_native/src/native/native_session.dart';
 import 'package:jackdaw_native/src/native/native_stats.dart';
-import 'package:jackdaw_native/src/template_messages.dart';
 
 /// A [LanguageModel] that runs a GGUF model on the device.
 ///
 /// Inference happens on a native worker thread. A request's response
 /// schema is compiled to a grammar, so the model can only produce JSON that
-/// matches it. Consecutive turns reuse the cached prompt prefix.
+/// matches it. Tools are offered the same way: the model either answers or
+/// writes tool calls whose arguments match each tool's schema. Consecutive
+/// turns reuse the cached prompt prefix.
 final class LocalModel implements LanguageModel {
   new _(this.id, this._model, this._session);
 
@@ -46,22 +47,22 @@ final class LocalModel implements LanguageModel {
 
   @override
   Stream<ModelEvent> generate(ModelRequest request) {
-    if (request.tools.isNotEmpty) {
-      return Stream.error(UnsupportedError('LocalModel cannot run tools yet'));
-    }
     final schema = request.responseSchema;
-    final prompt = _model.applyTemplate(
-      templateMessages(request.messages, schema),
-    );
+    final tools = request.tools;
     final options = request.options;
-    return _session.generate(
-      prompt,
+    final events = _session.generate(
+      _model.applyTemplate(localPrompt(request)),
       NativeGenerateOptions(
         temperature: options.temperature ?? 0,
         maxTokens: options.maxOutputTokens ?? 0,
-        grammar: schema == null ? null : GbnfCompiler().compile(schema),
+        grammar: switch ((tools.isEmpty, schema)) {
+          (false, _) => toolCallGrammar(tools, answer: schema),
+          (true, final Schema schema) => GbnfCompiler().compile(schema),
+          (true, null) => null,
+        },
       ),
     );
+    return tools.isEmpty ? events : events.transform(ToolCallDecoder());
   }
 
   /// Frees the session and the model. The model must not be used after.
