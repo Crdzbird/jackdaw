@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "error.hpp"
+#include "live_objects.hpp"
 #include "jackdaw.h"
 #include "model.hpp"
 #include "session.hpp"
@@ -59,11 +60,14 @@ int32_t jackdaw_model_load(const char* path, const jackdaw_model_params* params,
     auto* loaded = llama_model_load_from_file(path, settings);
     if (loaded == nullptr) return jackdaw::fail(JACKDAW_ERR_IO, std::string("cannot load ") + path);
     *out = new jackdaw_model(loaded);
+    jackdaw::track(*out);
     return static_cast<int32_t>(JACKDAW_OK);
   });
 }
 
-void jackdaw_model_free(jackdaw_model* model) { delete model; }
+void jackdaw_model_free(jackdaw_model* model) {
+  if (jackdaw::untrack(model)) delete model;
+}
 
 int32_t jackdaw_model_get_info(const jackdaw_model* model, jackdaw_model_info* out) {
   if (model == nullptr || out == nullptr) {
@@ -146,11 +150,14 @@ int32_t jackdaw_session_create(jackdaw_model* model, const jackdaw_session_param
     auto* context = llama_init_from_model(model->model, settings);
     if (context == nullptr) return jackdaw::fail(JACKDAW_ERR_MODEL, "cannot create context");
     *out = new jackdaw_session(*model, context, callback, batch);
+    jackdaw::track(*out);
     return static_cast<int32_t>(JACKDAW_OK);
   });
 }
 
-void jackdaw_session_free(jackdaw_session* session) { delete session; }
+void jackdaw_session_free(jackdaw_session* session) {
+  if (jackdaw::untrack(session)) delete session;
+}
 
 int32_t jackdaw_session_generate(jackdaw_session* session, int64_t request_id, const char* prompt,
                                  int32_t prompt_len, const jackdaw_generate_params* params) {

@@ -57,6 +57,7 @@ set(JACKDAW_SOURCES
   src/embedder.cpp
   src/error.cpp
   src/generator.cpp
+  src/live_objects.cpp
   src/model.cpp
   src/piece_ring.cpp
   src/sampler.cpp
@@ -119,6 +120,7 @@ if(JACKDAW_BUILD_TESTS)
   add_executable(jackdaw_tests
     tests/api_test.cpp
     tests/embedder_test.cpp
+    tests/live_objects_test.cpp
     tests/model_test.cpp
     tests/piece_ring_test.cpp
     tests/vector_index_test.cpp)

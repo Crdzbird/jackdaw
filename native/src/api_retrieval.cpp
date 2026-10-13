@@ -5,6 +5,7 @@
 
 #include "embedder.hpp"
 #include "error.hpp"
+#include "live_objects.hpp"
 #include "jackdaw.h"
 #include "model.hpp"
 #include "threads.hpp"
@@ -44,11 +45,14 @@ int32_t jackdaw_embedder_create(jackdaw_model* model, const jackdaw_embedder_par
     auto* context = llama_init_from_model(model->model, settings);
     if (context == nullptr) return jackdaw::fail(JACKDAW_ERR_MODEL, "cannot create context");
     *out = new jackdaw_embedder(*model, context, tokens);
+    jackdaw::track(*out);
     return static_cast<int32_t>(JACKDAW_OK);
   });
 }
 
-void jackdaw_embedder_free(jackdaw_embedder* embedder) { delete embedder; }
+void jackdaw_embedder_free(jackdaw_embedder* embedder) {
+  if (jackdaw::untrack(embedder)) delete embedder;
+}
 
 int32_t jackdaw_embedder_dimensions(const jackdaw_embedder* embedder) {
   return embedder == nullptr ? 0 : embedder->dimensions;
