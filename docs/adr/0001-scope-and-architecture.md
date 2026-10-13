@@ -380,10 +380,10 @@ Delivered:
   warning flags, and `<algorithm>` is force-included for the llama target to
   work around a missing include in v0.6.0 under libstdc++. CI gains an
   explicit GCC job.
-- Windows: MSVC warning flags and a Windows CI build were added. The first CI
-  build showed that llama.cpp v0.6.0 does not compile as C++20 under MSVC
-  (`u8` literals become `char8_t`), so llama.cpp now builds as C++17 and only
-  jackdaw's own targets use C++20.
+- Windows: builds in CI with MSVC. The first CI build showed that llama.cpp
+  v0.6.0 does not compile as C++20 under MSVC (`u8` literals become
+  `char8_t`), so llama.cpp now builds as C++17 and only jackdaw's own
+  targets use C++20.
 
 Known limitations recorded here:
 
@@ -399,6 +399,13 @@ Known limitations recorded here:
   load the model; profile and release builds are the supported way to
   measure.
 
-Still open in Phase 3: the first prebuilt release (needs the `native-v*` tag),
-the first green Windows build, and runtime-selected CPU variants for older
-Android phones (`GGML_BACKEND_DL`).
+- Prebuilt release: `native-v0.1.0-dev.1` was published by CI from a tagged
+  commit with seven libraries and `SHA256SUMS`; the hashes are pinned in
+  `prebuilt_hashes.dart`. Phase 2 exit criterion 1 is now met: a fresh
+  Flutter app built with `cmake` and `ninja` blocked on `PATH` downloaded the
+  verified library and produced schema-valid JSON on the Pixel 7 Pro, and a
+  fresh Dart app did the same on macOS.
+
+Still open in Phase 3: iOS in the release matrix (iOS uses `build: source`
+until then) and runtime-selected CPU variants for older Android phones
+(`GGML_BACKEND_DL`).

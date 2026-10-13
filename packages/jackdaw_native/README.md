@@ -27,10 +27,13 @@ model.close();
 
 ## Building the native library
 
-The build hook downloads a prebuilt `libjackdaw` and checks its SHA-256
-hash. Until prebuilt releases exist, build it from source by adding this to
-the root `pubspec.yaml` of your app or workspace (CMake 3.24+ and Ninja
-required):
+The build hook downloads a prebuilt `libjackdaw` from the project's GitHub
+release and checks its SHA-256 hash against the value pinned in the package,
+so apps need no C++ toolchain. Prebuilt libraries exist for Android (arm64,
+armv7, x86_64), macOS (arm64, x86_64), Linux x64 and Windows x64.
+
+For iOS, or to build from source on any platform, add this to the root
+`pubspec.yaml` of your app or workspace (CMake 3.25+ and Ninja required):
 
 ```yaml
 hooks:
