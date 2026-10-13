@@ -1,5 +1,6 @@
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_bench/src/bench_case.dart';
+import 'package:jackdaw_bench/src/structured_shapes.dart';
 
 const _topics = [
   'bird',
@@ -12,13 +13,27 @@ const _topics = [
   'programming language',
   'mountain',
   'river',
+  'song',
+  'painting',
+  'sport',
+  'tree',
+  'museum',
+  'board game',
+  'island',
+  'instrument',
+  'festival',
+  'dish',
 ];
 
 const _name = Schema.string(description: 'Name');
 
-/// The 50 structured-output cases: ten topics in five schema shapes.
-List<BenchCase> structuredCases() => [
-  for (final topic in _topics) ..._casesFor(topic),
+/// The 200 structured-output cases of claim C1: twenty topics in ten
+/// schema shapes; ten topics in the first five are the Phase 2 slice.
+List<BenchCase> structuredCases({int topics = 20, bool harder = true}) => [
+  for (final topic in _topics.take(topics)) ...[
+    ..._casesFor(topic),
+    if (harder) ...moreShapes(topic),
+  ],
 ];
 
 List<BenchCase> _casesFor(String topic) => [

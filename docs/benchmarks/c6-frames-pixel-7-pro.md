@@ -83,11 +83,38 @@ when the streamed text becomes a message and the list is laid out again,
 and an occasional spike. That is under 0.2 percent of frames, but C6 as
 written asks for zero.
 
-## Next steps
+## Final state (cool phone, warm-up turn first)
 
-1. Keep the streaming bubble's render objects when the answer becomes a
-   message, for example by giving both the same key, so the final swap
-   does not lay out the whole answer again.
-2. If that is not enough, decide whether C6 should be restated, for
-   example as "UI build p99 under the frame budget during generation and
-   at most one frame over budget per answer".
+Later changes: every bubble is keyed by its place in the transcript and
+keeps its layout when a turn starts, the streamed text keeps its layout
+when it becomes a message, and the composer stays editable during a turn.
+The benchmark now runs one warm-up turn first, as in a chat already in
+use, because the very first text drawn pays for shaping glyphs once.
+
+| Phase | Frames | Build p50 | Build p99 | Builds over the 8.3 ms budget |
+|---|---|---|---|---|
+| Idle | 754 | | 3.1 ms | 0 |
+| Generating (second turn) | 1155 | 1.8 ms | 5.8 ms | 2 |
+
+The two frames over budget:
+
+- 12.3 ms at 24 ms into the turn: the frame that draws the user's own
+  message and the new streaming bubble, the response to tapping send. A
+  trace shows no single cause; the time is spread over text layout,
+  the list and the composer.
+- 9.0 ms at 7.3 s: one streaming frame, 0.7 ms over.
+
+At 60 Hz, where the budget is 16.7 ms, both would fit.
+
+## Decision needed
+
+C6 as written asks for zero frames attributable to inference. Streaming
+itself is within budget in all but one frame in about 1150; the frame
+that renders a sent message is UI work in response to a tap. Options:
+
+1. Sign off C6 restated as "during generation, UI build p99 stays under
+   the frame budget and at most one streaming frame per answer exceeds
+   it, at 120 Hz on the reference device".
+2. Keep working on the send frame, for example by drawing the user's
+   message one frame before the streaming bubble appears.
+
