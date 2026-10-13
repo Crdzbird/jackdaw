@@ -10,11 +10,12 @@ import 'package:jackdaw/src/tool/tool_spec.dart';
 ///
 /// The answer is free text that does not start with `<`, or JSON that
 /// matches [answer] when given. Up to [maxCalls] calls are allowed in one
-/// turn.
+/// turn; the default of one stops small models from repeating a call, and
+/// the agent still runs several calls one turn after another.
 String toolCallGrammar(
   List<ToolSpec> tools, {
   Schema? answer,
-  int maxCalls = 8,
+  int maxCalls = 1,
 }) {
   final compiler = GbnfCompiler();
   String callOf(ToolSpec tool) {

@@ -18,7 +18,7 @@ const _time = ToolSpec(
 
 void main() {
   test('the grammar offers each tool call or free text', () {
-    final grammar = toolCallGrammar([_weather, _time]);
+    final grammar = toolCallGrammar([_weather, _time], maxCalls: 8);
     expect(grammar, startsWith('root ::= rule'));
     expect(
       grammar,
@@ -31,11 +31,7 @@ void main() {
   });
 
   test('a response schema replaces free text and one call is allowed', () {
-    final grammar = toolCallGrammar(
-      [_time],
-      answer: const Schema.boolean(),
-      maxCalls: 1,
-    );
+    final grammar = toolCallGrammar([_time], answer: const Schema.boolean());
     expect(grammar, isNot(contains('[^<] .*')));
     expect(grammar, contains('boolean ::='));
     expect(grammar, startsWith('root ::= rule1 | boolean\n'));

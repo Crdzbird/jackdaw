@@ -83,15 +83,17 @@ final class ChatController {
         state.error = failure;
         _end(ChatStatus.failed);
       },
-      onDone: () => _end(state.status.value),
+      onDone: _end,
     );
     await turn.future;
   }
 
-  void _end(ChatStatus next) {
+  void _end([ChatStatus? next]) {
+    final turn = _turn;
+    if (turn == null) return;
+    _turn = null;
     _run = null;
     state.end(next);
-    _turn?.complete();
-    _turn = null;
+    turn.complete();
   }
 }

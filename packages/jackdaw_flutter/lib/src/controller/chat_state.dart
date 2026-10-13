@@ -32,9 +32,14 @@ final class ChatState {
   /// The error of the last failed turn.
   Object? error;
 
+  List<Message>? _transcript;
+  ChatStatus _settled = ChatStatus.idle;
+
   /// Marks the start of a turn.
   void begin() {
     error = null;
+    _transcript = null;
+    _settled = ChatStatus.idle;
     streaming.clear();
     status.value = ChatStatus.responding;
   }
@@ -47,10 +52,14 @@ final class ChatState {
     _ => null,
   };
 
-  /// Marks the end of a turn with [next].
-  void end(ChatStatus next) {
+  /// Marks the end of a turn: shows the final transcript, if the agent
+  /// sent one, and switches to [next], or to what the agent's last event
+  /// asked for when [next] is null. Both change in the same frame.
+  void end([ChatStatus? next]) {
+    if (_transcript case final transcript?) messages.value = transcript;
+    _transcript = null;
     streaming.clear();
-    status.value = next;
+    status.value = next ?? _settled;
   }
 
   /// Releases every listenable.
@@ -61,8 +70,8 @@ final class ChatState {
   }
 
   void _finish(List<Message> transcript, AgentStopReason reason) {
-    messages.value = List.unmodifiable(transcript);
-    status.value = reason == AgentStopReason.awaitingApproval
+    _transcript = List.unmodifiable(transcript);
+    _settled = reason == AgentStopReason.awaitingApproval
         ? ChatStatus.awaitingApproval
         : ChatStatus.idle;
   }

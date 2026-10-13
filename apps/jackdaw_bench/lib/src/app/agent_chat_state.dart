@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jackdaw/io.dart';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_bench/src/app/agent_chat.dart';
+import 'package:jackdaw_bench/src/app/demo_tools.dart';
 import 'package:jackdaw_flutter/jackdaw_flutter.dart';
 
 const String _session = 'demo';
@@ -20,7 +21,11 @@ class AgentChatState extends State<AgentChat> {
       agent: Agent(
         model: widget.model,
         store: store,
-        instructions: 'You are a concise assistant running on a phone.',
+        tools: demoTools(widget.sessions),
+        instructions:
+            'You are a helpful assistant running on a phone. Answer general '
+            'questions yourself. Use the tools whenever the user asks about '
+            'the time or about their notes.',
         options: const GenerationOptions(maxOutputTokens: 384),
         budget: ContextBudget(
           maxTokens: 3000,
