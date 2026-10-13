@@ -96,11 +96,23 @@ jobs:
           - os: macos-latest
             key: macos-arm64
             file: libjackdaw.dylib
-            args: -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13
+            args: -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
           - os: macos-latest
             key: macos-x64
             file: libjackdaw.dylib
-            args: -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=13
+            args: -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+          - os: macos-latest
+            key: ios-iphoneos-arm64
+            file: libjackdaw.dylib
+            args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0
+          - os: macos-latest
+            key: ios-iphonesimulator-arm64
+            file: libjackdaw.dylib
+            args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DGGML_METAL=OFF
+          - os: macos-latest
+            key: ios-iphonesimulator-x64
+            file: libjackdaw.dylib
+            args: -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DGGML_METAL=OFF
           - os: ubuntu-latest
             key: linux-x64
             file: libjackdaw.so
