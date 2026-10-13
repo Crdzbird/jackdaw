@@ -26,3 +26,9 @@ copy such as `https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/index.js`.
 Multi-threading needs the page served with `Cross-Origin-Opener-Policy:
 same-origin` and `Cross-Origin-Embedder-Policy: require-corp`; without them
 wllama runs single-threaded. Model files above 2 GB must be split.
+
+`WebEmbedder` embeds text for retrieval with the pure Dart
+`FlatVectorIndex`; see `example/web/embed.dart`. With all-minilm its
+vectors match Ollama's for the same GGUF file (cosine 1.0). Texts are sent
+one per call, because wllama 3.8 embeds only the first text of a list.
+

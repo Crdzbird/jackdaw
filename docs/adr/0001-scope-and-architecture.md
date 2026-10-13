@@ -464,7 +464,14 @@ Chrome with dart2js and dart2wasm:
   embeddings with the model's pooling, mean pooling for decoder models) and
   `jackdaw_index_*`. `NativeEmbedder` and `NativeVectorIndex` wrap them.
   `WebEmbedder` in `jackdaw_web` uses wllama `createEmbedding`, so the web
-  pairs it with `FlatVectorIndex`.
+  pairs it with `FlatVectorIndex`. A live browser run with all-minilm gives
+  vectors with cosine 1.0 against Ollama for the same GGUF, as the native
+  embedder does, so the three backends agree. That run found that wllama
+  3.8 embeds only the first text of a list; texts are now sent one per
+  call and the test fake behaves the same way.
+- Prompt-injection screening. `InjectionScreen` runs on every successful
+  tool result by default: it removes invisible characters and wraps output
+  matching injection shapes with a warning, or withholds it with `block`.
 
 - MCP. `jackdaw_mcp` offers two backends behind one `McpSession`: our own
   `McpClient` over Streamable HTTP (every platform, including the web) or
@@ -493,8 +500,6 @@ dependency, and deletes are exact. Scan time grows linearly, so HNSW
 becomes worth its cost somewhere near a million vectors; that is deferred
 until a user needs it.
 
-### Still open in Phase 4
+### Phase 4 closed
 
-- A live browser run of `WebEmbedder` against real wllama; the tests use a
-  fake module.
 

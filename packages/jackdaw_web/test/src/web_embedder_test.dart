@@ -34,15 +34,11 @@ void main() {
       'pooling_type': 'mean',
     });
     final vectors = await embedder.embed(['abcd', 'a']);
-    expect(state('embedOptions'), {
-      'input': ['d: abcd', 'd: a'],
-    });
+    expect(state('embedInputs'), ['d: abcd', 'd: a']);
     expect(vectors[0][0], closeTo(7 / 7.6158, 0.001));
     expect(vectors[1], [closeTo(0.8, 1e-6), 0, closeTo(0.6, 1e-6)]);
     await embedder.embed(['x'], kind: EmbeddingKind.query);
-    expect(state('embedOptions'), {
-      'input': ['q: x'],
-    });
+    expect(state('embedOptions'), {'input': 'q: x'});
     expect(await embedder.embed(const []), isEmpty);
     expect(embedder.id, 'web/minilm.gguf');
     await embedder.close();

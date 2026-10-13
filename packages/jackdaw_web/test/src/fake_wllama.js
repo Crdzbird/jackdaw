@@ -22,12 +22,10 @@ export class Wllama {
     state.embedOptions = options;
     if (globalThis.fakeError) throw new Error(globalThis.fakeError);
     if (globalThis.fakeEmbedShort) return { object: 'list', data: [] };
-    const data = options.input.map((text, index) => ({
-      object: 'embedding',
-      index,
-      embedding: [text.length, 0, 3],
-    }));
-    return { object: 'list', data: data.reverse(), model: 'fake' };
+    state.embedInputs = (state.embedInputs || []).concat([options.input]);
+    const first = Array.isArray(options.input) ? options.input[0] : options.input;
+    const data = [{ object: 'embedding', index: 0, embedding: [first.length, 0, 3] }];
+    return { object: 'list', data, model: 'fake' };
   }
   async exit() {
     globalThis.fakeWllama.exited = true;

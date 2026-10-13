@@ -7,6 +7,9 @@ import 'package:jackdaw_web/src/js/wllama_module.dart';
 
 /// An [Embedder] that runs a GGUF embedding model in the browser with
 /// wllama. Vectors are scaled to unit length, like the native embedder's.
+///
+/// Texts are sent one per call, because wllama 3.8 embeds only the first
+/// text of a list.
 final class WebEmbedder implements Embedder {
   new _(this.id, this._wllama, this.queryPrefix, this.documentPrefix);
 
@@ -60,21 +63,20 @@ final class WebEmbedder implements Embedder {
     return await run;
   }
 
-  Future<List<Float32List>> _embed(List<String> input) async {
-    final options = {'input': input}.jsify()! as JSObject;
+  Future<List<Float32List>> _embed(List<String> input) async => [
+    for (final text in input) await _embedOne(text),
+  ];
+
+  Future<Float32List> _embedOne(String text) async {
+    final options = {'input': text}.jsify()! as JSObject;
     final Object? response;
     try {
       response = (await _wllama.createEmbedding(options).toDart).dartify();
     } on Object catch (error) {
       throw ProviderException(provider: 'wllama', message: '$error');
     }
-    if (response case {'data': final List<Object?> data}
-        when data.length == input.length) {
-      final items = [for (final item in data) item! as Map]
-        ..sort((a, b) => (a['index'] as num).compareTo(b['index'] as num));
-      return [
-        for (final item in items) normalized(vectorFromJson(item['embedding'])),
-      ];
+    if (response case {'data': [{'embedding': final Object? vector}, ...]}) {
+      return normalized(vectorFromJson(vector));
     }
     throw const FormatException('unexpected embeddings response');
   }
