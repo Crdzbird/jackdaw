@@ -45,6 +45,8 @@ String toolInstructions(List<ToolSpec> tools) {
       'arguments within <tool_call></tool_call> XML tags:\n'
       '<tool_call>\n{"name": <function-name>, "arguments": '
       '<args-json-object>}\n</tool_call>\n\n'
+      'Start the reply with <tool_call> itself: no code fence, no other '
+      'tags and no text before it.\n\n'
       'Results come back within <tool_response></tool_response> XML tags.\n\n'
       'Call a function only when the user asks for something it does. '
       'Answer all other questions yourself, from your own knowledge, without '

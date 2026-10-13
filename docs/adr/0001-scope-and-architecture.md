@@ -518,8 +518,13 @@ agree across native, web and Ollama, and MCP ships in v1.
 - Local tool calling. `LocalModel` and `WebLocalModel` run tools through
   one shared prompt format, grammar and decoder, so P2's "tool calls
   forced through a grammar we own" now holds on device and on the web.
-  Claim C2 is met for Qwen (100% well-formed calls); Llama and Gemma are
-  still to be measured (`docs/benchmarks/c2-tool-calls.md`).
+  Claim C2 is met for Qwen, Llama and Gemma: 100% well-formed calls.
+  Deciding when to call is the model's own judgment: Qwen 2.5 gets 23 of
+  24 cases right, Llama 3.2 3B and Gemma 2 2B over-call
+  (`docs/benchmarks/c2-tool-calls.md`).
+- Quitting a macOS app with a model loaded aborted in ggml's Metal
+  teardown. libjackdaw now frees live models, sessions and embedders in
+  an exit handler that runs first.
 - The demo app is rebuilt on `jackdaw_flutter`, with tools that read the
   clock and save notes behind an approval, and VS Code launch configs.
 

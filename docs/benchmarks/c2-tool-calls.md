@@ -1,7 +1,8 @@
 # Claim C2: tool calls from local models
 
-Date: 2026-10-13. Status: met for the Qwen family; Llama and Gemma not
-measured yet.
+Date: 2026-10-13. Status: met for all three families (Qwen, Llama,
+Gemma): every call is well-formed. How well each model decides when to
+call a tool varies by family; see below.
 
 Claim C2: at least 98% well-formed tool calls across three model families
 (Qwen, Llama, Gemma) with no per-family parser.
@@ -39,16 +40,31 @@ tool/tool_bench.dart <model.gguf>` on the desktop.
 | Model | Device | Calls | Well-formed | Right choice | Right arguments |
 |---|---|---|---|---|---|
 | Qwen2.5-1.5B-Instruct Q4_K_M | Pixel 7 Pro (CPU) | 15 | 100% | 23/24 (96%) | 23/24 (96%) |
-| Qwen2.5-1.5B-Instruct Q4_K_M | MacBook (Metal) | 14 | 100% | 22/24 (92%) | 22/24 (92%) |
+| Qwen2.5-1.5B-Instruct Q4_K_M | MacBook (Metal) | 15 | 100% | 23/24 (96%) | 23/24 (96%) |
 | Qwen2.5-3B-Instruct Q4_K_M | MacBook (Metal) | 14 | 100% | 22/24 (92%) | 22/24 (92%) |
+| Llama-3.2-3B-Instruct Q4_K_M | MacBook (Metal) | 24 | 100% | 16/24 (67%) | 16/24 (67%) |
+| gemma-2-2b-it Q4_K_M | MacBook (Metal) | 24 | 100% | 15/24 (63%) | 15/24 (63%) |
 
 Every call is well-formed because the grammar makes any other output
-impossible. Every miss is a call the model chose not to make, for
-example "What is John Smith's phone number?" answered without
-`find_contact`; when the model did call the right tool, its arguments
-were right every time. No general question triggered a tool.
+impossible, whatever the family. When a model called the right tool, its
+arguments were right every time.
 
-## Open
+The families differ in when they call:
 
-Llama 3.2 and Gemma GGUF files are needed to cover the other two
-families; they are not on this machine yet.
+- Qwen, trained on this format, misses at most one or two calls by
+  answering directly instead.
+- Llama 3.2 3B calls a tool for every general question too, for example
+  `find_contact` for "What is the capital of France?". Without the
+  grammar it writes the same calls, so this is the model's own tendency.
+  Rule-first wording, a worked example and a yes or no decision step did
+  not fix it without hurting Qwen (the decision step dropped Qwen to
+  7/24).
+- Gemma 2 2B wrapped its calls in an XML code fence, which the grammar
+  read as a plain answer. The instructions now say to start the reply
+  with `<tool_call>` itself; that took Gemma from 5/24 to 15/24 and Qwen
+  from 22/24 to 23/24, and left Llama unchanged. Gemma now over-calls
+  like Llama.
+
+For Llama and Gemma at these sizes, offer tools only on screens where a
+tool is likely, or keep `requiresApproval` on tools with side effects, so
+a needless call is visible and cheap to reject.
