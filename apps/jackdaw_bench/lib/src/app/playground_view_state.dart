@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:jackdaw/jackdaw.dart';
-import 'package:jackdaw_bench/src/app/chat_view.dart';
 import 'package:jackdaw_bench/src/app/controls_row.dart';
 import 'package:jackdaw_bench/src/app/demo_schema.dart';
 import 'package:jackdaw_bench/src/app/describe_stats.dart';
 import 'package:jackdaw_bench/src/app/output_view.dart';
+import 'package:jackdaw_bench/src/app/playground_view.dart';
 
-/// State of [ChatView]: streams one answer at a time into the screen.
-class ChatViewState extends State<ChatView> {
+/// State of [PlaygroundView]: streams one answer at a time into the screen.
+class PlaygroundViewState extends State<PlaygroundView> {
   final TextEditingController _prompt = TextEditingController(
     text: 'What is a jackdaw and where does it live?',
   );

@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Demo: copy the model to the Pixel",
+      "type": "shell",
+      "command": "apps/jackdaw_bench/tool/push_model.sh 29131FDH3006NV ${userHome}/.cache/jackdaw/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "problemMatcher": []
+    },
+    {
+      "label": "Bench: frame timing on the Pixel (claim C6)",
+      "type": "shell",
+      "command": "cd apps/jackdaw_bench && tool/run_android.sh 29131FDH3006NV ${userHome}/.cache/jackdaw/models/qwen2.5-1.5b-instruct-q4_k_m.gguf frames",
+      "problemMatcher": []
+    }
+  ]
+}

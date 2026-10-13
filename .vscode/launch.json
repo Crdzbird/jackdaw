@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Demo: Pixel 7 Pro (profile)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/jackdaw_bench",
+      "program": "lib/main.dart",
+      "deviceId": "29131FDH3006NV",
+      "flutterMode": "profile",
+      "preLaunchTask": "Demo: copy the model to the Pixel"
+    },
+    {
+      "name": "Demo: Pixel 7 Pro (debug)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/jackdaw_bench",
+      "program": "lib/main.dart",
+      "deviceId": "29131FDH3006NV",
+      "flutterMode": "debug",
+      "preLaunchTask": "Demo: copy the model to the Pixel"
+    },
+    {
+      "name": "Demo: macOS",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/jackdaw_bench",
+      "program": "lib/main.dart",
+      "deviceId": "macos",
+      "flutterMode": "profile",
+      "toolArgs": [
+        "--dart-define=JACKDAW_MODEL=${userHome}/.cache/jackdaw/models/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+      ]
+    },
+    {
+      "name": "Demo: selected device",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "apps/jackdaw_bench",
+      "program": "lib/main.dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "CLI: inspect the macOS demo chat",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "packages/jackdaw_cli",
+      "program": "bin/jackdaw.dart",
+      "args": [
+        "inspect",
+        "${userHome}/.cache/jackdaw/models/sessions/demo.jsonl"
+      ]
+    },
+    {
+      "name": "CLI: help",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "packages/jackdaw_cli",
+      "program": "bin/jackdaw.dart",
+      "args": ["help"]
+    }
+  ]
+}

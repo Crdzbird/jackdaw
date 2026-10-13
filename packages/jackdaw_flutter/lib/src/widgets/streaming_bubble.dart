@@ -29,7 +29,7 @@ final class StreamingBubble extends StatelessWidget {
                 ),
               ),
             )
-          : ChatBubble(text: value, fromUser: false),
+          : ChatBubble(text: value, fromUser: false, selectable: false),
     ),
   );
 }

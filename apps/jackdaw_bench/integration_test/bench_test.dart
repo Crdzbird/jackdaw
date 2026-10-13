@@ -39,9 +39,17 @@ void main() {
     }
     if (_only == 'frames') {
       binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
-      final model = await LocalModel.open(_path);
-      _report('frames', await runFrameBench(tester, model));
-      model.close();
+      for (final threads in [4, 3, 2]) {
+        final model = await LocalModel.open(
+          _path,
+          options: LocalModelOptions(
+            session: NativeSessionOptions(threads: threads),
+          ),
+        );
+        final result = await runFrameBench(tester, model);
+        _report('frames', {'threads': threads, ...result});
+        model.close();
+      }
       return;
     }
     final watch = Stopwatch()..start();
