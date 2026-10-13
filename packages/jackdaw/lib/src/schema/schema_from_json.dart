@@ -5,9 +5,9 @@ const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
 /// Reads a JSON Schema document, such as an MCP tool's `inputSchema`.
 ///
 /// A document becomes a typed schema only when every keyword in it is
-/// understood, so no constraint is dropped; any other document, such as one
-/// using `anyOf`, `$ref` or `minLength`, is kept whole as a [RawSchema]. A missing
-/// `additionalProperties` means true, as in JSON Schema.
+/// understood, so no constraint is dropped. Any other document, such as one
+/// using `anyOf`, `$ref` or `minLength`, is kept whole as a [RawSchema]. A
+/// missing `additionalProperties` means true, as in JSON Schema.
 Schema schemaFromJson(Map<String, Object?> json) {
   final keys = json.keys.where((k) => !_ignored.contains(k)).toSet();
   final description = json['description'];
