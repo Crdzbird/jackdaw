@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   jackdaw:
     path: ../../packages/jackdaw
+  jackdaw_flutter:
+    path: ../../packages/jackdaw_flutter
   jackdaw_native:
     path: ../../packages/jackdaw_native
 

@@ -13,6 +13,8 @@ import 'package:jackdaw_bench/src/throughput_bench.dart';
 import 'package:jackdaw_bench/src/vector_bench.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
+import 'frame_bench.dart';
+
 const _path = String.fromEnvironment('JACKDAW_MODEL');
 const _only = String.fromEnvironment('BENCH');
 
@@ -22,7 +24,7 @@ void _report(String name, Map<String, Object> data) =>
     debugPrint('BENCH ${jsonEncode({'name': name, ...data})}');
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('benchmarks', (tester) async {
     if (_wanted('vectors')) {
@@ -34,6 +36,13 @@ void main() {
         );
       }
       if (_only == 'vectors') return;
+    }
+    if (_only == 'frames') {
+      binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
+      final model = await LocalModel.open(_path);
+      _report('frames', await runFrameBench(tester, model));
+      model.close();
+      return;
     }
     final watch = Stopwatch()..start();
     final model = await LocalModel.open(_path);
