@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-/// Reads a JSON list of numbers as a vector; anything else fails with
+/// Reads a JSON list of numbers as a vector; any other value fails with
 /// [FormatException], so a malformed provider answer is never indexed.
 Float32List vectorFromJson(Object? json) {
   if (json is! List || json.any((x) => x is! num)) {
