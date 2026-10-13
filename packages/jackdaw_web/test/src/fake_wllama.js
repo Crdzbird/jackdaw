@@ -17,6 +17,18 @@ export class Wllama {
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
   }
+  async createEmbedding(options) {
+    const state = globalThis.fakeWllama;
+    state.embedOptions = options;
+    if (globalThis.fakeError) throw new Error(globalThis.fakeError);
+    if (globalThis.fakeEmbedShort) return { object: 'list', data: [] };
+    const data = options.input.map((text, index) => ({
+      object: 'embedding',
+      index,
+      embedding: [text.length, 0, 3],
+    }));
+    return { object: 'list', data: data.reverse(), model: 'fake' };
+  }
   async exit() {
     globalThis.fakeWllama.exited = true;
   }

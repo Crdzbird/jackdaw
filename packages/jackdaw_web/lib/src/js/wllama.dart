@@ -11,6 +11,10 @@ extension type Wllama._(JSObject _) implements JSObject {
   /// after the last chunk has been delivered.
   external JSPromise<JSAny?> createChatCompletion(JSObject options);
 
+  /// Embeds `input`, a string or list of strings, OpenAI style. Needs a
+  /// model loaded with `embeddings: true`.
+  external JSPromise<JSAny?> createEmbedding(JSObject options);
+
   /// Unloads the model and frees its memory.
   external JSPromise<JSAny?> exit();
 }
