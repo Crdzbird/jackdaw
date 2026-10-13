@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_test/src/contract/contract_case.dart';
 import 'package:jackdaw_test/src/contract/contract_requests.dart';
-import 'package:test/test.dart';
+import 'package:matcher/expect.dart';
+import 'package:test_api/scaffolding.dart';
 
 /// Declares the tests every [LanguageModel] must pass, for the model that
 /// [model] returns.
