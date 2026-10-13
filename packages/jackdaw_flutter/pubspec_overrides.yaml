@@ -1,0 +1,5 @@
+dependency_overrides:
+  jackdaw:
+    path: ../jackdaw
+  jackdaw_test:
+    path: ../jackdaw_test

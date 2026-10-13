@@ -54,3 +54,23 @@ jobs:
       - run: ../../tool/check_coverage.sh coverage/lcov.info 'jackdaw_web/lib/'
       - run: dart test -p chrome --compiler dart2wasm
       - run: dart pub publish --dry-run
+
+  flutter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/jackdaw_flutter
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Flutter 3.47.7
+        working-directory: .
+        run: |
+          git clone --depth 1 --branch 3.47.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze --fatal-infos
+      - run: flutter test --coverage
+      - run: ../../tool/check_coverage.sh coverage/lcov.info
+      - run: flutter pub publish --dry-run
+

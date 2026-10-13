@@ -1,0 +1,24 @@
+name: jackdaw_flutter
+description: >-
+  Flutter widgets for jackdaw agents. A chat controller with streaming text
+  merged to one update per frame, tool approval cards and a composer, built
+  so that inference never costs the UI thread a frame.
+version: 0.1.0-dev.1
+repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_flutter
+topics: [ai, llm, flutter, chat, agents]
+
+environment:
+  sdk: ^3.13.0
+  flutter: '>=3.47.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  jackdaw: ^0.1.0-dev.1
+
+dev_dependencies:
+  fake_async: ^1.3.3
+  flutter_test:
+    sdk: flutter
+  jackdaw_test: ^0.1.0-dev.1
+  very_good_analysis: ^11.0.0
