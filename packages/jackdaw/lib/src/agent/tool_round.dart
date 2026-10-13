@@ -59,7 +59,7 @@ final class ToolRound {
       await _record(ToolStartedRecord(call.id));
     }
     final results = await Future.wait([
-      for (final (call, tool) in allowed) tool.invoke(call),
+      for (final (call, tool) in allowed) _tools.invoke(tool, call),
     ]);
     for (final result in results) {
       await _record(ToolResultRecord(result));

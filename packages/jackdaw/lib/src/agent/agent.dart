@@ -10,6 +10,8 @@ import 'package:jackdaw/src/session/in_memory_session_store.dart';
 import 'package:jackdaw/src/session/session_record.dart';
 import 'package:jackdaw/src/session/session_store.dart';
 import 'package:jackdaw/src/tool/tool.dart';
+import 'package:jackdaw/src/trace/noop_tracer.dart';
+import 'package:jackdaw/src/trace/tracer.dart';
 
 /// Runs a model in a loop, executing the tools it asks for, until it
 /// answers, needs approval, or has made [maxSteps] model calls. Each step is
@@ -27,6 +29,8 @@ final class Agent {
     ToolPolicy policy,
     SessionStore? store,
     ContextBudget? budget,
+    Tracer tracer,
+    bool traceContent,
   }) = Agent._;
 
   const new _({
@@ -38,6 +42,8 @@ final class Agent {
     this.policy = const ApprovalPolicy(),
     this.store,
     this.budget,
+    this.tracer = const NoopTracer(),
+    this.traceContent = false,
   });
 
   /// The model that decides what to do.
@@ -63,6 +69,13 @@ final class Agent {
 
   /// Limit for the transcript sent to the model; the journal keeps all.
   final ContextBudget? budget;
+
+  /// Receives spans for the run, each model call and each tool call.
+  final Tracer tracer;
+
+  /// Whether prompts, answers and tool data are attached to spans. Wrap
+  /// [tracer] in a `RedactingTracer` before turning this on.
+  final bool traceContent;
 
   /// Runs once over [history] without keeping a session.
   Stream<AgentEvent> run(List<Message> history) async* {
