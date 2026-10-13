@@ -10,6 +10,7 @@ import 'package:jackdaw_bench/src/prefix_bench.dart';
 import 'package:jackdaw_bench/src/structured_bench.dart';
 import 'package:jackdaw_bench/src/structured_cases.dart';
 import 'package:jackdaw_bench/src/throughput_bench.dart';
+import 'package:jackdaw_bench/src/tool_bench.dart';
 import 'package:jackdaw_bench/src/vector_bench.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
@@ -75,6 +76,7 @@ void main() {
         _report('throughput', await runThroughputBench(model));
       }
       if (_wanted('cancel')) _report('cancel', await runCancelBench(model));
+      if (_wanted('tools')) _report('tools', await runToolBench(model));
       if (_wanted('prefix')) _report('prefix', await runPrefixBench(model));
       if (_wanted('structured')) {
         _report(

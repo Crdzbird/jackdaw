@@ -504,3 +504,22 @@ until a user needs it.
 
 Phase 4 closed on 2026-10-13: claims C7, C10 and C11 are met, embeddings
 agree across native, web and Ollama, and MCP ships in v1.
+
+## Phase 5 progress (2026-10-13)
+
+- `jackdaw_flutter`: `ChatController` and `ChatView` with streaming text,
+  tool approval cards, stop and a composer. Streamed text is split into
+  paragraphs, hidden from semantics while it grows and keeps its layout
+  when the answer completes. Claim C6 went from about 1% of frames over
+  budget during generation to at most a few per answer; details in
+  `docs/benchmarks/c6-frames-pixel-7-pro.md`.
+- `jackdaw_cli`: `inspect`, `trace`, `grammar` and `validate`, with
+  `JsonlTracer` in `package:jackdaw/io.dart`.
+- Local tool calling. `LocalModel` and `WebLocalModel` run tools through
+  one shared prompt format, grammar and decoder, so P2's "tool calls
+  forced through a grammar we own" now holds on device and on the web.
+  Claim C2 is met for Qwen (100% well-formed calls); Llama and Gemma are
+  still to be measured (`docs/benchmarks/c2-tool-calls.md`).
+- The demo app is rebuilt on `jackdaw_flutter`, with tools that read the
+  clock and save notes behind an approval, and VS Code launch configs.
+
