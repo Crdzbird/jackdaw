@@ -55,6 +55,33 @@ jobs:
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
           TSAN_OPTIONS: halt_on_error=1
 
+  fuzz:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: sudo apt-get install -y ninja-build
+      - run: >
+          cmake -S native -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DJACKDAW_BUILD_FUZZERS=ON -DJACKDAW_SANITIZE=address,undefined
+      - run: cmake --build build -j --target jackdaw_grammar_fuzz jackdaw_index_load_fuzz jackdaw_grammar_check
+      - run: ./build/fuzz/jackdaw_grammar_check native/fuzz/corpus/grammar
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - run: dart pub get
+      - name: Every grammar compiled from 500 random schemas parses in llama.cpp
+        run: |
+          mkdir -p "$RUNNER_TEMP/grammars"
+          (cd packages/jackdaw && JACKDAW_GRAMMAR_CORPUS="$RUNNER_TEMP/grammars" dart test test/src/grammar/random_schema_test.dart)
+          ./build/fuzz/jackdaw_grammar_check "$RUNNER_TEMP/grammars"
+      - run: >
+          ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=60 -max_len=4096
+          native/fuzz/corpus/grammar
+      - run: >
+          ./build/fuzz/jackdaw_index_load_fuzz -max_total_time=60 -max_len=65536
+          native/fuzz/corpus/index
+
   android:
     runs-on: ubuntu-latest
     strategy:

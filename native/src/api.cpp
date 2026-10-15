@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "error.hpp"
+#include "grammar_guard.hpp"
 #include "live_objects.hpp"
 #include "jackdaw.h"
 #include "model.hpp"
@@ -170,7 +171,12 @@ int32_t jackdaw_session_generate(jackdaw_session* session, int64_t request_id, c
     job.id = request_id;
     job.prompt.assign(prompt, static_cast<std::size_t>(prompt_len));
     job.params = *params;
-    if (params->grammar != nullptr) job.grammar = std::string(params->grammar);
+    if (params->grammar != nullptr) {
+      if (auto problem = jackdaw::grammar_problem(params->grammar)) {
+        return jackdaw::fail(JACKDAW_ERR_GRAMMAR, *problem);
+      }
+      job.grammar = std::string(params->grammar);
+    }
     job.params.grammar = nullptr;
     const auto status = session->submit(std::move(job));
     if (status != JACKDAW_OK) return jackdaw::fail(status, "a generation is already running");

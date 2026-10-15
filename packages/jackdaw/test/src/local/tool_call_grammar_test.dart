@@ -37,6 +37,11 @@ void main() {
     expect(grammar, startsWith('root ::= rule1 | boolean\n'));
   });
 
+  test('the number of calls must be between 1 and 64', () {
+    expect(() => toolCallGrammar([_time], maxCalls: 0), throwsRangeError);
+    expect(() => toolCallGrammar([_time], maxCalls: 65), throwsRangeError);
+  });
+
   test('literals escape quotes, backslashes and newlines', () {
     expect(GbnfCompiler.text('a"b\\c\nd'), r'"a\"b\\c\nd"');
   });

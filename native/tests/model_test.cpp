@@ -186,3 +186,13 @@ TEST_F(ModelTest, ReusesThePromptPrefix) {
 }
 
 }
+
+TEST_F(ModelTest, RefusesGrammarsThatWouldHangTheParser) {
+  jackdaw_generate_params params{};
+  params.max_tokens = 4;
+  params.grammar = R"(root ::= "a"{2,1})";
+  const std::string text = "hi";
+  EXPECT_EQ(jackdaw_session_generate(session_, 1, text.c_str(), static_cast<int32_t>(text.size()), &params),
+            JACKDAW_ERR_GRAMMAR);
+  EXPECT_NE(std::string(jackdaw_last_error()).find("minimum above its maximum"), std::string::npos);
+}

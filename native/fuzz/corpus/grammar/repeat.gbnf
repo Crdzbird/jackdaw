@@ -1,0 +1,2 @@
+root ::= item ("," item){0,3}
+item ::= [^<] .*

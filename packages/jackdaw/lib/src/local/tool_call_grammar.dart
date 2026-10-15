@@ -17,6 +17,7 @@ String toolCallGrammar(
   Schema? answer,
   int maxCalls = 1,
 }) {
+  RangeError.checkValueInInterval(maxCalls, 1, 64, 'maxCalls');
   final compiler = GbnfCompiler();
   String callOf(ToolSpec tool) {
     final head =

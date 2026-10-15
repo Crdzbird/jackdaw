@@ -1,0 +1,35 @@
+set(JACKDAW_LIBFUZZER OFF)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  include(CheckCXXSourceCompiles)
+  set(CMAKE_REQUIRED_FLAGS "-fsanitize=fuzzer")
+  check_cxx_source_compiles(
+    "#include <cstddef>\n#include <cstdint>\nextern \"C\" int LLVMFuzzerTestOneInput(const uint8_t*, size_t) { return 0; }"
+    JACKDAW_HAS_LIBFUZZER)
+  unset(CMAKE_REQUIRED_FLAGS)
+  set(JACKDAW_LIBFUZZER ${JACKDAW_HAS_LIBFUZZER})
+endif()
+
+set(JACKDAW_FUZZ_SANITIZERS -fsanitize=address,undefined -fno-omit-frame-pointer)
+
+function(jackdaw_fuzzer name source)
+  if(JACKDAW_LIBFUZZER)
+    add_executable(${name} ${source})
+    target_compile_options(${name} PRIVATE -fsanitize=fuzzer ${JACKDAW_FUZZ_SANITIZERS})
+    target_link_options(${name} PRIVATE -fsanitize=fuzzer ${JACKDAW_FUZZ_SANITIZERS})
+  else()
+    add_executable(${name} ${source} replay_main.cpp)
+    target_compile_options(${name} PRIVATE ${JACKDAW_FUZZ_SANITIZERS})
+    target_link_options(${name} PRIVATE ${JACKDAW_FUZZ_SANITIZERS})
+  endif()
+  target_compile_features(${name} PRIVATE cxx_std_20)
+  target_include_directories(${name} PRIVATE ${llama_cpp_SOURCE_DIR}/src ../include ../src)
+  target_link_libraries(${name} PRIVATE jackdaw_core llama)
+endfunction()
+
+jackdaw_fuzzer(jackdaw_grammar_fuzz grammar_fuzz.cpp)
+jackdaw_fuzzer(jackdaw_index_load_fuzz index_load_fuzz.cpp)
+
+add_executable(jackdaw_grammar_check grammar_check.cpp)
+target_compile_features(jackdaw_grammar_check PRIVATE cxx_std_20)
+target_include_directories(jackdaw_grammar_check PRIVATE ${llama_cpp_SOURCE_DIR}/src ../src)
+target_link_libraries(jackdaw_grammar_check PRIVATE jackdaw_core llama)

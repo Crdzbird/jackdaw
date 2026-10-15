@@ -57,6 +57,7 @@ set(JACKDAW_SOURCES
   src/embedder.cpp
   src/error.cpp
   src/generator.cpp
+  src/grammar_guard.cpp
   src/live_objects.cpp
   src/model.cpp
   src/piece_ring.cpp
@@ -120,6 +121,7 @@ if(JACKDAW_BUILD_TESTS)
   add_executable(jackdaw_tests
     tests/api_test.cpp
     tests/embedder_test.cpp
+    tests/grammar_guard_test.cpp
     tests/live_objects_test.cpp
     tests/model_test.cpp
     tests/piece_ring_test.cpp
@@ -129,3 +131,9 @@ if(JACKDAW_BUILD_TESTS)
   include(GoogleTest)
   gtest_discover_tests(jackdaw_tests DISCOVERY_MODE PRE_TEST)
 endif()
+
+option(JACKDAW_BUILD_FUZZERS "Build the fuzz targets and the grammar checker" OFF)
+if(JACKDAW_BUILD_FUZZERS)
+  add_subdirectory(fuzz)
+endif()
+
