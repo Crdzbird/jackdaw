@@ -2,10 +2,12 @@ import 'dart:convert';
 
 /// GBNF rules for the JSON primitives, keyed by rule name.
 ///
-/// Whitespace, digit runs and exponents are bounded so a constrained model
-/// cannot loop forever inside a single token class.
+/// JSON is compact: no whitespace between tokens. A pretty-printed answer
+/// takes about twice the tokens, so compact JSON is generated about twice
+/// as fast and seldom runs out of tokens before it closes. Digit runs and
+/// exponents are bounded so a model cannot loop inside one token class.
 const Map<String, String> gbnfPrimitives = {
-  'ws': r'ws ::= [ \t\n]{0,4}',
+  'ws': 'ws ::= ""',
   'string':
       r'string ::= "\"" char* "\""'
       '\n'

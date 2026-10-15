@@ -5,20 +5,18 @@ import 'package:jackdaw/src/schema/schema.dart';
 /// Compiles a [Schema] into a GBNF grammar whose root rule only accepts
 /// JSON text that matches the schema.
 ///
-/// Object properties are emitted in declaration order; required ones always
-/// and optional ones only when the model chooses to. A schema used in
-/// several places compiles to one shared rule. The compiler is pure Dart,
-/// so native and web inference backends share one grammar.
+/// Properties come in declaration order, optional ones only when the model
+/// chooses to. A schema used twice, or two rules with the same body, share
+/// one rule. Pure Dart, so native and web backends share one grammar.
 final class GbnfCompiler {
   /// Creates a compiler for one grammar.
   factory() = GbnfCompiler._;
 
   new _();
 
-  final List<String> _rules = [];
   final Set<String> _primitives = {};
   final Map<Schema, String> _shared = Map.identity();
-  int _count = 0;
+  final Map<String, String> _bodies = {};
 
   /// Returns the grammar text for [schema].
   String compile(Schema schema) => render(rule(schema));
@@ -30,7 +28,8 @@ final class GbnfCompiler {
   /// every rule added so far.
   String render(String root) => [
     'root ::= $root',
-    ..._rules,
+    for (final MapEntry(key: body, value: name) in _bodies.entries)
+      '$name ::= $body',
     for (final name in _primitives) gbnfPrimitives[name]!,
   ].join('\n');
 
@@ -92,8 +91,6 @@ final class GbnfCompiler {
 
   String _named(String body, {String? uses}) {
     if (uses != null) _use(uses);
-    final name = 'rule${_count++}';
-    _rules.add('$name ::= $body');
-    return name;
+    return _bodies[body] ??= 'rule${_bodies.length}';
   }
 }

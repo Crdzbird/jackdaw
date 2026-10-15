@@ -42,6 +42,6 @@ String? _grammar(ModelRequest request) => switch ((
   request.responseSchema,
 )) {
   ([_, ...], final schema) => toolCallGrammar(request.tools, answer: schema),
-  (_, final Schema schema) => GbnfCompiler().compile(schema),
+  (_, final Schema schema) => gbnfGrammar(schema),
   _ => null,
 };

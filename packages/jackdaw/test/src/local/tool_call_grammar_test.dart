@@ -22,7 +22,7 @@ void main() {
     expect(grammar, startsWith('root ::= rule'));
     expect(
       grammar,
-      contains(r'"<tool_call>\n{\"name\": \"get_weather\", \"arguments\": "'),
+      contains(r'"<tool_call>\n{\"name\":\"get_weather\",\"arguments\":"'),
     );
     expect(grammar, contains(r'"}\n</tool_call>"'));
     expect(grammar, contains('[^<] .*'));

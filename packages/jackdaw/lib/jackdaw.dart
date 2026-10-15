@@ -20,6 +20,7 @@ export 'src/context/text_token_counter.dart';
 export 'src/context/token_counter.dart';
 export 'src/error/provider_exception.dart';
 export 'src/error/retry_after.dart';
+export 'src/grammar/gbnf_cache.dart';
 export 'src/grammar/gbnf_compiler.dart';
 export 'src/http/http_transport.dart';
 export 'src/http/read_provider_error.dart';
