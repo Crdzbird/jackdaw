@@ -11,7 +11,8 @@ Future<ToolResultPart> call(Tool<List<Object?>> tool, Object? messages) =>
 void main() {
   test('the tool applies messages and names the surfaces it touched', () async {
     final surfaces = UiSurfaces(basicCatalog);
-    final tool = uiTool(surfaces);
+    final shown = <List<String>>[];
+    final tool = uiTool(surfaces, onShown: shown.add);
     expect(tool.name, 'render_ui');
     expect(tool.spec.input.required, ['messages']);
     final result = await call(tool, [formSurface]);
@@ -20,6 +21,9 @@ void main() {
     expect(output['shown'], ['signup']);
     expect(output['note'], startsWith('The user sees it now.'));
     expect(surfaces.surfaces.keys, ['signup']);
+    expect(shown, [
+      ['signup'],
+    ]);
   });
 
   test('problems come back for the model to fix', () async {

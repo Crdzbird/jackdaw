@@ -14,7 +14,9 @@ import 'package:jackdaw/src/ui/surface/ui_surfaces.dart';
 /// root's children. A call with problems changes nothing and fails with
 /// them as A2UI `error` objects for the model to correct; otherwise the
 /// result lists the surfaces shown and any warnings. After
-/// [maxCallsPerTurn] successful calls the model answers in text. Local
+/// [maxCallsPerTurn] successful calls the model answers in text, and
+/// [onShown] hears the ids of the surfaces each successful call showed,
+/// for example to redraw them. Local
 /// models are held to the catalog by the reply grammar and read the
 /// catalog guide as the description of the `messages` argument.
 Tool<List<Object?>> uiTool(
@@ -22,6 +24,7 @@ Tool<List<Object?>> uiTool(
   String name = 'render_ui',
   bool adoptOrphans = true,
   int? maxCallsPerTurn = 1,
+  void Function(List<String> shown)? onShown,
 }) => Tool(
   name: name,
   description:
@@ -38,10 +41,12 @@ Tool<List<Object?>> uiTool(
     final messages = adoptOrphans
         ? uiAdoptOrphans(sent, surfaces.catalog)
         : sent;
-    return _result(
+    final result = _result(
       messages,
       surfaces.applyAll(messages, atomic: true, replace: true),
     );
+    onShown?.call(result['shown']! as List<String>);
+    return result;
   },
 );
 
