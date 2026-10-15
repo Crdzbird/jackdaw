@@ -54,6 +54,7 @@ endif()
 set(JACKDAW_SOURCES
   src/api.cpp
   src/api_retrieval.cpp
+  src/api_state.cpp
   src/embedder.cpp
   src/error.cpp
   src/generator.cpp
@@ -132,6 +133,11 @@ if(JACKDAW_BUILD_TESTS)
   gtest_discover_tests(jackdaw_tests DISCOVERY_MODE PRE_TEST)
 endif()
 
+option(JACKDAW_BUILD_BENCH "Build the jackdaw_speed device benchmark" OFF)
+if(JACKDAW_BUILD_BENCH)
+  add_executable(jackdaw_speed bench/jackdaw_speed.cpp)
+  target_link_libraries(jackdaw_speed PRIVATE jackdaw_core)
+endif()
 option(JACKDAW_BUILD_FUZZERS "Build the fuzz targets and the grammar checker" OFF)
 if(JACKDAW_BUILD_FUZZERS)
   add_subdirectory(fuzz)

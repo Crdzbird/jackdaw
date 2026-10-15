@@ -185,6 +185,32 @@ TEST_F(ModelTest, ReusesThePromptPrefix) {
   EXPECT_GT(stats.reused_tokens, 10);
 }
 
+TEST_F(ModelTest, SavedStateSkipsTheSavedPrompt) {
+  jackdaw_generate_params params{};
+  params.max_tokens = 4;
+  const auto first = prompt("Name a bird.");
+  ASSERT_EQ(start(first, params), JACKDAW_OK);
+  wait();
+  const auto path = testing::TempDir() + "jackdaw_state.bin";
+  ASSERT_EQ(jackdaw_session_save(session_, path.c_str()), JACKDAW_OK) << jackdaw_last_error();
+  jackdaw_session* fresh = nullptr;
+  jackdaw_session_params session_params{};
+  session_params.context_tokens = 2048;
+  ASSERT_EQ(jackdaw_session_create(model_, &session_params, record, &fresh), JACKDAW_OK);
+  int32_t restored = 0;
+  ASSERT_EQ(jackdaw_session_load(fresh, path.c_str(), &restored), JACKDAW_OK)
+      << jackdaw_last_error();
+  EXPECT_GT(restored, 10);
+  jackdaw_session_free(session_);
+  session_ = fresh;
+  ASSERT_EQ(start(first + "A jackdaw.", params, 2), JACKDAW_OK);
+  wait();
+  jackdaw_session_stats stats{};
+  jackdaw_session_get_stats(session_, &stats);
+  EXPECT_GT(stats.reused_tokens, 10);
+  EXPECT_EQ(jackdaw_session_load(session_, "/nonexistent/state.bin", &restored), JACKDAW_ERR_IO);
+}
+
 }
 
 TEST_F(ModelTest, RefusesGrammarsThatWouldHangTheParser) {

@@ -28,11 +28,15 @@ void normalize(float* values, int32_t count) {
 
 }
 
-jackdaw_embedder::jackdaw_embedder(jackdaw_model& owner, llama_context* ctx, int32_t tokens)
+jackdaw_embedder::jackdaw_embedder(jackdaw_model& owner, llama_context* ctx, int32_t tokens,
+                                   int32_t threads)
     : model(owner),
+      pool(threads),
       context(ctx),
       dimensions(llama_model_n_embd_out(owner.model)),
-      max_tokens(tokens) {}
+      max_tokens(tokens) {
+  pool.attach(context);
+}
 
 jackdaw_embedder::~jackdaw_embedder() { llama_free(context); }
 

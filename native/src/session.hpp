@@ -12,6 +12,7 @@
 #include "jackdaw.h"
 #include "llama.h"
 #include "piece_ring.hpp"
+#include "threads.hpp"
 
 struct jackdaw_model;
 
@@ -30,7 +31,7 @@ struct Job {
 /// A context, its worker thread and the state reused across turns.
 struct jackdaw_session {
   jackdaw_session(jackdaw_model& owner, llama_context* ctx,
-                  jackdaw_event_callback on_event, int32_t batch);
+                  jackdaw_event_callback on_event, int32_t batch, int32_t threads);
   ~jackdaw_session();
   jackdaw_session(const jackdaw_session&) = delete;
   jackdaw_session& operator=(const jackdaw_session&) = delete;
@@ -45,6 +46,7 @@ struct jackdaw_session {
   void finish(int64_t id, int32_t kind, int32_t value);
 
   jackdaw_model& model;
+  jackdaw::Pool pool;
   llama_context* context;
   jackdaw_event_callback callback;
   int32_t batch_tokens;

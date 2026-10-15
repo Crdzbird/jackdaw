@@ -194,6 +194,22 @@ JACKDAW_API int32_t jackdaw_session_read(jackdaw_session* session,
                                          int32_t slot, char* buffer,
                                          int32_t capacity, int32_t* out_len);
 
+/// Writes the tokens the session has processed, and their cache, to path,
+/// so a later session on the same model file can skip processing them
+/// again; see jackdaw_session_load. Returns JACKDAW_ERR_BUSY while a
+/// generation runs. Blocks for the time the file takes to write.
+JACKDAW_API int32_t jackdaw_session_save(jackdaw_session* session,
+                                         const char* path);
+
+/// Replaces the session's cache with the state jackdaw_session_save wrote,
+/// and sets *out_tokens to the number of tokens restored. A prompt that
+/// starts with those tokens then only processes the rest. Fails with
+/// JACKDAW_ERR_IO, leaving an empty cache, when the file does not belong to
+/// this model, and with JACKDAW_ERR_BUSY while a generation runs.
+JACKDAW_API int32_t jackdaw_session_load(jackdaw_session* session,
+                                         const char* path,
+                                         int32_t* out_tokens);
+
 /// Fills *out with statistics of the last finished generation.
 JACKDAW_API int32_t jackdaw_session_get_stats(const jackdaw_session* session,
                                               jackdaw_session_stats* out);

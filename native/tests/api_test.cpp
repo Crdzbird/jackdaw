@@ -26,6 +26,8 @@ TEST(Api, RejectsMissingArguments) {
   int32_t length = 0;
   EXPECT_EQ(jackdaw_session_read(nullptr, 0, nullptr, 0, &length), JACKDAW_ERR_INVALID_ARGUMENT);
   EXPECT_EQ(jackdaw_session_get_stats(nullptr, nullptr), JACKDAW_ERR_INVALID_ARGUMENT);
+  EXPECT_EQ(jackdaw_session_save(nullptr, "x"), JACKDAW_ERR_INVALID_ARGUMENT);
+  EXPECT_EQ(jackdaw_session_load(nullptr, "x", &length), JACKDAW_ERR_INVALID_ARGUMENT);
   EXPECT_EQ(jackdaw_session_error(nullptr, nullptr, 0, &length), JACKDAW_ERR_INVALID_ARGUMENT);
   int32_t count = 0;
   EXPECT_EQ(jackdaw_model_tokenize(nullptr, "a", 1, 0, nullptr, 0, &count),

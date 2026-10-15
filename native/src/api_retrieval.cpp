@@ -44,7 +44,7 @@ int32_t jackdaw_embedder_create(jackdaw_model* model, const jackdaw_embedder_par
     settings.no_perf = true;
     auto* context = llama_init_from_model(model->model, settings);
     if (context == nullptr) return jackdaw::fail(JACKDAW_ERR_MODEL, "cannot create context");
-    *out = new jackdaw_embedder(*model, context, tokens);
+    *out = new jackdaw_embedder(*model, context, tokens, threads);
     jackdaw::track(*out);
     return static_cast<int32_t>(JACKDAW_OK);
   });
