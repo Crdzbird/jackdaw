@@ -3,15 +3,14 @@ import 'dart:ffi';
 
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_native/src/ffi/jackdaw_bindings.g.dart';
-import 'package:jackdaw_native/src/native/check_status.dart';
 import 'package:jackdaw_native/src/native/create_session.dart';
 import 'package:jackdaw_native/src/native/native_generate_options.dart';
 import 'package:jackdaw_native/src/native/native_model.dart';
-import 'package:jackdaw_native/src/native/native_run.dart';
 import 'package:jackdaw_native/src/native/native_session_options.dart';
 import 'package:jackdaw_native/src/native/native_stats.dart';
+import 'package:jackdaw_native/src/native/run_generation.dart';
 import 'package:jackdaw_native/src/native/session_events.dart';
-import 'package:jackdaw_native/src/native/submit_generation.dart';
+import 'package:jackdaw_native/src/native/session_state.dart';
 
 /// A native context with its own worker thread.
 ///
@@ -44,7 +43,15 @@ final class NativeSession {
     final id = _nextId++;
     late final StreamController<ModelEvent> controller;
     controller = StreamController<ModelEvent>(
-      onListen: () => _queue = _run(_queue, id, prompt, options, controller),
+      onListen: () => _queue = runGeneration(
+        _queue,
+        _pointer,
+        _events,
+        id,
+        prompt,
+        options,
+        controller,
+      ),
       onCancel: () => _cancel(id),
     );
     return controller.stream;
@@ -53,25 +60,20 @@ final class NativeSession {
   /// Completes once every request started so far has stopped natively.
   Future<void> get idle => _queue;
 
-  Future<void> _run(
-    Future<void> previous,
-    int id,
-    String prompt,
-    NativeGenerateOptions options,
-    StreamController<ModelEvent> controller,
-  ) async {
-    await previous;
-    if (!controller.hasListener) return;
-    final finished = Completer<void>();
-    _events.finished[id] = finished;
-    _events.runs[id] = NativeRun(controller);
-    final status = submitGeneration(_pointer, id, prompt, options);
-    if (status == jackdaw_status.JACKDAW_OK.value) {
-      await finished.future;
-      return;
-    }
-    _events.finished.remove(id);
-    _events.runs.remove(id)?.fail(nativeError(status));
+  /// Writes the tokens processed so far, and their cache, to [path] once
+  /// the requests already started have stopped; see [load].
+  Future<void> save(String path) =>
+      _after(() => saveSessionState(_pointer.address, path));
+
+  /// Replaces the cache with the state [save] wrote to [path] and returns
+  /// the number of tokens restored, or 0 when the file does not fit.
+  Future<int> load(String path) =>
+      _after(() => loadSessionState(_pointer.address, path));
+
+  Future<T> _after<T>(Future<T> Function() transfer) {
+    final result = _queue.then((_) => transfer());
+    _queue = result.then((_) {}, onError: (Object _) {});
+    return result;
   }
 
   void _cancel(int id) {

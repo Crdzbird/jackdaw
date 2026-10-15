@@ -329,6 +329,24 @@ external int jackdaw_session_get_stats(
   ffi.Pointer<jackdaw_session_stats> out,
 );
 
+/// Replaces the session's cache with the state jackdaw_session_save wrote,
+/// and sets *out_tokens to the number of tokens restored. A prompt that
+/// starts with those tokens then only processes the rest. Fails with
+/// JACKDAW_ERR_IO, leaving an empty cache, when the file does not belong to
+/// this model, and with JACKDAW_ERR_BUSY while a generation runs.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_session>,
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Int32>,
+  )
+>()
+external int jackdaw_session_load(
+  ffi.Pointer<jackdaw_session> session,
+  ffi.Pointer<ffi.Char> path,
+  ffi.Pointer<ffi.Int32> out_tokens,
+);
+
 /// Copies the piece in slot into buffer and frees the slot. Writes at most
 /// capacity bytes and sets *out_len to the piece length.
 @ffi.Native<
@@ -346,6 +364,18 @@ external int jackdaw_session_read(
   ffi.Pointer<ffi.Char> buffer,
   int capacity,
   ffi.Pointer<ffi.Int32> out_len,
+);
+
+/// Writes the tokens the session has processed, and their cache, to path,
+/// so a later session on the same model file can skip processing them
+/// again; see jackdaw_session_load. Returns JACKDAW_ERR_BUSY while a
+/// generation runs. Blocks for the time the file takes to write.
+@ffi.Native<
+  ffi.Int32 Function(ffi.Pointer<jackdaw_session>, ffi.Pointer<ffi.Char>)
+>()
+external int jackdaw_session_save(
+  ffi.Pointer<jackdaw_session> session,
+  ffi.Pointer<ffi.Char> path,
 );
 
 const int JACKDAW_ABI_VERSION = 3;

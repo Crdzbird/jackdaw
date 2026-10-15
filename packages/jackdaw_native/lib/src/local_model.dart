@@ -4,6 +4,7 @@ import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_native/src/download/model_download_progress.dart';
 import 'package:jackdaw_native/src/download/model_downloader.dart';
 import 'package:jackdaw_native/src/download/model_file.dart';
+import 'package:jackdaw_native/src/local_grammar.dart';
 import 'package:jackdaw_native/src/local_model_options.dart';
 import 'package:jackdaw_native/src/native/native_generate_options.dart';
 import 'package:jackdaw_native/src/native/native_model.dart';
@@ -64,24 +65,28 @@ final class LocalModel implements LanguageModel {
   /// Completes once every request started so far has stopped natively.
   Future<void> get idle => _session.idle;
 
+  /// Writes what the model has processed so far, such as a long system
+  /// prompt, to [file], after the requests already started. A later run
+  /// that calls [loadState] with it skips processing that text again.
+  Future<void> saveState(File file) => _session.save(file.path);
+
+  /// Restores what [saveState] wrote to [file], so a prompt that starts
+  /// with the same text only processes the rest. Returns the number of
+  /// tokens restored, or 0 when the file is missing or from another model.
+  Future<int> loadState(File file) => _session.load(file.path);
+
   @override
   Stream<ModelEvent> generate(ModelRequest request) {
-    final schema = request.responseSchema;
-    final tools = request.tools;
     final options = request.options;
     final events = _session.generate(
       _model.applyTemplate(localPrompt(request)),
       NativeGenerateOptions(
         temperature: options.temperature ?? 0,
         maxTokens: options.maxOutputTokens ?? 0,
-        grammar: switch ((tools.isEmpty, schema)) {
-          (false, _) => toolCallGrammar(tools, answer: schema),
-          (true, final Schema schema) => GbnfCompiler().compile(schema),
-          (true, null) => null,
-        },
+        grammar: localGrammar(request),
       ),
     );
-    return tools.isEmpty ? events : events.transform(ToolCallDecoder());
+    return request.tools.isEmpty ? events : events.transform(ToolCallDecoder());
   }
 
   /// Frees the session and the model. The model must not be used after.
