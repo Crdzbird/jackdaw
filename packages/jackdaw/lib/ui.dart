@@ -30,6 +30,7 @@ export 'src/ui/eval/ui_number_text.dart';
 export 'src/ui/eval/ui_scope.dart';
 export 'src/ui/eval/ui_truth.dart';
 export 'src/ui/schema/ui_catalog_guide.dart';
+export 'src/ui/schema/ui_catalog_schemas.dart';
 export 'src/ui/schema/ui_format.dart';
 export 'src/ui/schema/ui_guide_texts.dart';
 export 'src/ui/schema/ui_message_schema.dart';

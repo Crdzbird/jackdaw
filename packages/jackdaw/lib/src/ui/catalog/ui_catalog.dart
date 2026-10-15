@@ -1,6 +1,8 @@
 import 'package:jackdaw/src/ui/catalog/ui_component_definition.dart';
 import 'package:jackdaw/src/ui/catalog/ui_function_definition.dart';
 
+final Expando<Map<String, UiComponentDefinition>> _byName = Expando();
+
 /// The components and functions a model may use on a surface.
 ///
 /// A catalog is identified by [id], which surfaces name in `catalogId`,
@@ -42,8 +44,9 @@ final class UiCatalog {
   final String? instructions;
 
   /// The component named [name], or `null` when the catalog has none.
+  /// Names are indexed on the first call, so [components] must not change.
   UiComponentDefinition? component(String name) =>
-      components.where((c) => c.name == name).firstOrNull;
+      (_byName[this] ??= {for (final c in components) c.name: c})[name];
 
   /// The function named [name], or `null` when the catalog has none.
   UiFunctionDefinition? function(String name) =>

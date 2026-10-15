@@ -10,6 +10,7 @@ part 'object_schema.dart';
 part 'raw_schema.dart';
 part 'string_schema.dart';
 part 'summarized_schema.dart';
+part 'schema_accepts.dart';
 part 'union_schema.dart';
 
 /// Writes a nested schema as a JSON Schema document.

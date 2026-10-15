@@ -1,5 +1,7 @@
 part of 'schema.dart';
 
+final Expando<Map<String, ObjectSchema>> _alternatives = Expando();
+
 /// Schema for JSON objects of several kinds, told apart by a tag.
 ///
 /// Each value is an object whose [discriminator] property names one of
@@ -29,11 +31,13 @@ final class UnionSchema extends Schema {
   /// The object schema of each variant, keyed by its tag.
   final Map<String, ObjectSchema> variants;
 
-  /// Each variant with the discriminator added, keyed by its tag.
-  Map<String, ObjectSchema> get alternatives => {
-    for (final MapEntry(:key, :value) in variants.entries)
-      key: _tagged(key, value),
-  };
+  /// Each variant with the discriminator added, keyed by its tag. It is
+  /// built once per union, since validation looks it up for every value.
+  Map<String, ObjectSchema> get alternatives =>
+      _alternatives[this] ??= Map.unmodifiable({
+        for (final MapEntry(:key, :value) in variants.entries)
+          key: _tagged(key, value),
+      });
 
   @override
   Map<String, Object?> toJsonWith(SchemaEncoder child) => {
@@ -52,7 +56,7 @@ final class UnionSchema extends Schema {
         'one of ${variants.keys.join(', ')}',
       );
     }
-    return _tagged(tag, variants[tag]!).validate(value, path: path);
+    return alternatives[tag]!.validate(value, path: path);
   }
 
   ObjectSchema _tagged(String tag, ObjectSchema schema) => ObjectSchema(

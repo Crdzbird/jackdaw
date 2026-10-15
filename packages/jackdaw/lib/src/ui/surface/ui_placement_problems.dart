@@ -8,7 +8,7 @@ void uiPlacementProblems(
   UiSurface surface,
   UiComponent node,
   String parent,
-  String at,
+  String Function() at,
   void Function(UiProblemCode, String, String) report,
 ) {
   final catalog = surface.catalog;
@@ -16,7 +16,7 @@ void uiPlacementProblems(
   if (definition == null) {
     report(
       UiProblemCode.validationFailed,
-      at,
+      at(),
       'The catalog has no component ${node.type}.',
     );
     return;
@@ -25,7 +25,7 @@ void uiPlacementProblems(
       when !parents.contains(parent)) {
     report(
       UiProblemCode.unallowedParent,
-      at,
+      at(),
       '${node.type} may only be placed in ${parents.join(', ')}.',
     );
   }
@@ -33,7 +33,7 @@ void uiPlacementProblems(
       when !children.contains(node.type)) {
     report(
       UiProblemCode.unallowedChild,
-      at,
+      at(),
       '$parent may only contain ${children.join(', ')}.',
     );
   }

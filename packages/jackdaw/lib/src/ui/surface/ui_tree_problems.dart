@@ -28,11 +28,11 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
   }
   final reached = <String>{};
   void visit(UiComponent node, String parent, List<String> stack) {
-    final at = jsonPointer(['components', node.id]);
+    String at() => jsonPointer(['components', node.id]);
     if (stack.contains(node.id)) {
       report(
         UiProblemCode.integrityError,
-        at,
+        at(),
         'The component ${node.id} contains itself.',
       );
       return;
@@ -42,7 +42,7 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
     if (stack.length >= maxDepth) {
       report(
         UiProblemCode.validationFailed,
-        at,
+        at(),
         'Components are nested more than $maxDepth deep.',
       );
       return;
@@ -54,7 +54,7 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
       if (child == null) {
         report(
           UiProblemCode.validationFailed,
-          '$at$path',
+          '${at()}$path',
           'There is no component with the id $id.',
         );
         continue;

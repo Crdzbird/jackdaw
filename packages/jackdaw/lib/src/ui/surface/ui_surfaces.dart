@@ -1,6 +1,9 @@
 import 'dart:collection';
 
+import 'package:jackdaw/src/schema/schema.dart';
+import 'package:jackdaw/src/schema/schema_violation.dart';
 import 'package:jackdaw/src/ui/catalog/ui_catalog.dart';
+import 'package:jackdaw/src/ui/schema/ui_catalog_schemas.dart';
 import 'package:jackdaw/src/ui/schema/ui_schemas.dart';
 import 'package:jackdaw/src/ui/surface/json_pointer.dart';
 import 'package:jackdaw/src/ui/surface/ui_apply_message.dart';
@@ -12,17 +15,15 @@ import 'package:jackdaw/src/ui/surface/ui_surface_snapshot.dart';
 import 'package:jackdaw/src/ui/surface/ui_tree_problems.dart';
 import 'package:jackdaw/src/ui/target/ui_target.dart';
 
-/// The surfaces built from A2UI v1.0 messages for one catalog.
-///
-/// Each message is validated before it is applied; one that does not
-/// match the schemas changes nothing. Problems come back as A2UI `error`
-/// messages the agent can act on.
+/// The surfaces built from A2UI v1.0 messages for one catalog. Each
+/// message is validated before it is applied; one that does not match the
+/// schemas changes nothing. Problems come back as A2UI `error` messages.
 final class UiSurfaces implements UiTarget {
   /// Creates an empty set of surfaces for [catalog].
   factory(UiCatalog catalog, {UiSchemas? schemas}) = UiSurfaces._;
 
   new _(this.catalog, {UiSchemas? schemas})
-    : schemas = schemas ?? UiSchemas(catalog);
+    : schemas = schemas ?? catalog.schemas;
 
   /// The catalog surfaces are drawn with.
   final UiCatalog catalog;
@@ -41,10 +42,10 @@ final class UiSurfaces implements UiTarget {
       applyAll(messages, atomic: !partial, replace: true);
 
   /// Applies [messages] in order, then checks the tree of every surface
-  /// they touched, and returns every problem found. When [atomic] is true
-  /// and a problem is more than a warning, the surfaces are put back as
-  /// they were. With [replace], a valid `createSurface` for a surface that
-  /// exists replaces it, as a delete followed by the create would.
+  /// whose components they changed, and returns every problem found. When
+  /// [atomic] is true and a problem is more than a warning, the surfaces
+  /// are put back as they were. With [replace], a valid `createSurface`
+  /// for a surface that exists replaces it, like a delete and a create.
   List<UiProblem> applyAll(
     Iterable<Object?> messages, {
     bool atomic = false,
@@ -54,15 +55,17 @@ final class UiSurfaces implements UiTarget {
     final problems = <UiProblem>[];
     final touched = <String>{};
     for (final message in messages) {
+      final violations = schemas.message.check(message);
       if (uiMessageParts(message)
           case ('createSurface', {'surfaceId': final String id})
-          when replace && schemas.message.validate(message).isEmpty) {
+          when replace && violations.isEmpty) {
         _surfaces.remove(id);
       }
-      problems.addAll(apply(message));
-      if (uiMessageParts(message)
-          case (final kind, {'surfaceId': final String id})
-          when kind != 'deleteSurface') {
+      problems.addAll(_apply(message, violations));
+      if (uiMessageParts(message) case (
+        'createSurface' || 'updateComponents',
+        {'surfaceId': final String id},
+      )) {
         touched.add(id);
       }
     }
@@ -78,8 +81,10 @@ final class UiSurfaces implements UiTarget {
 
   /// Applies one message and returns the problems that kept it, or part of
   /// it, from applying.
-  List<UiProblem> apply(Object? message) {
-    final violations = schemas.message.validate(message);
+  List<UiProblem> apply(Object? message) =>
+      _apply(message, schemas.message.check(message));
+
+  List<UiProblem> _apply(Object? message, List<SchemaViolation> violations) {
     if (violations.isNotEmpty) {
       return [
         for (final v in violations)
