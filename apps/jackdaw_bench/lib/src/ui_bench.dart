@@ -36,8 +36,9 @@ Future<Map<String, Object>> runUiBench(
         ? uiTreeMessages(reply! as Map<String, Object?>, basicCatalog)
         : uiAdoptOrphans(reply! as List<Object?>, basicCatalog);
     final problems = surfaces.applyAll(messages, replace: true);
-    if (problems.every((p) => p.warning)) shown++;
-    if (problems.isEmpty) clean++;
+    final drawn = surfaces.surfaces.values.any((s) => s.components.length > 1);
+    if (drawn && problems.every((p) => p.warning)) shown++;
+    if (drawn && problems.isEmpty) clean++;
     for (final p in problems.where((p) => !p.warning)) {
       final kind = p.message.replaceAllMapped(
         RegExp(r'\b(id|component|surface) \S+'),

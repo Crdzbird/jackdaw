@@ -18,7 +18,8 @@ bool uiNests(UiComponentDefinition definition) {
 }
 
 /// [props] resolved at [callDepth], with each Child prop holding a [child]
-/// component and each ChildList prop a list of them or a template.
+/// component and each ChildList prop a list of at least one of them or
+/// a template, so no container is left empty.
 ObjectSchema uiHolding(
   ObjectSchema props,
   UnionSchema child,
@@ -34,7 +35,7 @@ ObjectSchema uiHolding(
     },
   );
   final list = AnyOfSchema([
-    Schema.array(items: child, maxItems: 40),
+    Schema.array(items: child, minItems: 1, maxItems: 40),
     ObjectSchema(
       properties: {
         'template': child,
