@@ -62,7 +62,7 @@ refuses a `maxCalls` outside 1 to 64.
 
 The upstream bug is still present in llama.cpp master (checked at
 620d2225cc on 2026-10-15); an earlier report, #23108, was closed as
-stale without a fix, and it has been reported again.
+stale without a fix.
 
 ### The guard missed ranges split by newlines or comments (fixed)
 
