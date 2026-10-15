@@ -21,12 +21,15 @@ class ModelLoaderState extends State<ModelLoader> {
       return Scaffold(
         appBar: AppBar(title: const Text('jackdaw on device')),
         body: Center(
-          child: Text(
-            snapshot.error == null
-                ? 'Loading the model from $modelPath...'
-                : 'Could not load the model at $modelPath: ${snapshot.error}',
-            textAlign: TextAlign.center,
-          ),
+          child: Text(switch ((snapshot.error, File(modelPath).existsSync())) {
+            (null, _) => 'Loading the model from $modelPath...',
+            (_, false) =>
+              'There is no model on this device yet. Copy a GGUF file '
+                  'with tool/push_model.sh <device> <model.gguf>, or run '
+                  'the app again from VS Code, then restart it.',
+            (final error, true) =>
+              'Could not load the model at $modelPath: $error',
+          }, textAlign: TextAlign.center),
         ),
       );
     },

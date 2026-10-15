@@ -18,6 +18,6 @@ if adb -s "$device" shell run-as "$package" test -f files/model.gguf; then
   exit 0
 fi
 adb -s "$device" push "$model" /data/local/tmp/jackdaw-model.gguf
-adb -s "$device" shell run-as "$package" sh -c "'mkdir -p files && chmod 700 files && cp /data/local/tmp/jackdaw-model.gguf files/model.gguf'"
+adb -s "$device" shell run-as "$package" sh -c "'mkdir -p files && chmod 700 files && cp /data/local/tmp/jackdaw-model.gguf files/model.gguf && chmod 600 files/model.gguf'"
 adb -s "$device" shell rm /data/local/tmp/jackdaw-model.gguf
 echo "Model copied to $device."

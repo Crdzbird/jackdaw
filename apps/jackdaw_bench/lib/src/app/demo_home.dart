@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jackdaw_bench/src/app/demo_home_state.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
-/// The demo once the model is loaded: an agent chat and a raw playground.
+/// The demo once the model is loaded: an agent chat, a
+/// generative UI studio and a raw playground.
 class DemoHome extends StatefulWidget {
   const new({required this.model, required this.sessions, super.key});
 
