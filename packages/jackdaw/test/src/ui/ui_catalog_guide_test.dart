@@ -7,7 +7,7 @@ void main() {
     expect(guide, contains('- Text(text*, variant caption|body, weight)'));
     expect(guide, contains('- formatString(value*) returns string'));
     expect(guide, contains(basicInstructions));
-    expect(guide, endsWith(uiGuideExample));
+    expect(guide, endsWith(uiGuideExample(UiFormat.messages)));
     expect(guide.length, lessThan(6000));
   });
 
@@ -22,7 +22,7 @@ void main() {
         ),
       ],
     );
-    final guide = uiCatalogGuide(plain, example: null);
+    final guide = uiCatalogGuide(plain, example: '');
     expect(guide, contains('- Badge(): A badge.'));
     expect(guide, isNot(contains('Functions:')));
     expect(UiSchemas(plain).reply, isA<SummarizedSchema>());

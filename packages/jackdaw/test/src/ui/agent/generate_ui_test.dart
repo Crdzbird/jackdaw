@@ -20,9 +20,12 @@ void main() {
     final model = RepliesModel([
       [formSurface],
     ]);
-    final problems = await generateUi(model, [
-      Message.user('Sign up'),
-    ], surfaces);
+    final problems = await generateUi(
+      model,
+      [Message.user('Sign up')],
+      surfaces,
+      format: UiFormat.messages,
+    );
     expect(problems, isEmpty);
     expect(surfaces.surfaces['signup']!.components, hasLength(4));
     expect(model.requests.single.responseSchema, same(surfaces.schemas.reply));
@@ -34,9 +37,12 @@ void main() {
       [broken()],
       [formSurface],
     ]);
-    final problems = await generateUi(model, [
-      Message.user('Sign up'),
-    ], surfaces);
+    final problems = await generateUi(
+      model,
+      [Message.user('Sign up')],
+      surfaces,
+      format: UiFormat.messages,
+    );
     expect(problems, isEmpty);
     final retry = model.requests.last.messages;
     expect(retry, hasLength(3));
@@ -54,6 +60,7 @@ void main() {
       [Message.user('Sign up')],
       surfaces,
       repairs: 0,
+      format: UiFormat.messages,
     );
     expect(problems.single.path, '/components/root/child');
   });

@@ -2,12 +2,15 @@ import 'package:jackdaw/src/schema/schema.dart';
 import 'package:jackdaw/src/tool/tool.dart';
 import 'package:jackdaw/src/tool/tool_failure.dart';
 import 'package:jackdaw/src/ui/agent/ui_adopt_orphans.dart';
+import 'package:jackdaw/src/ui/agent/ui_tree_messages.dart';
+import 'package:jackdaw/src/ui/schema/ui_format.dart';
 import 'package:jackdaw/src/ui/surface/ui_message_parts.dart';
 import 'package:jackdaw/src/ui/surface/ui_problem.dart';
-import 'package:jackdaw/src/ui/surface/ui_surfaces.dart';
+import 'package:jackdaw/src/ui/target/ui_target.dart';
 
-/// A tool that shows and changes UI: the model calls it with A2UI v1.0
-/// messages for the catalog of [surfaces], which applies them.
+/// A tool that shows and changes UI: the model calls it with a screen for
+/// the catalog of [target] in [format], a tree by default or A2UI v1.0
+/// messages, and [target] shows it as A2UI messages.
 ///
 /// Creating a surface that exists replaces it, and with [adoptOrphans] a
 /// new surface's components that nothing refers to are added to its
@@ -20,31 +23,33 @@ import 'package:jackdaw/src/ui/surface/ui_surfaces.dart';
 /// models are held to the catalog by the reply grammar and read the
 /// catalog guide as the description of the `messages` argument.
 Tool<List<Object?>> uiTool(
-  UiSurfaces surfaces, {
+  UiTarget target, {
   String name = 'render_ui',
   bool adoptOrphans = true,
   int? maxCallsPerTurn = 1,
   void Function(List<String> shown)? onShown,
+  UiFormat format = UiFormat.tree,
 }) => Tool(
   name: name,
   description:
       'Shows or changes UI on the screen with A2UI v1.0 messages. Use '
       'it whenever a screen, form or card explains the answer better '
       'than text.',
-  input: ObjectSchema(
-    properties: {'messages': surfaces.schemas.reply},
-    required: ['messages'],
-  ),
-  decode: (json) => json['messages']! as List<Object?>,
+  input: format == UiFormat.tree
+      ? target.schemas.tree
+      : ObjectSchema(
+          properties: {'messages': target.schemas.reply},
+          required: ['messages'],
+        ),
+  decode: (json) => format == UiFormat.tree
+      ? uiTreeMessages(json, target.schemas.catalog)
+      : json['messages']! as List<Object?>,
   maxCallsPerTurn: maxCallsPerTurn,
   run: (sent) {
     final messages = adoptOrphans
-        ? uiAdoptOrphans(sent, surfaces.catalog)
+        ? uiAdoptOrphans(sent, target.schemas.catalog)
         : sent;
-    final result = _result(
-      messages,
-      surfaces.applyAll(messages, atomic: true, replace: true),
-    );
+    final result = _result(messages, target.show(messages));
     onShown?.call(result['shown']! as List<String>);
     return result;
   },

@@ -10,13 +10,14 @@ import 'package:jackdaw/src/ui/surface/ui_problem_code.dart';
 import 'package:jackdaw/src/ui/surface/ui_surface.dart';
 import 'package:jackdaw/src/ui/surface/ui_surface_snapshot.dart';
 import 'package:jackdaw/src/ui/surface/ui_tree_problems.dart';
+import 'package:jackdaw/src/ui/target/ui_target.dart';
 
 /// The surfaces built from A2UI v1.0 messages for one catalog.
 ///
 /// Each message is validated before it is applied; one that does not
 /// match the schemas changes nothing. Problems come back as A2UI `error`
 /// messages the agent can act on.
-final class UiSurfaces {
+final class UiSurfaces implements UiTarget {
   /// Creates an empty set of surfaces for [catalog].
   factory(UiCatalog catalog, {UiSchemas? schemas}) = UiSurfaces._;
 
@@ -27,12 +28,17 @@ final class UiSurfaces {
   final UiCatalog catalog;
 
   /// The schemas messages are validated against.
+  @override
   final UiSchemas schemas;
 
   final Map<String, UiSurface> _surfaces = {};
 
   /// The surfaces by id.
   Map<String, UiSurface> get surfaces => UnmodifiableMapView(_surfaces);
+
+  @override
+  List<UiProblem> show(List<Object?> messages, {bool partial = false}) =>
+      applyAll(messages, atomic: !partial, replace: true);
 
   /// Applies [messages] in order, then checks the tree of every surface
   /// they touched, and returns every problem found. When [atomic] is true

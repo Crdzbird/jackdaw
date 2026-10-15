@@ -54,7 +54,7 @@ void main() {
 
   test('a tool call with problems changes nothing', () async {
     final surfaces = UiSurfaces(basicCatalog)..applyAll([formSurface]);
-    final result = await uiTool(surfaces).invoke(
+    final result = await uiTool(surfaces, format: UiFormat.messages).invoke(
       ToolCallPart(
         id: 'c',
         name: 'render_ui',

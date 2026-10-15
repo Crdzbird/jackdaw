@@ -12,7 +12,7 @@ void main() {
     final controller = UiSurfaceController(basicCatalog);
     var notified = 0;
     controller.addListener(() => notified++);
-    final tool = controller.tool(name: 'ui', adoptOrphans: false);
+    final tool = controller.tool(name: 'ui', format: UiFormat.messages);
     final result = await tool.invoke(
       const ToolCallPart(
         id: 'c',
@@ -31,7 +31,15 @@ void main() {
     final controller = UiSurfaceController(basicCatalog);
     final model = ScriptedModel([
       textTurn([
-        jsonEncode([signupForm]),
+        jsonEncode({
+          'surfaceId': 'signup',
+          'root': {
+            'component': 'Column',
+            'children': [
+              {'component': 'Text', 'text': 'Welcome'},
+            ],
+          },
+        }),
       ]),
     ]);
     final problems = await controller.generate(model, [

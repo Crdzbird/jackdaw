@@ -31,7 +31,7 @@ void main() {
     final chat = ChatController(
       agent: Agent(
         model: model,
-        tools: [ui.tool()],
+        tools: [ui.tool(format: UiFormat.messages)],
         store: InMemorySessionStore(),
       ),
       sessionId: 's',

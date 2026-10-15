@@ -69,7 +69,11 @@ void main() {
   test('the tool adopts orphans unless told not to', () async {
     Future<Object?> show({required bool adopt}) async {
       final surfaces = UiSurfaces(basicCatalog);
-      await uiTool(surfaces, adoptOrphans: adopt).invoke(
+      await uiTool(
+        surfaces,
+        adoptOrphans: adopt,
+        format: UiFormat.messages,
+      ).invoke(
         ToolCallPart(
           id: 'c',
           name: 'render_ui',

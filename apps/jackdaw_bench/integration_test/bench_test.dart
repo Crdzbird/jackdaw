@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:jackdaw_bench/src/cancel_bench.dart';
@@ -11,20 +9,15 @@ import 'package:jackdaw_bench/src/structured_bench.dart';
 import 'package:jackdaw_bench/src/structured_cases.dart';
 import 'package:jackdaw_bench/src/throughput_bench.dart';
 import 'package:jackdaw_bench/src/tool_bench.dart';
+import 'package:jackdaw_bench/src/ui_bench.dart';
+import 'package:jackdaw_bench/src/ui_cases.dart';
 import 'package:jackdaw_bench/src/vector_bench.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
+import 'bench_config.dart';
 import 'chat_screen.dart';
 import 'frame_bench.dart';
-
-const _path = String.fromEnvironment('JACKDAW_MODEL');
-const _only = String.fromEnvironment('BENCH');
-const _semantics = bool.fromEnvironment('SEMANTICS');
-
-bool _wanted(String name) => _only.isEmpty || _only.split(',').contains(name);
-
-void _report(String name, Map<String, Object> data) =>
-    debugPrint('BENCH ${jsonEncode({'name': name, ...data})}');
+import 'ui_frame_bench.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -32,20 +25,25 @@ void main() {
   testWidgets(
     'benchmarks',
     (tester) async {
-      if (_wanted('vectors')) {
-        final directory = File(_path).parent.path;
+      if (benchWanted('vectors')) {
+        final directory = File(benchModel).parent.path;
         for (final clustered in [true, false]) {
-          _report(
+          benchReport(
             'vectors',
             await runVectorBench(directory, clustered: clustered),
           );
         }
-        if (_only == 'vectors') return;
+        if (benchOnly == 'vectors') return;
       }
-      if (_only == 'frametrace') {
+      if (benchLive.contains(benchOnly)) {
         binding.framePolicy =
             LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
-        final model = await LocalModel.open(_path);
+      }
+      if (benchOnly == 'uiframes') {
+        return benchReport('uiframes', await runUiFrameBench(tester));
+      }
+      if (benchOnly == 'frametrace') {
+        final model = await LocalModel.open(benchModel);
         final chat = await pumpChatScreen(tester, model);
         await Future<void>.delayed(const Duration(seconds: 1));
         await binding.traceAction(() => chat.send(framePrompt));
@@ -53,41 +51,48 @@ void main() {
         model.close();
         return;
       }
-      if (_only == 'frames' || _only == 'framesweep') {
-        binding.framePolicy =
-            LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
-        for (final threads in _only == 'frames' ? [0] : [4, 3, 2]) {
+      if (benchOnly == 'frames' || benchOnly == 'framesweep') {
+        for (final threads in benchOnly == 'frames' ? [0] : [4, 3, 2]) {
           final model = await LocalModel.open(
-            _path,
+            benchModel,
             options: LocalModelOptions(
               session: NativeSessionOptions(threads: threads),
             ),
           );
           final result = await runFrameBench(tester, model);
-          _report('frames', {'threads': threads, ...result});
+          benchReport('frames', {'threads': threads, ...result});
           model.close();
         }
         return;
       }
       final watch = Stopwatch()..start();
-      final model = await LocalModel.open(_path);
-      _report('load', {'ms': watch.elapsedMilliseconds});
-      if (_wanted('throughput')) {
-        _report('throughput', await runThroughputBench(model));
+      final model = await LocalModel.open(benchModel);
+      benchReport('load', {'ms': watch.elapsedMilliseconds});
+      if (benchWanted('throughput')) {
+        benchReport('throughput', await runThroughputBench(model));
       }
-      if (_wanted('cancel')) _report('cancel', await runCancelBench(model));
-      if (_wanted('tools')) _report('tools', await runToolBench(model));
-      if (_wanted('prefix')) _report('prefix', await runPrefixBench(model));
-      if (_wanted('structured')) {
-        _report(
+      if (benchWanted('cancel')) {
+        benchReport('cancel', await runCancelBench(model));
+      }
+      if (benchWanted('tools')) benchReport('tools', await runToolBench(model));
+      if (benchWanted('prefix')) {
+        benchReport('prefix', await runPrefixBench(model));
+      }
+      if (benchWanted('structured')) {
+        benchReport(
           'structured',
           await runStructuredBench(model, structuredCases()),
         );
       }
+      if (benchWanted('ui')) {
+        benchReport('ui', await runUiBench(model, uiCases()));
+      }
       model.close();
-      if (_wanted('memory')) _report('memory', await runMemoryBench(_path));
+      if (benchWanted('memory')) {
+        benchReport('memory', await runMemoryBench(benchModel));
+      }
     },
     timeout: const Timeout(Duration(minutes: 90)),
-    semanticsEnabled: _semantics,
+    semanticsEnabled: benchSemantics,
   );
 }

@@ -28,9 +28,8 @@ final UiCatalog basicCatalog = UiCatalog(
 
 /// Guidance on using the basic catalog, given to the model.
 const String basicInstructions =
-    'Arrange components with Row and Column, and give the top component '
-    'the id root. Refer to children by id. There are no operators: to put '
-    r'data into text, use formatString, as in formatString("Hi ${/user/name}"). '
+    'Arrange components with Row and Column. There are no operators: to '
+    r'put data into text, use formatString, as in formatString("Hi ${/user/name}"). '
     'Place each component inside the container the request names. Put the '
     'message of a failing check in the check itself rather than in a '
     'separate Text.';

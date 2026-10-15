@@ -18,10 +18,15 @@ cloud models, models on the device and models in the browser. Pre-release.
 - Safety by default: tools from MCP servers and tool output are treated as
   untrusted, secrets are redacted from traces, and calls that would leak a
   secret can be blocked.
+- Generative UI on A2UI v1.0: the agent answers with forms, cards and
+  screens built from a catalog of components, held to the catalog by a
+  grammar on local models, validated again on the device and drawn by
+  `jackdaw_flutter`; what the user does goes back to the agent.
 
 The design and its reasoning are in
-[docs/adr/0001-scope-and-architecture.md](docs/adr/0001-scope-and-architecture.md)
-and [docs/gap-analysis.md](docs/gap-analysis.md).
+[docs/adr/0001-scope-and-architecture.md](docs/adr/0001-scope-and-architecture.md),
+[docs/adr/0002-generative-ui.md](docs/adr/0002-generative-ui.md) and
+[docs/gap-analysis.md](docs/gap-analysis.md).
 
 ## Quick start
 
@@ -65,6 +70,19 @@ final chat = ChatController(
 ChatView(controller: chat);
 ```
 
+The same chat with UI: the agent gets a `render_ui` tool for the A2UI
+basic catalog, the surfaces it builds appear in the transcript, and
+presses come back to it as messages:
+
+```dart
+final ui = UiSurfaceController(basicCatalog);
+final chat = ChatController(
+  agent: Agent(model: model, tools: [ui.tool()], store: InMemorySessionStore()),
+  sessionId: 'support',
+  ui: ui,
+);
+```
+
 ## Packages
 
 | Package | Purpose | Platforms |
@@ -86,7 +104,8 @@ open the repository in VS Code to run it from `.vscode/launch.json`.
 
 ## Claims and evidence
 
-The gap analysis lists twelve measurable claims. Their status:
+The gap analysis lists twelve measurable claims, and ADR 0002 adds two
+for generative UI. Their status:
 
 | Claim | Status | Evidence |
 |---|---|---|
@@ -102,6 +121,8 @@ The gap analysis lists twelve measurable claims. Their status:
 | C10 denied tools cannot be approved; secrets never reach traces | Met | tests in `packages/jackdaw` |
 | C11 sessions survive a killed process without repeated effects | Met | tests in `packages/jackdaw` |
 | C12 no C++ toolchain, 16 KB pages, no exported ggml symbols | Met on Android, iOS and macOS; Linux and Windows not yet checked from a fresh app | CI and [ADR](docs/adr/0001-scope-and-architecture.md) |
+| C13 at least 99% of UI answers from a local model validate against the catalog | Measuring | [ADR 0002](docs/adr/0002-generative-ui.md) |
+| C14 applying UI loses no frame on the reference device | Open | [ADR 0002](docs/adr/0002-generative-ui.md) |
 
 ## Development
 

@@ -35,14 +35,15 @@ final class UiSurfaceController extends ChangeNotifier {
   /// Receives what the user did on a surface.
   void Function(UiAction action)? onAction;
 
-  /// A `render_ui` tool that shows its UI here.
+  /// A `render_ui` tool that shows its UI here, taking screens in
+  /// [format]; see `uiTool`.
   Tool<List<Object?>> tool({
     String name = 'render_ui',
-    bool adoptOrphans = true,
+    UiFormat format = UiFormat.tree,
   }) => uiTool(
     surfaces,
     name: name,
-    adoptOrphans: adoptOrphans,
+    format: format,
     onShown: (_) => notifyListeners(),
   );
 
@@ -52,12 +53,14 @@ final class UiSurfaceController extends ChangeNotifier {
     LanguageModel model,
     List<Message> messages, {
     int repairs = 1,
+    UiFormat format = UiFormat.tree,
   }) async {
     final problems = await generateUi(
       model,
       messages,
       surfaces,
       repairs: repairs,
+      format: format,
     );
     notifyListeners();
     return problems;
