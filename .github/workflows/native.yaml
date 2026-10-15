@@ -78,7 +78,7 @@ jobs:
       - run: mkdir -p "$RUNNER_TEMP/findings"
       - run: >
           ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=60 -max_len=4096
-          -seed=3642291517 -artifact_prefix="$RUNNER_TEMP/findings/"
+          -artifact_prefix="$RUNNER_TEMP/findings/"
           native/fuzz/corpus/grammar
       - run: >
           ./build/fuzz/jackdaw_index_load_fuzz -max_total_time=60 -max_len=65536

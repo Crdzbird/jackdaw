@@ -1,0 +1,38 @@
+name: fuzz
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: Minutes to fuzz the grammar parser
+        default: '20'
+
+permissions:
+  contents: read
+
+jobs:
+  grammar:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: sudo apt-get install -y ninja-build
+      - run: >
+          cmake -S native -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DJACKDAW_BUILD_FUZZERS=ON -DJACKDAW_SANITIZE=address,undefined
+      - run: cmake --build build -j --target jackdaw_grammar_fuzz
+      - run: mkdir -p "$RUNNER_TEMP/findings"
+      - name: Fuzz the grammar parser
+        env:
+          MINUTES: ${{ inputs.minutes }}
+        run: >
+          ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=$((MINUTES * 60))
+          -max_len=4096 -rss_limit_mb=2048
+          -artifact_prefix="$RUNNER_TEMP/findings/" native/fuzz/corpus/grammar
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: grammar-findings
+          path: ${{ runner.temp }}/findings
