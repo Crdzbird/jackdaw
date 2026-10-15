@@ -11,25 +11,34 @@ const String uiProtocolVersion = 'v1.0';
 /// for surfaces of the catalog [catalogId], with [components] as the list
 /// of components a message carries.
 Schema uiMessageSchema(String catalogId, Schema components) => AnyOfSchema([
-  _envelope(
-    'createSurface',
-    ObjectSchema(
-      properties: {
-        'surfaceId': _surfaceId,
-        'catalogId': Schema.string(enumValues: [catalogId]),
-        'sendDataModel': const Schema.boolean(
-          description: 'Whether user input is sent with every action.',
-        ),
-        'components': components,
-        'dataModel': const Schema.map(
-          values: _anyValue,
-          description: 'The initial data.',
-        ),
-      },
-      required: ['surfaceId'],
-      description: 'Creates a surface, optionally with its content.',
-    ),
-  ),
+  uiCreateSurfaceMessage(catalogId, components),
+  ...uiUpdateMessages(components),
+], description: 'An A2UI v1.0 message.');
+
+/// The schema of a `createSurface` message for the catalog [catalogId].
+ObjectSchema uiCreateSurfaceMessage(String catalogId, Schema components) =>
+    _envelope(
+      'createSurface',
+      ObjectSchema(
+        properties: {
+          'surfaceId': _surfaceId,
+          'catalogId': Schema.string(enumValues: [catalogId]),
+          'sendDataModel': const Schema.boolean(
+            description: 'Whether user input is sent with every action.',
+          ),
+          'components': components,
+          'dataModel': const Schema.map(
+            values: _anyValue,
+            description: 'The initial data.',
+          ),
+        },
+        required: ['surfaceId'],
+        description: 'Creates a surface, optionally with its content.',
+      ),
+    );
+
+/// The schemas of the messages that change or remove an existing surface.
+List<ObjectSchema> uiUpdateMessages(Schema components) => [
   _envelope(
     'updateComponents',
     ObjectSchema(
@@ -58,7 +67,7 @@ Schema uiMessageSchema(String catalogId, Schema components) => AnyOfSchema([
       description: 'Removes a surface.',
     ),
   ),
-], description: 'An A2UI v1.0 message.');
+];
 
 ObjectSchema _envelope(String name, ObjectSchema body) => ObjectSchema(
   properties: {

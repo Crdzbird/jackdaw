@@ -24,25 +24,44 @@ String _first(List<(String, bool)> members, int index) {
   return '($head | ${_first(members, index + 1)})';
 }
 
-/// The GBNF body of a JSON list between [open] and [close] of at least
-/// [min] and at most [max] elements matching [item], separated by commas.
+/// The GBNF body of a JSON list between [open] and [close] that starts
+/// with one element matching each rule of [prefix], in order, followed by
+/// elements matching [item], at least [min] and at most [max] in all.
 String gbnfRepeat(
   String open,
   String item,
-  String close, [
+  String close, {
   int min = 0,
   int? max,
-]) {
+  List<String> prefix = const [],
+}) {
   if (max != null && (max < min || max < 1)) {
     throw ArgumentError.value(max, 'max', 'must be at least 1 and min');
   }
+  if (min < prefix.length) {
+    throw ArgumentError.value(min, 'min', 'must cover the prefix items');
+  }
   final more = '(ws "," ws $item)';
-  final first = min < 1 ? 0 : min - 1;
-  final rest = switch ((first, max)) {
-    (0, null) => '$more*',
-    (_, null) => '$more{$first,}',
-    (_, final int top) => '$more{$first,${top - 1}}',
-  };
-  final items = '$item $rest';
-  return '$open ws ${min == 0 ? '($items)?' : items} ws $close';
+  if (prefix.isEmpty) {
+    final items = [
+      item,
+      _times(more, min < 1 ? 0 : min - 1, _less(max, 1)),
+    ].where((part) => part.isNotEmpty).join(' ');
+    return '$open ws ${min == 0 ? '($items)?' : items} ws $close';
+  }
+  final rest = _times(more, min - prefix.length, _less(max, prefix.length));
+  final items = [
+    prefix.join(' ws "," ws '),
+    rest,
+  ].where((part) => part.isNotEmpty).join(' ');
+  return '$open ws $items ws $close';
 }
+
+int? _less(int? max, int count) => max == null ? null : max - count;
+
+String _times(String more, int low, int? high) => switch ((low, high)) {
+  (_, 0) => '',
+  (0, null) => '$more*',
+  (_, null) => '$more{$low,}',
+  (_, final int top) => '$more{$low,$top}',
+};

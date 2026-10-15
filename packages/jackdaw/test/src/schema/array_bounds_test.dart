@@ -45,17 +45,23 @@ void main() {
 
   test('bounds become grammar repetitions', () {
     expect(gbnfRepeat('"["', 'x', '"]"'), '"[" ws (x (ws "," ws x)*)? ws "]"');
-    expect(gbnfRepeat('"["', 'x', '"]"', 1), '"[" ws x (ws "," ws x)* ws "]"');
     expect(
-      gbnfRepeat('"["', 'x', '"]"', 3),
+      gbnfRepeat('"["', 'x', '"]"', min: 1),
+      '"[" ws x (ws "," ws x)* ws "]"',
+    );
+    expect(
+      gbnfRepeat('"["', 'x', '"]"', min: 3),
       '"[" ws x (ws "," ws x){2,} ws "]"',
     );
     expect(
-      gbnfRepeat('"["', 'x', '"]"', 0, 4),
+      gbnfRepeat('"["', 'x', '"]"', max: 4),
       '"[" ws (x (ws "," ws x){0,3})? ws "]"',
     );
     expect(GbnfCompiler().compile(tags), contains('{0,1}'));
-    expect(() => gbnfRepeat('[', 'x', ']', 2, 1), throwsArgumentError);
-    expect(() => gbnfRepeat('[', 'x', ']', 0, 0), throwsArgumentError);
+    expect(
+      () => gbnfRepeat('[', 'x', ']', min: 2, max: 1),
+      throwsArgumentError,
+    );
+    expect(() => gbnfRepeat('[', 'x', ']', max: 0), throwsArgumentError);
   });
 }

@@ -44,9 +44,10 @@ sealed class Schema {
   const factory boolean({String? description}) = BooleanSchema;
 
   /// Describes a JSON array of at least [minItems] and at most [maxItems]
-  /// elements that match [items].
+  /// elements, the first matching [prefixItems] and the rest [items].
   const factory array({
     required Schema items,
+    List<Schema> prefixItems,
     int minItems,
     int? maxItems,
     String? description,

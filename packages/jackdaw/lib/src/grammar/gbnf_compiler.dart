@@ -47,9 +47,7 @@ final class GbnfCompiler {
     IntegerSchema() => _use('integer'),
     NumberSchema() => _use('number'),
     BooleanSchema() => _use('boolean'),
-    ArraySchema(:final items, :final minItems, :final maxItems) => _list(
-      gbnfRepeat('"["', rule(items), '"]"', minItems, maxItems),
-    ),
+    ArraySchema() => _array(schema),
     MapSchema(:final values) => _list(
       gbnfRepeat('"{"', '${_use('string')} ws ":" ws ${rule(values)}', '"}"'),
     ),
@@ -62,18 +60,15 @@ final class GbnfCompiler {
 
   String _value() => (['ws', 'string', 'number', 'value']..forEach(_use)).last;
 
-  String _object(ObjectSchema schema) {
-    _use('ws');
-    return _named(
-      gbnfObjectBody([
-        for (final MapEntry(:key, :value) in schema.properties.entries)
-          (
-            '${gbnfLiteral(key)} ws ":" ws ${rule(value)}',
-            schema.required.contains(key),
-          ),
-      ]),
-    );
-  }
+  String _object(ObjectSchema schema) => _list(
+    gbnfObjectBody([
+      for (final MapEntry(:key, :value) in schema.properties.entries)
+        (
+          '${gbnfLiteral(key)} ws ":" ws ${rule(value)}',
+          schema.required.contains(key),
+        ),
+    ]),
+  );
 
   String _choice(Iterable<Schema> options) => options.isEmpty
       ? throw ArgumentError('a choice needs an option')
@@ -81,10 +76,19 @@ final class GbnfCompiler {
 
   String _list(String body) => _named(body, uses: 'ws');
 
-  String _use(String primitive) {
-    _primitives.add(primitive);
-    return primitive;
-  }
+  String _array(ArraySchema schema) => _list(
+    gbnfRepeat(
+      '"["',
+      rule(schema.items),
+      '"]"',
+      min: schema.minItems,
+      max: schema.maxItems,
+      prefix: schema.prefixItems.map(rule).toList(),
+    ),
+  );
+
+  String _use(String primitive) =>
+      (_primitives..add(primitive)).lookup(primitive)!;
 
   String _named(String body, {String? uses}) {
     if (uses != null) _use(uses);

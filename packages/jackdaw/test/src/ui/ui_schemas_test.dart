@@ -82,6 +82,8 @@ void main() {
     final corpus = Platform.environment['JACKDAW_GRAMMAR_CORPUS'];
     if (corpus != null) {
       File('$corpus/ui_basic.gbnf').writeAsStringSync(grammar);
+      File('$corpus/ui_reply.gbnf')
+          .writeAsStringSync(GbnfCompiler().compile(schemas.reply));
     }
   });
 }

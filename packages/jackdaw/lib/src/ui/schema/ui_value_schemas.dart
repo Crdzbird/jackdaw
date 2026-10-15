@@ -34,18 +34,13 @@ final class UiValueSchemas {
         null => schema,
       },
       ObjectSchema() => _object(schema, depth),
-      ArraySchema(
-        :final items,
-        :final minItems,
-        :final maxItems,
-        :final description,
-      ) =>
-        ArraySchema(
-          items: resolve(items, depth),
-          minItems: minItems,
-          maxItems: maxItems,
-          description: description,
-        ),
+      ArraySchema() => ArraySchema(
+        items: resolve(schema.items, depth),
+        prefixItems: [for (final p in schema.prefixItems) resolve(p, depth)],
+        minItems: schema.minItems,
+        maxItems: schema.maxItems,
+        description: schema.description,
+      ),
       MapSchema(:final values, :final description) => MapSchema(
         values: resolve(values, depth),
         description: description,

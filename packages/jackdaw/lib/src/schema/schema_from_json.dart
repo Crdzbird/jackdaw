@@ -1,4 +1,5 @@
 import 'package:jackdaw/src/schema/any_of_from_json.dart';
+import 'package:jackdaw/src/schema/array_from_json.dart';
 import 'package:jackdaw/src/schema/schema.dart';
 
 const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
@@ -25,9 +26,9 @@ Schema schemaFromJson(Map<String, Object?> json) {
     'number' when only({}) => NumberSchema(description: text),
     'boolean' when only({}) => BooleanSchema(description: text),
     'array'
-        when only({'items', 'minItems', 'maxItems'}) &&
+        when only({'items', 'prefixItems', 'minItems', 'maxItems'}) &&
             json['items'] is Map<String, Object?> =>
-      _array(json, text),
+      arrayFromJson(json, text),
     'object'
         when only({'additionalProperties'}) &&
             json['additionalProperties'] is Map<String, Object?> =>
@@ -46,21 +47,6 @@ Schema _string(Map<String, Object?> json, String? text) {
     return RawSchema(json);
   }
   return StringSchema(enumValues: values.cast<String>(), description: text);
-}
-
-Schema _array(Map<String, Object?> json, String? text) {
-  final min = json['minItems'] ?? 0;
-  final max = json['maxItems'];
-  if (min is! int || min < 0 || (max != null && max is! int)) {
-    return RawSchema(json);
-  }
-  final items = json['items']! as Map<String, Object?>;
-  return ArraySchema(
-    items: schemaFromJson(items),
-    minItems: min,
-    maxItems: max as int?,
-    description: text,
-  );
 }
 
 Schema _map(Map<String, Object?> json, String? text) => switch (schemaFromJson(
