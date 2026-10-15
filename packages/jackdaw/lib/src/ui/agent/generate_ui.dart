@@ -20,6 +20,8 @@ import 'package:jackdaw/src/ui/target/ui_target.dart';
 /// to [repairs] times; an attempt with problems beyond warnings changes
 /// nothing, and the last one is shown as well as it can be. Returns the
 /// problems of the last attempt, which are only warnings on success.
+/// [onReply] receives the answer that was shown, so a follow-up request
+/// can carry it as the assistant's turn and change that screen.
 Future<List<UiProblem>> generateUi(
   LanguageModel model,
   List<Message> messages,
@@ -28,6 +30,7 @@ Future<List<UiProblem>> generateUi(
   int repairs = 1,
   bool adoptOrphans = true,
   UiFormat format = UiFormat.tree,
+  void Function(Object? reply)? onReply,
 }) async {
   final conversation = [...messages];
   for (var attempt = 0; ; attempt++) {
@@ -45,7 +48,10 @@ Future<List<UiProblem>> generateUi(
       adoptOrphans ? uiAdoptOrphans(sent, target.schemas.catalog) : sent,
       partial: last,
     );
-    if (problems.every((p) => p.warning) || last) return problems;
+    if (problems.every((p) => p.warning) || last) {
+      onReply?.call(reply);
+      return problems;
+    }
     conversation
       ..add(Message.assistant(jsonEncode(reply)))
       ..add(Message.user(_repair(problems)));

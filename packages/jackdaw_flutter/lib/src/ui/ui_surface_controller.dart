@@ -1,20 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw_flutter/src/ui/builders/basic_ui_builders.dart';
+import 'package:jackdaw_flutter/src/ui/ui_widget_builder.dart';
 
 /// The surfaces of a catalog for a Flutter app: what the agent shows, what
-/// the user enters, and the actions that go back to the agent.
-///
-/// Every change goes through this controller, which notifies listeners, so
-/// `UiSurfaceView`s redraw. Give the agent [tool], or call [generate] for
-/// UI as a whole answer, and handle [onAction] by sending the action to
-/// the agent with `uiActionMessage`.
+/// the user enters, and the actions that go back to the agent. Changes go
+/// through here and notify listeners, so `UiSurfaceView`s redraw. Give the
+/// agent [tool], or call [generate] for UI as a whole answer, and send
+/// [onAction]'s actions to the agent with `uiActionMessage`.
 final class UiSurfaceController extends ChangeNotifier {
   /// Creates a controller for [catalog]. [host] decides which links and
-  /// images may load, and [functions] implements the catalog's functions.
+  /// images may load, [functions] implements the catalog's functions and
+  /// [builders] draws its components.
   factory(
     UiCatalog catalog, {
     UiHost host,
     Map<String, UiFunctionBody>? functions,
+    Map<String, UiWidgetBuilder> builders,
     void Function(UiAction action)? onAction,
   }) = UiSurfaceController._;
 
@@ -22,6 +24,7 @@ final class UiSurfaceController extends ChangeNotifier {
     UiCatalog catalog, {
     UiHost host = const UiHost(),
     Map<String, UiFunctionBody>? functions,
+    this.builders = basicUiBuilders,
     this.onAction,
   }) : surfaces = UiSurfaces(catalog),
        evaluator = UiEvaluator(catalog, functions: functions, host: host);
@@ -32,11 +35,13 @@ final class UiSurfaceController extends ChangeNotifier {
   /// Evaluates bindings, checks and function calls.
   final UiEvaluator evaluator;
 
+  /// The builders of the components, by name; every view uses them.
+  final Map<String, UiWidgetBuilder> builders;
+
   /// Receives what the user did on a surface.
   void Function(UiAction action)? onAction;
 
-  /// A `render_ui` tool that shows its UI here, taking screens in
-  /// [format]; see `uiTool`.
+  /// A `render_ui` tool that shows screens in [format] here; see `uiTool`.
   Tool<List<Object?>> tool({
     String name = 'render_ui',
     UiFormat format = UiFormat.tree,
@@ -54,20 +59,17 @@ final class UiSurfaceController extends ChangeNotifier {
     List<Message> messages, {
     int repairs = 1,
     UiFormat format = UiFormat.tree,
-  }) async {
-    final problems = await generateUi(
-      model,
-      messages,
-      surfaces,
-      repairs: repairs,
-      format: format,
-    );
-    notifyListeners();
-    return problems;
-  }
+    void Function(Object? reply)? onReply,
+  }) => generateUi(
+    model,
+    messages,
+    surfaces,
+    repairs: repairs,
+    format: format,
+    onReply: onReply,
+  ).whenComplete(notifyListeners);
 
-  /// Shows again the UI the tool named [tool] showed in [history], such as
-  /// a restored session; see `uiReplay`.
+  /// Shows again the UI the [tool] showed in [history]; see `uiReplay`.
   void replay(List<Message> history, {String tool = 'render_ui'}) {
     uiReplay(surfaces, history, tool: tool);
     notifyListeners();
@@ -80,8 +82,7 @@ final class UiSurfaceController extends ChangeNotifier {
     return problems;
   }
 
-  /// Writes [value] at [pointer] in the data of [surfaceId], as an input
-  /// does when the user changes it.
+  /// Writes [value] at [pointer] in the data of [surfaceId], as inputs do.
   void write(String surfaceId, String pointer, Object? value) {
     surfaces.surfaces[surfaceId]?.data.write(pointer, value);
     notifyListeners();

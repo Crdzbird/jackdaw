@@ -50,6 +50,25 @@ void main() {
     expect(surfaces.surfaces['signup']!.root!.type, 'Column');
   });
 
+  test('the shown answer is passed to onReply', () async {
+    final surfaces = UiSurfaces(basicCatalog);
+    final model = RepliesModel([
+      [broken()],
+      [formSurface],
+    ]);
+    final replies = <Object?>[];
+    await generateUi(
+      model,
+      [Message.user('Sign up')],
+      surfaces,
+      format: UiFormat.messages,
+      onReply: replies.add,
+    );
+    expect(replies, [
+      [formSurface],
+    ]);
+  });
+
   test('the last problems come back when repairs run out', () async {
     final surfaces = UiSurfaces(basicCatalog);
     final model = RepliesModel([

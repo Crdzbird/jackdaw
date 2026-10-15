@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jackdaw/jackdaw.dart';
-import 'package:jackdaw_flutter/src/ui/builders/basic_ui_builders.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
 import 'package:jackdaw_flutter/src/ui/ui_widget_builder.dart';
@@ -49,7 +48,7 @@ final class UiSurfaceView extends StatelessWidget {
           surface: surface,
           component: root,
           scope: UiScope(surface.data),
-          builders: builders ?? basicUiBuilders,
+          builders: builders ?? controller.builders,
         ).build(),
       );
     },
