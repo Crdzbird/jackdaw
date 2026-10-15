@@ -4,7 +4,8 @@ import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
 import 'package:jackdaw_flutter/src/ui/ui_widget_builder.dart';
 
-/// Draws the surface [surfaceId] of [controller] from its root. It redraws
+/// Draws the surface [surfaceId] of [controller] from its root, on a layer
+/// of its own so animations around it do not repaint it. It redraws
 /// the whole surface when components change; a data write redraws only
 /// the components that read what was written.
 ///
@@ -36,22 +37,24 @@ final class UiSurfaceView extends StatelessWidget {
   final Map<String, UiWidgetBuilder>? builders;
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller.changes,
-    builder: (context, _) {
-      final surface = controller.surfaces.surfaces[surfaceId];
-      final root = surface?.root;
-      if (surface == null || root == null) return const SizedBox.shrink();
-      return Material(
-        type: MaterialType.transparency,
-        child: UiNode(
-          controller: controller,
-          surface: surface,
-          component: root,
-          scope: UiScope(surface.data),
-          builders: builders ?? controller.builders,
-        ).build(),
-      );
-    },
+  Widget build(BuildContext context) => RepaintBoundary(
+    child: ListenableBuilder(
+      listenable: controller.changes,
+      builder: (context, _) {
+        final surface = controller.surfaces.surfaces[surfaceId];
+        final root = surface?.root;
+        if (surface == null || root == null) return const SizedBox.shrink();
+        return Material(
+          type: MaterialType.transparency,
+          child: UiNode(
+            controller: controller,
+            surface: surface,
+            component: root,
+            scope: UiScope(surface.data),
+            builders: builders ?? controller.builders,
+          ).build(),
+        );
+      },
+    ),
   );
 }
