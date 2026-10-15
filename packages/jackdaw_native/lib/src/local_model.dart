@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw_native/src/download/model_download_progress.dart';
+import 'package:jackdaw_native/src/download/model_downloader.dart';
+import 'package:jackdaw_native/src/download/model_file.dart';
 import 'package:jackdaw_native/src/local_model_options.dart';
 import 'package:jackdaw_native/src/native/native_generate_options.dart';
 import 'package:jackdaw_native/src/native/native_model.dart';
@@ -28,6 +33,20 @@ final class LocalModel implements LanguageModel {
     final session = NativeSession(model, options: options.session);
     final name = Uri.file(path).pathSegments.last;
     return LocalModel._('local/$name', model, session);
+  }
+
+  /// Loads [model], by default Qwen2.5 1.5B Instruct, from [directory],
+  /// downloading and checking it there first when it is missing; see
+  /// [ModelDownloader]. [onProgress] follows the download.
+  static Future<LocalModel> download(
+    Directory directory, {
+    ModelFile model = ModelFile.qwen25Instruct,
+    void Function(ModelDownloadProgress progress)? onProgress,
+    LocalModelOptions options = const LocalModelOptions(),
+  }) async {
+    final file = await ModelDownloader(directory)
+        .fetch(model, onProgress: onProgress);
+    return await open(file.path, options: options);
   }
 
   @override

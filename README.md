@@ -54,10 +54,11 @@ final done = await agent.complete([Message.user('Weather in Lima?')]);
 print(done.text);
 ```
 
-The same agent on the device, with no network:
+The same agent on the device. The first run downloads and checks Qwen2.5
+1.5B Instruct, about 1.1 GB; after that it needs no network:
 
 ```dart
-final model = await LocalModel.open('qwen2.5-1.5b-instruct-q4_k_m.gguf');
+final model = await LocalModel.download(appSupportFolder);
 final agent = Agent(model: model, tools: [weather]);
 ```
 
