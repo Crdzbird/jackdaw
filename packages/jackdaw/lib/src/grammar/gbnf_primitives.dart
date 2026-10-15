@@ -20,3 +20,12 @@ const Map<String, String> gbnfPrimitives = {
       '(ws "," ws string ws ":" ws value)*)? ws "}"\n'
       'jarray ::= "[" ws (value (ws "," ws value)*)? ws "]"',
 };
+
+/// [text] as a GBNF string literal that matches it exactly.
+String gbnfText(String text) {
+  final escaped = text
+      .replaceAll(r'\', r'\\')
+      .replaceAll('"', r'\"')
+      .replaceAll('\n', r'\n');
+  return '"$escaped"';
+}

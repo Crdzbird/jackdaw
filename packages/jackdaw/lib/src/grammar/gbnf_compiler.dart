@@ -1,14 +1,16 @@
 import 'dart:convert';
 
+import 'package:jackdaw/src/grammar/gbnf_members.dart';
 import 'package:jackdaw/src/grammar/gbnf_primitives.dart';
 import 'package:jackdaw/src/schema/schema.dart';
 
 /// Compiles a [Schema] into a GBNF grammar whose root rule only accepts
 /// JSON text that matches the schema.
 ///
-/// Objects are emitted with every declared property, in declaration order,
-/// which always satisfies the schema. The compiler is pure Dart, so native
-/// and web inference backends share one grammar.
+/// Object properties are emitted in declaration order; required ones always
+/// and optional ones only when the model chooses to. A schema used in
+/// several places compiles to one shared rule. The compiler is pure Dart,
+/// so native and web inference backends share one grammar.
 final class GbnfCompiler {
   /// Creates a compiler for one grammar.
   factory() = GbnfCompiler._;
@@ -17,14 +19,11 @@ final class GbnfCompiler {
 
   final List<String> _rules = [];
   final Set<String> _primitives = {};
+  final Map<Schema, String> _shared = Map.identity();
   int _count = 0;
 
   /// Returns the grammar text for [schema].
   String compile(Schema schema) => render(rule(schema));
-
-  /// Adds the rules that match [schema] and returns the name of its rule,
-  /// for building a grammar from several schemas.
-  String rule(Schema schema) => _rule(schema);
 
   /// Adds a rule named after a counter with [body] and returns its name.
   String define(String body) => _named(body);
@@ -38,15 +37,11 @@ final class GbnfCompiler {
   ].join('\n');
 
   /// [text] as a GBNF string literal that matches it exactly.
-  static String text(String text) {
-    final escaped = text
-        .replaceAll(r'\', r'\\')
-        .replaceAll('"', r'\"')
-        .replaceAll('\n', r'\n');
-    return '"$escaped"';
-  }
+  static String text(String text) => gbnfText(text);
 
-  String _rule(Schema schema) => switch (schema) {
+  /// Adds the rules that match [schema] and returns the name of its rule,
+  /// for building a grammar from several schemas.
+  String rule(Schema schema) => _shared[schema] ??= switch (schema) {
     StringSchema(enumValues: final values?) => _named(
       values.map(_literal).join(' | '),
     ),
@@ -55,8 +50,9 @@ final class GbnfCompiler {
     NumberSchema() => _use('number'),
     BooleanSchema() => _use('boolean'),
     ArraySchema(:final items) => _array(items),
-    ObjectSchema(:final properties) => _object(properties),
-    UnionSchema(:final alternatives) => _union(alternatives.values),
+    ObjectSchema() => _object(schema),
+    UnionSchema(:final alternatives) => _choice(alternatives.values),
+    AnyOfSchema(:final options) => _choice(options),
     RawSchema() => _value(),
   };
 
@@ -65,23 +61,26 @@ final class GbnfCompiler {
     return _use('value');
   }
 
-  String _object(Map<String, Schema> properties) {
+  String _object(ObjectSchema schema) {
     _use('ws');
-    final members = [
-      for (final MapEntry(:key, :value) in properties.entries)
-        '${_literal(key)} ws ":" ws ${_rule(value)}',
-    ];
-    if (members.isEmpty) return _named('"{" ws "}"');
-    return _named('"{" ws ${members.join(' ws "," ws ')} ws "}"');
+    return _named(
+      gbnfObjectBody([
+        for (final MapEntry(:key, :value) in schema.properties.entries)
+          (
+            '${_literal(key)} ws ":" ws ${rule(value)}',
+            schema.required.contains(key),
+          ),
+      ]),
+    );
   }
 
-  String _union(Iterable<ObjectSchema> variants) => variants.isEmpty
-      ? throw ArgumentError('a union needs a variant')
-      : _named(variants.map(_rule).join(' | '));
+  String _choice(Iterable<Schema> options) => options.isEmpty
+      ? throw ArgumentError('a choice needs an option')
+      : _named(options.map(rule).join(' | '));
 
   String _array(Schema items) {
     _use('ws');
-    final item = _rule(items);
+    final item = rule(items);
     return _named('"[" ws ($item (ws "," ws $item)*)? ws "]"');
   }
 

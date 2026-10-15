@@ -1,5 +1,6 @@
 import 'package:jackdaw/src/schema/schema_violation.dart';
 
+part 'any_of_schema.dart';
 part 'array_schema.dart';
 part 'boolean_schema.dart';
 part 'integer_schema.dart';
@@ -48,6 +49,10 @@ sealed class Schema {
     required Map<String, ObjectSchema> variants,
     String? description,
   }) = UnionSchema;
+
+  /// Describes a value that matches at least one of [options].
+  const factory anyOf(List<Schema> options, {String? description}) =
+      AnyOfSchema;
 
   /// Passes the JSON Schema document [json] through unchanged.
   const factory raw(Map<String, Object?> json) = RawSchema;

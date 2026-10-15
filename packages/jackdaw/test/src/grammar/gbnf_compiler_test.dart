@@ -16,17 +16,18 @@ void main() {
     expect(grammar, contains(r'rule0 ::= "\"a\\\"b\"" | "\"c\""'));
   });
 
-  test('objects list every property in order', () {
+  test('objects list required properties in order', () {
     final grammar = compile(
       const ObjectSchema(
         properties: {'name': Schema.string(), 'age': Schema.integer()},
+        required: ['name', 'age'],
       ),
     );
     expect(
       grammar,
       contains(
-        r'rule0 ::= "{" ws "\"name\"" ws ":" ws string ws "," ws '
-        r'"\"age\"" ws ":" ws integer ws "}"',
+        r'rule0 ::= "{" ws "\"name\"" ws ":" ws string (ws "," ws '
+        r'"\"age\"" ws ":" ws integer) ws "}"',
       ),
     );
     expect(grammar, contains('ws ::= '));
@@ -57,7 +58,7 @@ void main() {
     final grammar = GbnfCompiler().compile(
       const ObjectSchema(properties: {'v': Schema.raw({})}),
     );
-    expect(grammar, contains('ws ":" ws value ws "}"'));
+    expect(grammar, contains('ws ":" ws value)? ws "}"'));
     expect(grammar, contains('value ::= jobject | jarray | string | number'));
     expect(grammar, contains('jarray ::='));
     expect(grammar, contains('string ::='));
@@ -70,7 +71,10 @@ void main() {
         discriminator: 'kind',
         variants: {
           'a': ObjectSchema(properties: {}),
-          'b': ObjectSchema(properties: {'n': Schema.integer()}),
+          'b': ObjectSchema(
+            properties: {'n': Schema.integer()},
+            required: ['n'],
+          ),
         },
       ),
     );
@@ -79,8 +83,8 @@ void main() {
     expect(
       grammar,
       contains(
-        r'rule3 ::= "{" ws "\"kind\"" ws ":" ws rule2 ws "," ws '
-        r'"\"n\"" ws ":" ws integer ws "}"',
+        r'rule3 ::= "{" ws "\"kind\"" ws ":" ws rule2 (ws "," ws '
+        r'"\"n\"" ws ":" ws integer) ws "}"',
       ),
     );
     expect(grammar, contains(r'rule2 ::= "\"b\""'));

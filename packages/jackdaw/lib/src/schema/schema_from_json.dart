@@ -1,5 +1,5 @@
+import 'package:jackdaw/src/schema/any_of_from_json.dart';
 import 'package:jackdaw/src/schema/schema.dart';
-import 'package:jackdaw/src/schema/union_from_json.dart';
 
 const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
 
@@ -7,10 +7,10 @@ const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
 ///
 /// A document becomes a typed schema only when every keyword in it is
 /// understood, so no constraint is dropped. Any other document, such as one
-/// using `$ref`, `minLength` or an untagged `anyOf`, is kept whole as a
-/// [RawSchema]. An `anyOf` of objects that share a one-value enum property
-/// becomes a [UnionSchema]. A missing `additionalProperties` means true, as
-/// in JSON Schema.
+/// using `$ref` or `minLength`, is kept whole as a [RawSchema]. An `anyOf`
+/// of typed schemas becomes an [AnyOfSchema], or a [UnionSchema] when its
+/// options are objects tagged by a shared one-value enum property. A
+/// missing `additionalProperties` means true, as in JSON Schema.
 Schema schemaFromJson(Map<String, Object?> json) {
   final keys = json.keys.where((k) => !_ignored.contains(k)).toSet();
   final description = json['description'];
@@ -30,7 +30,7 @@ Schema schemaFromJson(Map<String, Object?> json) {
       ),
     'object' when only({'properties', 'required', 'additionalProperties'}) =>
       _object(json, text),
-    null when only({'anyOf'}) => unionFromJson(json, text),
+    null when only({'anyOf'}) => anyOfFromJson(json, text),
     _ => RawSchema(json),
   };
 }

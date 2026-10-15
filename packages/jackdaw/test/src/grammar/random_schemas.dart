@@ -17,10 +17,11 @@ const List<String> _awkward = [
 ];
 
 /// Random schemas for grammar property tests, with names and enum values
-/// that need escaping, nesting up to [depth], unions and raw documents.
+/// that need escaping, nesting up to [depth], optional properties, unions,
+/// anyOf and raw documents.
 Schema randomSchema(Random random, {int depth = 3}) {
   String text() => _awkward[random.nextInt(_awkward.length)];
-  final kind = random.nextInt(depth <= 0 ? 6 : 10);
+  final kind = random.nextInt(depth <= 0 ? 6 : 11);
   return switch (kind) {
     0 => const Schema.string(),
     1 => Schema.string(enumValues: [text(), text()]),
@@ -36,15 +37,25 @@ Schema randomSchema(Random random, {int depth = 3}) {
           '${text()}$i': _object(random, text, depth),
       },
     ),
+    8 => AnyOfSchema([
+      for (var i = random.nextInt(3) + 1; i > 0; i--)
+        randomSchema(random, depth: depth - 1),
+    ]),
     _ => _object(random, text, depth),
   };
 }
 
-ObjectSchema _object(Random random, String Function() text, int depth) =>
-    ObjectSchema(
-      properties: {
-        for (var i = random.nextInt(4); i > 0; i--)
-          '${text()}$i': randomSchema(random, depth: depth - 1),
-      },
-      additionalProperties: random.nextBool(),
-    );
+ObjectSchema _object(Random random, String Function() text, int depth) {
+  final properties = {
+    for (var i = random.nextInt(4); i > 0; i--)
+      '${text()}$i': randomSchema(random, depth: depth - 1),
+  };
+  return ObjectSchema(
+    properties: properties,
+    required: [
+      for (final key in properties.keys)
+        if (random.nextBool()) key,
+    ],
+    additionalProperties: random.nextBool(),
+  );
+}

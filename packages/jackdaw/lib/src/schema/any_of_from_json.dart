@@ -1,22 +1,28 @@
 import 'package:jackdaw/src/schema/schema.dart';
 import 'package:jackdaw/src/schema/schema_from_json.dart';
 
-/// Reads an `anyOf` document as a [UnionSchema] when every alternative is
-/// an object schema and all of them share a required property that is a
-/// string enum of one distinct value. Any other document is kept whole as
-/// a [RawSchema].
-Schema unionFromJson(Map<String, Object?> json, String? description) {
+/// Reads an `anyOf` document. When every option is an object schema and
+/// all of them share a required property that is a string enum of one
+/// distinct value, it becomes a [UnionSchema]; when every option is a
+/// typed schema, an [AnyOfSchema]; otherwise it is kept whole as a
+/// [RawSchema].
+Schema anyOfFromJson(Map<String, Object?> json, String? description) {
   final options = json['anyOf'];
   if (options is! List || options.isEmpty) return RawSchema(json);
-  final objects = [
+  final schemas = [
     for (final option in options)
       if (option is Map<String, Object?>) schemaFromJson(option),
-  ].whereType<ObjectSchema>().toList();
-  if (objects.length != options.length) return RawSchema(json);
-  final tag = objects.first.properties.keys
-      .where((key) => _tags(objects, key) != null)
-      .firstOrNull;
-  if (tag == null) return RawSchema(json);
+  ];
+  if (schemas.length != options.length || schemas.any((s) => s is RawSchema)) {
+    return RawSchema(json);
+  }
+  final objects = schemas.whereType<ObjectSchema>().toList();
+  final tag = objects.length == schemas.length
+      ? objects.first.properties.keys
+            .where((key) => _tags(objects, key) != null)
+            .firstOrNull
+      : null;
+  if (tag == null) return AnyOfSchema(schemas, description: description);
   final tags = _tags(objects, tag)!;
   return UnionSchema(
     discriminator: tag,
