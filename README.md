@@ -126,7 +126,7 @@ for generative UI. Their status:
 | C11 sessions survive a killed process without repeated effects | Met | tests in `packages/jackdaw` |
 | C12 no C++ toolchain, 16 KB pages, no exported ggml symbols | Met on Android, iOS and macOS; Linux and Windows not yet checked from a fresh app | CI and [ADR](docs/adr/0001-scope-and-architecture.md) |
 | C13 at least 99% of UI answers from a local model validate against the catalog | Measuring | [ADR 0002](docs/adr/0002-generative-ui.md) |
-| C14 applying UI loses no frame on the reference device | Measuring; ahead of genui on the emulator | [C14](docs/benchmarks/c14-ui-frames.md) |
+| C14 applying UI loses no frame on the reference device | Measuring; ahead of genui on writes, behind on creation | [C14](docs/benchmarks/c14-ui-frames.md) |
 
 ## Development
 

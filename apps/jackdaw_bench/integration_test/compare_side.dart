@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 /// One renderer in the comparison of claim C14: it takes A2UI v1.0
 /// messages, after any conversion done ahead of time, and draws the
@@ -19,3 +19,16 @@ abstract interface class CompareSide {
   /// Frees the renderer.
   void dispose();
 }
+
+/// The screen both sides are measured in: [surface] scrolling under a
+/// spinner, which keeps frames coming.
+Widget compareScreen(Widget surface) => MaterialApp(
+  home: Scaffold(
+    body: Column(
+      children: [
+        const CircularProgressIndicator(),
+        Expanded(child: SingleChildScrollView(child: surface)),
+      ],
+    ),
+  ),
+);

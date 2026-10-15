@@ -40,3 +40,14 @@ Map<String, Object?> uiFrameSurface(int count) {
     },
   };
 }
+
+/// The [i]th data write of a benchmark on [uiFrameSurface] of [count]
+/// components: new text for one of its bound values.
+Map<String, Object?> uiFrameWrite(int i, int count) => {
+  'version': 'v1.0',
+  'updateDataModel': {
+    'surfaceId': 'bench',
+    'path': '/t${(i * 5) % count}',
+    'value': 'Update $i',
+  },
+};
