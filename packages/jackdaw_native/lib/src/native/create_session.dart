@@ -20,5 +20,10 @@ Pointer<jackdaw_session> createSession(
   final out = arena<Pointer<jackdaw_session>>();
   final callback = callable.nativeFunction;
   checkStatus(jackdaw_session_create(model.pointer, params, callback, out));
+  if (options.generateThreads > 0) {
+    checkStatus(
+      jackdaw_session_set_threads(out.value, options.generateThreads, 64),
+    );
+  }
   return out.value;
 });

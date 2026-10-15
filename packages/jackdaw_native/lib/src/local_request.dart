@@ -1,4 +1,14 @@
 import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw_native/src/native/native_generate_options.dart';
+
+/// The native options for [request]: its sampling settings and the grammar
+/// that holds the model to it.
+NativeGenerateOptions localOptions(ModelRequest request) =>
+    NativeGenerateOptions(
+      temperature: request.options.temperature ?? 0,
+      maxTokens: request.options.maxOutputTokens ?? 0,
+      grammar: localGrammar(request),
+    );
 
 /// The grammar that holds a local model to [request]: tool calls or an
 /// answer when it offers tools, JSON matching its response schema when it

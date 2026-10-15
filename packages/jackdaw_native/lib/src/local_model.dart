@@ -4,9 +4,9 @@ import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_native/src/download/model_download_progress.dart';
 import 'package:jackdaw_native/src/download/model_downloader.dart';
 import 'package:jackdaw_native/src/download/model_file.dart';
-import 'package:jackdaw_native/src/local_grammar.dart';
 import 'package:jackdaw_native/src/local_model_options.dart';
-import 'package:jackdaw_native/src/native/native_generate_options.dart';
+import 'package:jackdaw_native/src/local_request.dart';
+import 'package:jackdaw_native/src/native/native_features.dart';
 import 'package:jackdaw_native/src/native/native_model.dart';
 import 'package:jackdaw_native/src/native/native_session.dart';
 import 'package:jackdaw_native/src/native/native_stats.dart';
@@ -75,17 +75,15 @@ final class LocalModel implements LanguageModel {
   /// tokens restored, or 0 when the file is missing or from another model.
   Future<int> loadState(File file) => _session.load(file.path);
 
+  /// Streams the answer to [request]. The chat template is rendered on
+  /// the native worker when the library can, not on the calling isolate.
   @override
   Stream<ModelEvent> generate(ModelRequest request) {
-    final options = request.options;
-    final events = _session.generate(
-      _model.applyTemplate(localPrompt(request)),
-      NativeGenerateOptions(
-        temperature: options.temperature ?? 0,
-        maxTokens: options.maxOutputTokens ?? 0,
-        grammar: localGrammar(request),
-      ),
-    );
+    final messages = localPrompt(request);
+    final options = localOptions(request);
+    final events = nativeChat
+        ? _session.generateChat(messages, options)
+        : _session.generate(_model.applyTemplate(messages), options);
     return request.tools.isEmpty ? events : events.transform(ToolCallDecoder());
   }
 

@@ -11,12 +11,11 @@ import 'package:jackdaw_native/src/native/native_stats.dart';
 import 'package:jackdaw_native/src/native/run_generation.dart';
 import 'package:jackdaw_native/src/native/session_events.dart';
 import 'package:jackdaw_native/src/native/session_state.dart';
+import 'package:jackdaw_native/src/native/submit_generation.dart';
 
-/// A native context with its own worker thread.
-///
-/// Generation runs on the worker; tokens reach Dart through a
-/// `NativeCallable.listener`, so the calling isolate never blocks.
-/// Cancelling a stream returned by [generate] stops native decoding.
+/// A native context with its own worker thread. Tokens reach Dart through
+/// a `NativeCallable.listener`, so the caller never blocks; cancelling a
+/// stream from [generate] stops native decoding.
 final class NativeSession {
   /// Creates a session on [model].
   factory(
@@ -35,25 +34,29 @@ final class NativeSession {
   int _nextId = 1;
   Future<void> _queue = Future<void>.value();
 
-  /// Streams the continuation of [prompt].
-  ///
-  /// Requests run one at a time in call order; a request waits until the
-  /// previous one, including a cancelled one, has fully stopped.
-  Stream<ModelEvent> generate(String prompt, NativeGenerateOptions options) {
+  /// Streams the continuation of [prompt]. Requests run one at a time in
+  /// call order, each after the previous one has fully stopped.
+  Stream<ModelEvent> generate(String prompt, NativeGenerateOptions options) =>
+      _start((id) => submitGeneration(_pointer, id, prompt, options));
+
+  /// Streams the answer to the chat [messages], as role and content pairs,
+  /// which the native worker renders with the model's chat template.
+  Stream<ModelEvent> generateChat(
+    List<(String, String)> messages,
+    NativeGenerateOptions options,
+  ) => _start((id) => submitChat(_pointer, id, messages, options));
+
+  Stream<ModelEvent> _start(int Function(int id) submit) {
     final id = _nextId++;
     late final StreamController<ModelEvent> controller;
-    controller = StreamController<ModelEvent>(
-      onListen: () => _queue = runGeneration(
-        _queue,
-        _pointer,
-        _events,
-        id,
-        prompt,
-        options,
-        controller,
-      ),
-      onCancel: () => _cancel(id),
+    void run() => _queue = runGeneration(
+      _queue,
+      _events,
+      id,
+      () => submit(id),
+      controller,
     );
+    controller = StreamController(onListen: run, onCancel: () => _cancel(id));
     return controller.stream;
   }
 

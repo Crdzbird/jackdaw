@@ -317,6 +317,26 @@ external int jackdaw_session_generate(
   ffi.Pointer<jackdaw_generate_params> params,
 );
 
+/// Like jackdaw_session_generate, with the prompt given as count messages
+/// that the session's worker renders with the model's chat template,
+/// opening an assistant turn, so the caller does not render it.
+@ffi.Native<
+  ffi.Int32 Function(
+    ffi.Pointer<jackdaw_session>,
+    ffi.Int64,
+    ffi.Pointer<jackdaw_chat_message>,
+    ffi.Int32,
+    ffi.Pointer<jackdaw_generate_params>,
+  )
+>()
+external int jackdaw_session_generate_chat(
+  ffi.Pointer<jackdaw_session> session,
+  int request_id,
+  ffi.Pointer<jackdaw_chat_message> messages,
+  int count,
+  ffi.Pointer<jackdaw_generate_params> params,
+);
+
 /// Fills *out with statistics of the last finished generation.
 @ffi.Native<
   ffi.Int32 Function(
@@ -376,6 +396,19 @@ external int jackdaw_session_read(
 external int jackdaw_session_save(
   ffi.Pointer<jackdaw_session> session,
   ffi.Pointer<ffi.Char> path,
+);
+
+/// Sets the threads used to generate tokens and to process prompts, each
+/// at most the threads the session was created with. Generation is bound
+/// by memory on most phones, so fewer threads can generate as fast while
+/// leaving cores to the app. Returns JACKDAW_ERR_BUSY while generating.
+@ffi.Native<
+  ffi.Int32 Function(ffi.Pointer<jackdaw_session>, ffi.Int32, ffi.Int32)
+>()
+external int jackdaw_session_set_threads(
+  ffi.Pointer<jackdaw_session> session,
+  int generate,
+  int batch,
 );
 
 const int JACKDAW_ABI_VERSION = 3;

@@ -14,6 +14,43 @@ int submitGeneration(
   String prompt,
   NativeGenerateOptions options,
 ) => using((arena) {
+  final text = prompt.toNativeUtf8(allocator: arena);
+  return jackdaw_session_generate(
+    session,
+    id,
+    text.cast(),
+    text.length,
+    _params(arena, options),
+  );
+});
+
+/// Starts request [id] for the chat [messages] on [session], whose worker
+/// renders them with the model's chat template, and returns the status.
+int submitChat(
+  Pointer<jackdaw_session> session,
+  int id,
+  List<(String, String)> messages,
+  NativeGenerateOptions options,
+) => using((arena) {
+  final chat = arena<jackdaw_chat_message>(messages.length);
+  for (final (i, (role, content)) in messages.indexed) {
+    chat[i]
+      ..role = role.toNativeUtf8(allocator: arena).cast()
+      ..content = content.toNativeUtf8(allocator: arena).cast();
+  }
+  return jackdaw_session_generate_chat(
+    session,
+    id,
+    chat,
+    messages.length,
+    _params(arena, options),
+  );
+});
+
+Pointer<jackdaw_generate_params> _params(
+  Arena arena,
+  NativeGenerateOptions options,
+) {
   final params = arena<jackdaw_generate_params>();
   params.ref
     ..temperature = options.temperature
@@ -23,12 +60,5 @@ int submitGeneration(
     ..max_tokens = options.maxTokens
     ..grammar =
         options.grammar?.toNativeUtf8(allocator: arena).cast() ?? nullptr;
-  final text = prompt.toNativeUtf8(allocator: arena);
-  return jackdaw_session_generate(
-    session,
-    id,
-    text.cast(),
-    text.length,
-    params,
-  );
-});
+  return params;
+}
