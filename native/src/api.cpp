@@ -8,6 +8,7 @@
 
 #include "error.hpp"
 #include "grammar_guard.hpp"
+#include "submit.hpp"
 #include "live_objects.hpp"
 #include "jackdaw.h"
 #include "model.hpp"
@@ -108,27 +109,16 @@ int32_t jackdaw_model_apply_template(const jackdaw_model* model,
     if (model->chat_template.empty()) {
       return jackdaw::fail(JACKDAW_ERR_NOT_FOUND, "model has no chat template");
     }
-    std::vector<llama_chat_message> chat;
-    std::size_t total = 0;
+    jackdaw::Chat chat;
     for (int32_t i = 0; i < count; ++i) {
       if (messages[i].role == nullptr || messages[i].content == nullptr) {
         return jackdaw::fail(JACKDAW_ERR_INVALID_ARGUMENT, "message fields are required");
       }
-      chat.push_back({messages[i].role, messages[i].content});
-      total += std::strlen(messages[i].content) + std::strlen(messages[i].role);
+      chat.emplace_back(messages[i].role, messages[i].content);
     }
-    std::string rendered(total * 2 + 256, '\0');
-    auto n = llama_chat_apply_template(model->chat_template.c_str(), chat.data(), chat.size(),
-                                       add_assistant != 0, rendered.data(),
-                                       static_cast<int32_t>(rendered.size()));
-    if (n > static_cast<int32_t>(rendered.size())) {
-      rendered.resize(static_cast<std::size_t>(n));
-      n = llama_chat_apply_template(model->chat_template.c_str(), chat.data(), chat.size(),
-                                    add_assistant != 0, rendered.data(), n);
-    }
-    if (n < 0) return jackdaw::fail(JACKDAW_ERR_NOT_FOUND, "chat template is not supported");
-    rendered.resize(static_cast<std::size_t>(n));
-    return copy_out(rendered, buffer, capacity, out_len);
+    const auto rendered = jackdaw::render_chat(*model, chat, add_assistant != 0);
+    if (!rendered) return jackdaw::fail(JACKDAW_ERR_NOT_FOUND, "chat template is not supported");
+    return copy_out(*rendered, buffer, capacity, out_len);
   });
 }
 
@@ -170,17 +160,7 @@ int32_t jackdaw_session_generate(jackdaw_session* session, int64_t request_id, c
     jackdaw::Job job;
     job.id = request_id;
     job.prompt.assign(prompt, static_cast<std::size_t>(prompt_len));
-    job.params = *params;
-    if (params->grammar != nullptr) {
-      if (auto problem = jackdaw::grammar_problem(params->grammar)) {
-        return jackdaw::fail(JACKDAW_ERR_GRAMMAR, *problem);
-      }
-      job.grammar = std::string(params->grammar);
-    }
-    job.params.grammar = nullptr;
-    const auto status = session->submit(std::move(job));
-    if (status != JACKDAW_OK) return jackdaw::fail(status, "a generation is already running");
-    return static_cast<int32_t>(JACKDAW_OK);
+    return jackdaw::submit_generation(*session, std::move(job), *params);
   });
 }
 

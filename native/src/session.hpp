@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "jackdaw.h"
@@ -22,6 +23,9 @@ namespace jackdaw {
 struct Job {
   int64_t id = 0;
   std::string prompt;
+  /// Messages to render with the model's chat template on the worker, in
+  /// place of prompt when not empty.
+  std::vector<std::pair<std::string, std::string>> chat;
   jackdaw_generate_params params{};
   std::optional<std::string> grammar;
 };

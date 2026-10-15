@@ -21,7 +21,7 @@ inline int32_t default_threads() {
 /// which is once per generated token.
 class Pool {
  public:
-  explicit Pool(int32_t threads) {
+  explicit Pool(int32_t threads) : threads_(threads) {
     auto params = ggml_threadpool_params_default(threads);
     pool_ = ggml_threadpool_new(&params);
   }
@@ -31,12 +31,16 @@ class Pool {
   Pool(const Pool&) = delete;
   Pool& operator=(const Pool&) = delete;
 
+  /// The most threads a computation on this pool may use.
+  int32_t threads() const { return threads_; }
+
   /// Makes context compute on this pool, for single tokens and batches.
   void attach(llama_context* context) const {
     if (pool_ != nullptr) llama_attach_threadpool(context, pool_, pool_);
   }
 
  private:
+  int32_t threads_;
   ggml_threadpool* pool_ = nullptr;
 };
 

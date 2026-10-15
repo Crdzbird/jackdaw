@@ -55,6 +55,8 @@ set(JACKDAW_SOURCES
   src/api.cpp
   src/api_retrieval.cpp
   src/api_state.cpp
+  src/api_chat.cpp
+  src/submit.cpp
   src/embedder.cpp
   src/error.cpp
   src/generator.cpp

@@ -185,6 +185,33 @@ TEST_F(ModelTest, ReusesThePromptPrefix) {
   EXPECT_GT(stats.reused_tokens, 10);
 }
 
+TEST_F(ModelTest, ChatGenerationMatchesTheRenderedPrompt) {
+  jackdaw_generate_params params{};
+  params.max_tokens = 8;
+  ASSERT_EQ(start(prompt("Name a bird."), params), JACKDAW_OK);
+  const auto rendered = wait();
+  jackdaw_chat_message messages[] = {{"system", "You are terse."}, {"user", "Name a bird."}};
+  {
+    std::lock_guard lock(events.mutex);
+    events.slots.clear();
+    events.kind = -1;
+  }
+  ASSERT_EQ(jackdaw_session_generate_chat(session_, 2, messages, 2, &params), JACKDAW_OK);
+  EXPECT_EQ(wait(), rendered);
+  EXPECT_EQ(jackdaw_session_generate_chat(session_, 3, messages, 0, &params),
+            JACKDAW_ERR_INVALID_ARGUMENT);
+}
+
+TEST_F(ModelTest, GeneratesWithFewerThreads) {
+  ASSERT_EQ(jackdaw_session_set_threads(session_, 1, 64), JACKDAW_OK);
+  jackdaw_generate_params params{};
+  params.max_tokens = 8;
+  ASSERT_EQ(start(prompt("Count from one to five."), params), JACKDAW_OK);
+  EXPECT_FALSE(wait().empty());
+  EXPECT_EQ(events.kind, JACKDAW_EVENT_DONE);
+  EXPECT_EQ(jackdaw_session_set_threads(session_, 0, 2), JACKDAW_ERR_INVALID_ARGUMENT);
+}
+
 TEST_F(ModelTest, SavedStateSkipsTheSavedPrompt) {
   jackdaw_generate_params params{};
   params.max_tokens = 4;

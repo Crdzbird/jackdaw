@@ -4,6 +4,8 @@
 #include <chrono>
 #include <climits>
 #include <exception>
+#include <optional>
+#include <string>
 
 #include "model.hpp"
 #include "sampler.hpp"
@@ -29,7 +31,10 @@ class Run {
 
   void execute() {
     stats_ = {};
-    const auto tokens = tokenize(vocab_, job_.prompt);
+    const auto rendered = job_.chat.empty() ? std::optional<std::string>(job_.prompt)
+                                            : render_chat(s_.model, job_.chat, true);
+    if (!rendered) return fail(JACKDAW_ERR_NOT_FOUND, "chat template is not supported");
+    const auto tokens = tokenize(vocab_, *rendered);
     if (tokens.empty()) return fail(JACKDAW_ERR_INVALID_ARGUMENT, "prompt is empty");
     if (tokens.size() >= llama_n_ctx(s_.context)) {
       return fail(JACKDAW_ERR_CONTEXT_FULL, "prompt does not fit the context");

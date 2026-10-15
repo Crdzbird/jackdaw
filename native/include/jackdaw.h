@@ -183,6 +183,22 @@ JACKDAW_API int32_t jackdaw_session_generate(
     jackdaw_session* session, int64_t request_id, const char* prompt,
     int32_t prompt_len, const jackdaw_generate_params* params);
 
+/// Like jackdaw_session_generate, with the prompt given as count messages
+/// that the session's worker renders with the model's chat template,
+/// opening an assistant turn, so the caller does not render it.
+JACKDAW_API int32_t jackdaw_session_generate_chat(
+    jackdaw_session* session, int64_t request_id,
+    const jackdaw_chat_message* messages, int32_t count,
+    const jackdaw_generate_params* params);
+
+/// Sets the threads used to generate tokens and to process prompts, each
+/// at most the threads the session was created with. Generation is bound
+/// by memory on most phones, so fewer threads can generate as fast while
+/// leaving cores to the app. Returns JACKDAW_ERR_BUSY while generating.
+JACKDAW_API int32_t jackdaw_session_set_threads(jackdaw_session* session,
+                                                int32_t generate,
+                                                int32_t batch);
+
 /// Requests cancellation of request_id. Safe from any thread. The
 /// generation ends with JACKDAW_EVENT_DONE and JACKDAW_FINISH_CANCELLED.
 JACKDAW_API int32_t jackdaw_session_cancel(jackdaw_session* session,
