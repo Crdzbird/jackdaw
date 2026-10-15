@@ -7,10 +7,11 @@ const Set<String> _ignored = {r'$schema', r'$comment', 'title', 'examples'};
 ///
 /// A document becomes a typed schema only when every keyword in it is
 /// understood, so no constraint is dropped. Any other document, such as one
-/// using `$ref` or `minLength`, is kept whole as a [RawSchema]. An `anyOf`
-/// of typed schemas becomes an [AnyOfSchema], or a [UnionSchema] when its
-/// options are objects tagged by a shared one-value enum property. A
-/// missing `additionalProperties` means true, as in JSON Schema.
+/// using `$ref` or `minLength`, is kept whole as a [RawSchema]. An object
+/// whose `additionalProperties` is a typed schema becomes a [MapSchema]. An
+/// `anyOf` of typed schemas becomes an [AnyOfSchema], or a [UnionSchema]
+/// when its options are objects tagged by a shared one-value enum property.
+/// A missing `additionalProperties` means true, as in JSON Schema.
 Schema schemaFromJson(Map<String, Object?> json) {
   final keys = json.keys.where((k) => !_ignored.contains(k)).toSet();
   final description = json['description'];
@@ -28,6 +29,10 @@ Schema schemaFromJson(Map<String, Object?> json) {
         items: schemaFromJson(json['items']! as Map<String, Object?>),
         description: text,
       ),
+    'object'
+        when only({'additionalProperties'}) &&
+            json['additionalProperties'] is Map<String, Object?> =>
+      _map(json, text),
     'object' when only({'properties', 'required', 'additionalProperties'}) =>
       _object(json, text),
     null when only({'anyOf'}) => anyOfFromJson(json, text),
@@ -58,6 +63,13 @@ Schema _string(Map<String, Object?> json, String? text) {
   }
   return StringSchema(enumValues: values.cast<String>(), description: text);
 }
+
+Schema _map(Map<String, Object?> json, String? text) => switch (schemaFromJson(
+  json['additionalProperties']! as Map<String, Object?>,
+)) {
+  RawSchema() => RawSchema(json),
+  final values => MapSchema(values: values, description: text),
+};
 
 Schema _object(Map<String, Object?> json, String? text) {
   final properties = json['properties'] ?? const <String, Object?>{};

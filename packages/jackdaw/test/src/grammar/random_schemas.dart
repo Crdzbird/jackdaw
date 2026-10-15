@@ -18,10 +18,10 @@ const List<String> _awkward = [
 
 /// Random schemas for grammar property tests, with names and enum values
 /// that need escaping, nesting up to [depth], optional properties, unions,
-/// anyOf and raw documents.
+/// anyOf, maps and raw documents.
 Schema randomSchema(Random random, {int depth = 3}) {
   String text() => _awkward[random.nextInt(_awkward.length)];
-  final kind = random.nextInt(depth <= 0 ? 6 : 11);
+  final kind = random.nextInt(depth <= 0 ? 6 : 12);
   return switch (kind) {
     0 => const Schema.string(),
     1 => Schema.string(enumValues: [text(), text()]),
@@ -37,6 +37,7 @@ Schema randomSchema(Random random, {int depth = 3}) {
           '${text()}$i': _object(random, text, depth),
       },
     ),
+    9 => MapSchema(values: randomSchema(random, depth: depth - 1)),
     8 => AnyOfSchema([
       for (var i = random.nextInt(3) + 1; i > 0; i--)
         randomSchema(random, depth: depth - 1),

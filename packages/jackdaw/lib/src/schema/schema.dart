@@ -4,6 +4,7 @@ part 'any_of_schema.dart';
 part 'array_schema.dart';
 part 'boolean_schema.dart';
 part 'integer_schema.dart';
+part 'map_schema.dart';
 part 'number_schema.dart';
 part 'object_schema.dart';
 part 'raw_schema.dart';
@@ -41,6 +42,9 @@ sealed class Schema {
   /// Describes a JSON array whose elements match [items].
   const factory array({required Schema items, String? description}) =
       ArraySchema;
+
+  /// Describes a JSON object with any keys whose values match [values].
+  const factory map({required Schema values, String? description}) = MapSchema;
 
   /// Describes JSON objects of several [variants], told apart by the
   /// value of their [discriminator] property.

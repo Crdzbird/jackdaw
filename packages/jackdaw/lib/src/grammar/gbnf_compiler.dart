@@ -49,17 +49,19 @@ final class GbnfCompiler {
     IntegerSchema() => _use('integer'),
     NumberSchema() => _use('number'),
     BooleanSchema() => _use('boolean'),
-    ArraySchema(:final items) => _array(items),
+    ArraySchema(:final items) => _repeat('"["', rule(items), '"]"'),
+    MapSchema(:final values) => _repeat(
+      '"{"',
+      '${_use('string')} ws ":" ws ${rule(values)}',
+      '"}"',
+    ),
     ObjectSchema() => _object(schema),
     UnionSchema(:final alternatives) => _choice(alternatives.values),
     AnyOfSchema(:final options) => _choice(options),
     RawSchema() => _value(),
   };
 
-  String _value() {
-    ['ws', 'string', 'number'].forEach(_use);
-    return _use('value');
-  }
+  String _value() => (['ws', 'string', 'number', 'value']..forEach(_use)).last;
 
   String _object(ObjectSchema schema) {
     _use('ws');
@@ -78,10 +80,9 @@ final class GbnfCompiler {
       ? throw ArgumentError('a choice needs an option')
       : _named(options.map(rule).join(' | '));
 
-  String _array(Schema items) {
+  String _repeat(String open, String item, String close) {
     _use('ws');
-    final item = rule(items);
-    return _named('"[" ws ($item (ws "," ws $item)*)? ws "]"');
+    return _named('$open ws ($item (ws "," ws $item)*)? ws $close');
   }
 
   String _use(String primitive) {
