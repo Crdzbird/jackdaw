@@ -1,6 +1,6 @@
 # ADR 0002: generative UI
 
-Status: Accepted (2026-10-15)
+Status: Accepted (2026-10-15); steps 1 to 4 built
 
 ## Context
 
@@ -174,3 +174,82 @@ A separate package, so the core does not depend on a 0.x labs package:
    `jackdaw_flutter`, with golden and semantics tests.
 5. The C13 suite on the Mac and the Pixel, and C14 on the Pixel.
 6. `jackdaw_genui`.
+
+## Implementation notes (2026-10-15)
+
+Steps 1 to 4 are built, step 5 is measuring, and step 6 is built as
+targets; the user approved a2ui_core as a dependency and asked for genui
+to be a choice rather than a requirement.
+
+Schemas. Besides `UnionSchema`, the schema library gained `AnyOfSchema`,
+`MapSchema`, `SummarizedSchema` and array `minItems`, `maxItems` and
+`prefixItems`. Optional properties became optional in grammars (the C1
+and C2 bench schemas mark every property required, so their grammars
+did not change), a schema used in several places compiles to one rule,
+and `sharedSchemaJson` writes repeated parts once under `$defs`: the UI
+schema is 38 KB that way instead of 9.8 MB. Local prompts show a 4 KB
+catalog guide with one worked example instead of the schema.
+
+What a model may send is stricter than what the protocol accepts. The
+reply schema lets only the first message create a surface, makes that
+surface's first component the root, and allows at most 4 messages, 40
+components per message and 40 ids per list of children. Messages from
+other agents are validated against the A2UI rules as they are.
+
+Running the tool with Qwen2.5 1.5B, Llama 3.2 3B and Gemma 2 2B changed
+the design in five places:
+
+- A component the root does not reach is a warning, not an error: A2UI
+  just does not show it, and treating it as an error made models resend
+  the same screen in a loop.
+- With `adoptOrphans`, on by default, components nothing refers to join
+  the root's children in the order they were sent, because small models
+  often define a component and forget to list it.
+- Creating a surface that exists replaces it, since models resend whole
+  screens to correct them.
+- A call with errors changes nothing and fails through the new
+  `ToolFailure`, so the model gets structured problems to fix.
+- `Tool.maxCallsPerTurn` stops offering a tool after that many successful
+  calls since the user's last message; `render_ui` allows one. Llama
+  called it until the step limit before, and once after.
+
+Requiring at least one child in a list was tried and dropped: Gemma then
+wrote fragments of JSON as child ids.
+
+Most remaining failures were structural: on 20 requests Qwen referred 13
+times to ids it never defined, repeated ids 4 times and made 3 components
+contain themselves. So models now write a screen as a tree by default
+(`UiFormat.tree`): a `surfaceId`, a `root` component and a `dataModel`,
+where containers hold their children inside them, six levels deep at
+most. With no ids there is nothing to dangle, repeat or loop.
+`uiTreeMessages` turns the tree into one A2UI v1.0 `createSurface`, so
+everything downstream still receives standard A2UI; the flat format
+stays available as `UiFormat.messages`.
+
+Targets. `uiTool`, `generateUi` and `uiReplay` take a `UiTarget`: where
+the A2UI messages go. `UiTarget.surfaces` is jackdaw's own, drawn by
+jackdaw_flutter; `UiTarget.forward` checks messages against a shadow copy
+and hands the ones that show to any renderer that reads A2UI v1.0, such
+as one built on a2ui_core; `UiTarget.genui` does the same lowered to
+A2UI v0.9 for genui 0.10, without jackdaw depending on genui. Any other
+library plugs in by implementing `UiTarget`. The jackdaw_a2ui package
+adds `A2uiCoreTarget` on a2ui_core's message processor; the published
+a2ui_core 0.2 reads A2UI v0.9 only (v1.0 is in its unreleased 0.3), so
+this target lowers messages too, and what a2ui_core rejects comes back
+to the model as problems.
+
+Rendering. All 18 components have Flutter builders. Video and AudioPlayer
+are tiles that open the media through `UiHost`, because jackdaw_flutter
+depends on Flutter alone; an app that wants playback registers its own
+builders. Icons can also be drawn from SVG path data. Number, currency,
+date and plural formatting are English for now.
+
+Restoring a session replays the successful `render_ui` calls of its
+transcript (`uiReplay`), so surfaces come back; what the user typed is
+not in the transcript and comes back as the agent last sent it.
+
+Not done yet: golden tests (semantics and widget tests cover the
+builders), surface metadata and extensions, functions the agent calls on
+the renderer and the renderer on the agent (the basic catalog has none),
+mixing several catalogs on one surface, and the web model's grammar run
+of the UI suite.

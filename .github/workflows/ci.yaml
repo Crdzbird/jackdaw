@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         sdk: [stable, beta]
-        package: [jackdaw, jackdaw_anthropic, jackdaw_cli, jackdaw_gemini, jackdaw_mcp, jackdaw_ollama, jackdaw_openai, jackdaw_test]
+        package: [jackdaw, jackdaw_a2ui, jackdaw_anthropic, jackdaw_cli, jackdaw_gemini, jackdaw_mcp, jackdaw_ollama, jackdaw_openai, jackdaw_test]
     defaults:
       run:
         working-directory: packages/${{ matrix.package }}
