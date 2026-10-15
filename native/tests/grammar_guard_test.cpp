@@ -7,6 +7,9 @@ TEST(GrammarGuard, RefusesReversedRepetitions) {
   EXPECT_TRUE(jackdaw::grammar_problem(R"(root ::= "a"{2,1})"));
   EXPECT_TRUE(jackdaw::grammar_problem("root ::= item (\",\" item){8, 3}\nitem ::= [a-z]"));
   EXPECT_TRUE(jackdaw::grammar_problem("root ::= \"a\"{ 99999999999999999999999 , 1 }"));
+  EXPECT_TRUE(jackdaw::grammar_problem("root ::= (\"a\"{5,\n0})"));
+  EXPECT_TRUE(jackdaw::grammar_problem("root ::= (\"a\"{5 # note\n,0})"));
+  EXPECT_TRUE(jackdaw::grammar_problem("root ::= (\"a\"{\r\n5,\r\n0})"));
 }
 
 TEST(GrammarGuard, AcceptsValidRepetitionsAndIgnoresQuotedBraces) {

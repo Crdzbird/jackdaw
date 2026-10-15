@@ -60,31 +60,43 @@ and comments. The grammar fuzz target goes through the same check, so it
 tests what reaches llama.cpp through jackdaw. `toolCallGrammar` also
 refuses a `maxCalls` outside 1 to 64.
 
-The upstream bug is still present in llama.cpp; it should be reported to
-the llama.cpp project.
+The upstream bug is still present in llama.cpp master (checked at
+620d2225cc on 2026-10-15); an earlier report, #23108, was closed as
+stale without a fix, and it has been reported again.
 
-### llama.cpp runs out of memory on many repetitions (open)
+### The guard missed ranges split by newlines or comments (fixed)
 
 On 2026-10-15 a 60 second CI run of the grammar fuzzer stopped with
-libFuzzer's out-of-memory report: 2,189 MB used against a 2,048 MB limit,
-most of it in the parser's table of rule names. The log did not include
-the input, and neither the same seed nor a 25 minute run found it again.
+libFuzzer's out-of-memory report: 2,189 MB used, most of it in the
+parser's table of rule names. The log did not include the input, and the
+same seed did not find it again, but the stack matched llama.cpp issue
+#23108, a report of the reversed-range bug above that was closed as
+stale without a fix.
 
-llama.cpp writes out one helper rule for every optional repetition and
-limits each repetition to 2,000, but the limit applies to each item on
-its own, so a 4 KB grammar of many bounded repetitions builds a very
-large number of rules: 400 repetitions of `{0,1999}` take 225 MB under
-AddressSanitizer. Two changes keep jackdaw's own grammars far from this:
+Inside parentheses llama.cpp skips newlines and `#` comments within
+`{m,n}`, and the guard only skipped spaces and tabs, so it let these
+through:
 
-- The Dart compiler writes repetition bounds only up to 64 and leaves
-  larger `minItems` and `maxItems` to validation, so a schema from an MCP
-  server cannot ask for thousands of rules.
-- CI now keeps every input a fuzzer fails on as the `fuzz-findings`
-  artifact, and the `fuzz` workflow runs the grammar fuzzer for as long
-  as asked.
+```text
+root ::= ("a"{5,
+0})
+root ::= ("a"{5 # note
+,0})
+```
 
-Raw grammar text from an app is still parsed as given. If the input
-turns up, `grammar_guard` will get a limit on the total repetition count.
+Both made the parser grow to 2 GB in ten seconds. The guard now skips
+newlines, carriage returns and comments the way the parser does, and
+refuses both; they are in `native/tests/grammar_guard_test.cpp`. The fix
+ships in the dev.5 prebuilt libraries.
+
+Separately, llama.cpp writes out one helper rule for every optional
+repetition and limits each repetition to 2,000 on its own, so a 4 KB
+grammar of many bounded repetitions builds a very large number of rules:
+400 repetitions of `{0,1999}` take 225 MB under AddressSanitizer. The
+Dart compiler therefore writes repetition bounds only up to 64 and leaves
+larger `minItems` and `maxItems` to validation. CI keeps every input a
+fuzzer fails on as the `fuzz-findings` artifact, and the `fuzz` workflow
+runs the grammar fuzzer for as long as asked.
 
 ## Results
 

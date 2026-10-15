@@ -11,7 +11,15 @@ namespace {
 bool digit(char c) { return std::isdigit(static_cast<unsigned char>(c)) != 0; }
 
 std::size_t skip_spaces(std::string_view text, std::size_t at) {
-  while (at < text.size() && (text[at] == ' ' || text[at] == '\t')) ++at;
+  while (at < text.size()) {
+    const char c = text[at];
+    if (c == '#') {
+      while (at < text.size() && text[at] != '\n' && text[at] != '\r') ++at;
+      continue;
+    }
+    if (c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
+    ++at;
+  }
   return at;
 }
 
