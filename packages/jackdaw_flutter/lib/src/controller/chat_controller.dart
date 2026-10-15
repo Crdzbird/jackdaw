@@ -4,6 +4,7 @@ import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_flutter/src/controller/chat_state.dart';
 import 'package:jackdaw_flutter/src/controller/chat_turns.dart';
 import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
+import 'package:jackdaw_flutter/src/ui/ui_surface_controller_agent.dart';
 
 /// Drives one agent session for a chat UI: send, approve and stop. Its
 /// listenables come from a [ChatState].

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:jackdaw/jackdaw.dart';
-import 'package:jackdaw_flutter/src/ui/ui_semantics.dart';
+import 'package:jackdaw_flutter/src/ui/ui_bound.dart';
 import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
 import 'package:jackdaw_flutter/src/ui/ui_widget_builder.dart';
 
@@ -87,12 +87,8 @@ final class UiNode {
       )?.build() ??
       const SizedBox.shrink();
 
-  /// The widget of this node, with its accessibility attributes.
-  Widget build() => KeyedSubtree(
-    key: ValueKey('${scope.path}#${component.id}'),
-    child: uiSemantics(
-      this,
-      builders[component.type]?.call(this) ?? const SizedBox.shrink(),
-    ),
-  );
+  /// The widget of this node, with its accessibility attributes. It
+  /// redraws by itself when data it reads is written.
+  Widget build() =>
+      UiBound(key: ValueKey('${scope.path}#${component.id}'), node: this);
 }

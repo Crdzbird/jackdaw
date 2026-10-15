@@ -4,8 +4,9 @@ import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
 import 'package:jackdaw_flutter/src/ui/ui_widget_builder.dart';
 
-/// Draws the surface [surfaceId] of [controller] from its root, and
-/// redraws it whenever the controller changes.
+/// Draws the surface [surfaceId] of [controller] from its root. It redraws
+/// the whole surface when components change; a data write redraws only
+/// the components that read what was written.
 ///
 /// Components are built by [builders], the basic catalog's by default; a
 /// component without a builder, a missing child or a cycle draws nothing.
@@ -36,7 +37,7 @@ final class UiSurfaceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller,
+    listenable: controller.changes,
     builder: (context, _) {
       final surface = controller.surfaces.surfaces[surfaceId];
       final root = surface?.root;
