@@ -1,5 +1,13 @@
-/// Where the demo looks for the GGUF model on the device.
-const String modelPath = String.fromEnvironment(
-  'JACKDAW_MODEL',
-  defaultValue: '/data/user/0/dev.crdzbird.jackdaw_bench/files/model.gguf',
+/// A GGUF file to load instead of the default model, for development and
+/// the benchmarks. When empty, the default model is downloaded.
+const String modelPath = String.fromEnvironment('JACKDAW_MODEL');
+
+/// Where the demo keeps the downloaded model and the chat journals.
+const String dataFolder = String.fromEnvironment(
+  'JACKDAW_DATA',
+  defaultValue: '/data/user/0/dev.crdzbird.jackdaw_bench/files',
 );
+
+/// Another address for the default model, such as a local mirror; its
+/// size and hash must still match.
+const String modelUrl = String.fromEnvironment('JACKDAW_MODEL_URL');

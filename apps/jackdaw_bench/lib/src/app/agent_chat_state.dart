@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jackdaw/io.dart';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_bench/src/app/agent_chat.dart';
+import 'package:jackdaw_bench/src/app/demo_catalog.dart';
 import 'package:jackdaw_bench/src/app/demo_tools.dart';
 import 'package:jackdaw_flutter/jackdaw_flutter.dart';
 
@@ -18,8 +19,9 @@ class AgentChatState extends State<AgentChat> {
     final store = FileSessionStore(Directory(widget.sessions)..createSync());
     final records = await store.load(_session);
     final ui = UiSurfaceController(
-      basicCatalog,
+      demoCatalog,
       host: UiHost(allowUrl: (url) => url.scheme == 'https'),
+      builders: demoUiBuilders,
     );
     return ChatController(
       agent: Agent(
@@ -30,7 +32,8 @@ class AgentChatState extends State<AgentChat> {
             'You are a helpful assistant running on a phone. Answer general '
             'questions yourself. Use the tools whenever the user asks about '
             'the time or about their notes, and render_ui when they ask to '
-            'see a form, card, list or screen.',
+            'see or change a form, card, list or screen, including its '
+            'colors.',
         options: const GenerationOptions(maxOutputTokens: 900),
         budget: ContextBudget(
           maxTokens: 3000,

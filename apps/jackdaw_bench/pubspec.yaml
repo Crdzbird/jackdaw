@@ -7,8 +7,10 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
+  a2ui_core: ^0.1.1
   flutter:
     sdk: flutter
+  genui: ^0.10.4
   jackdaw:
     path: ../../packages/jackdaw
   jackdaw_flutter:
