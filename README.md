@@ -90,7 +90,7 @@ The gap analysis lists twelve measurable claims. Their status:
 
 | Claim | Status | Evidence |
 |---|---|---|
-| C1 structured output at least 99% schema-valid | Met on the 50-case slice; 200-case suite running | [phase 2](docs/benchmarks/phase2-pixel-7-pro.md) |
+| C1 structured output at least 99% schema-valid | Met on the device: 200/200 for Qwen, Llama and Gemma, against 10% to 81.5% without the grammar; web run open | [c1](docs/benchmarks/c1-structured.md) |
 | C2 at least 98% well-formed tool calls, three model families | Met: 100% for Qwen, Llama and Gemma | [c2](docs/benchmarks/c2-tool-calls.md) |
 | C3 cancel within 100 ms at p95 | Met: 8.1 ms on a Pixel 7 Pro | [phase 2](docs/benchmarks/phase2-pixel-7-pro.md) |
 | C4 no memory growth over 100 load cycles | Met: +2.3% | [phase 2](docs/benchmarks/phase2-pixel-7-pro.md) |

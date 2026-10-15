@@ -20,7 +20,10 @@ Future<Map<String, Object>> runStructuredBench(
     if (await _constrained(model, c)) constrained++;
     final text = await _baseline(model, c);
     if (_valid(c.schema, text)) strict++;
-    if (_valid(c.schema, _unfence(text))) lenient++;
+    if (_valid(c.schema, _between(text, '{', '}')) ||
+        _valid(c.schema, _between(text, '[', ']'))) {
+      lenient++;
+    }
   }
   return {
     'cases': cases.length,
@@ -65,9 +68,9 @@ bool _valid(Schema schema, String text) {
   }
 }
 
-String _unfence(String text) {
-  final start = text.indexOf('{');
-  final end = text.lastIndexOf('}');
+String _between(String text, String open, String close) {
+  final start = text.indexOf(open);
+  final end = text.lastIndexOf(close);
   if (start < 0 || end <= start) return text;
   return text.substring(start, end + 1);
 }
