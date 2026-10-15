@@ -1,4 +1,6 @@
+import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/message/part.dart';
+import 'package:jackdaw/src/message/role.dart';
 import 'package:jackdaw/src/security/output_screen.dart';
 import 'package:jackdaw/src/tool/tool.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
@@ -31,8 +33,26 @@ final class ToolBox {
   final bool _content;
   final OutputScreen? _screen;
 
-  /// Descriptions of every tool, for the model request.
-  List<ToolSpec> get specs => [for (final tool in _tools.values) tool.spec];
+  /// Descriptions of the tools the model may still call after [messages]:
+  /// a tool whose calls since the last user message have succeeded
+  /// [Tool.maxCallsPerTurn] times is left out.
+  List<ToolSpec> specsFor(List<Message> messages) {
+    final successes = <String, int>{};
+    for (final message in messages.reversed.takeWhile(
+      (m) => m.role != Role.user,
+    )) {
+      for (final result in message.parts.whereType<ToolResultPart>()) {
+        if (!result.isError) {
+          successes[result.name] = (successes[result.name] ?? 0) + 1;
+        }
+      }
+    }
+    return [
+      for (final tool in _tools.values)
+        if ((successes[tool.name] ?? 0) < (tool.maxCallsPerTurn ?? 1 << 30))
+          tool.spec,
+    ];
+  }
 
   /// The tool named [name], or `null` when none is registered.
   Tool<Object?>? operator [](String name) => _tools[name];

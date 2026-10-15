@@ -78,6 +78,7 @@ export 'src/structured/generate_json.dart';
 export 'src/structured/structured_output_exception.dart';
 export 'src/tool/tool.dart';
 export 'src/tool/tool_context.dart';
+export 'src/tool/tool_failure.dart';
 export 'src/tool/tool_spec.dart';
 export 'src/trace/noop_tracer.dart';
 export 'src/trace/recorded_span.dart';

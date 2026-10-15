@@ -80,7 +80,7 @@ final class AgentEngine {
       steps++;
       final turn = AgentTurn();
       yield* turn.drive(
-        _model.generate(agentRequest(_agent, _tools.specs, state.messages)),
+        _model.generate(agentRequest(_agent, _tools, state.messages)),
       );
       if (turn.failed) return;
       usage += turn.usage;

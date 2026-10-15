@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/schema/schema.dart';
-import 'package:jackdaw/src/tool/tool_context.dart';
+import 'package:jackdaw/src/tool/invoke_tool.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
 
 /// A function the model can call, with typed and validated input.
@@ -25,6 +25,7 @@ final class Tool<I> {
     Duration timeout,
     bool requiresApproval,
     bool idempotent,
+    int? maxCallsPerTurn,
   }) = Tool<I>._;
 
   const new _({
@@ -36,6 +37,7 @@ final class Tool<I> {
     this.timeout = const Duration(seconds: 30),
     this.requiresApproval = false,
     this.idempotent = false,
+    this.maxCallsPerTurn,
   });
 
   /// Unique name the model uses to call the tool.
@@ -57,6 +59,11 @@ final class Tool<I> {
   /// call that may already have run is retried only when this is true.
   final bool idempotent;
 
+  /// How many times a call may succeed before the model has to answer
+  /// without the tool, counted from the last user message; `null` for no
+  /// limit. Small models that keep calling a tool stop this way.
+  final int? maxCallsPerTurn;
+
   final I Function(Map<String, Object?> json) _decode;
   final FutureOr<Object?> Function(I input) _run;
 
@@ -65,30 +72,10 @@ final class Tool<I> {
       ToolSpec(name: name, description: description, input: input);
 
   /// Validates and runs [call], always completing with a result.
-  Future<ToolResultPart> invoke(ToolCallPart call) async {
-    final arguments = call.arguments;
-    final violations = input.validate(arguments);
-    if (violations.isNotEmpty || arguments is! Map) {
-      return _failure(call, 'invalid arguments: ${violations.join('; ')}');
-    }
-    final json = Map<String, Object?>.from(arguments);
-    try {
-      final output = await ToolContext.run(
-        call.id,
-        () => Future<Object?>.sync(() => _run(_decode(json))),
-      ).timeout(timeout);
-      return ToolResultPart(callId: call.id, name: name, output: output);
-    } on TimeoutException {
-      return _failure(call, 'timed out after ${timeout.inMilliseconds} ms');
-    } on Object catch (error) {
-      return _failure(call, '$error');
-    }
-  }
-
-  ToolResultPart _failure(ToolCallPart call, String message) => ToolResultPart(
-    callId: call.id,
-    name: name,
-    output: {'error': message},
-    isError: true,
+  Future<ToolResultPart> invoke(ToolCallPart call) => invokeTool(
+    call,
+    input: input,
+    timeout: timeout,
+    run: (json) => _run(_decode(json)),
   );
 }

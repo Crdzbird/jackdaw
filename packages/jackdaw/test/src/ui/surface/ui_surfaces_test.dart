@@ -70,7 +70,7 @@ void main() {
     expect(problems.map((p) => '${p.path} ${p.message}'), [
       repeated,
       '/components/root/child There is no component with the id gone.',
-      '/components/a The component a is not reachable from root.',
+      '/components/a The component a is not reachable from root, so it is not shown.',
     ]);
     expect('${problems.first}', startsWith('VALIDATION_FAILED s /create'));
   });

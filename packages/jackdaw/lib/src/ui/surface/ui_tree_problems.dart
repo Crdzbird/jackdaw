@@ -7,8 +7,9 @@ import 'package:jackdaw/src/ui/surface/ui_problem_code.dart';
 import 'package:jackdaw/src/ui/surface/ui_surface.dart';
 
 /// Problems with the component tree of [surface]: no root, references to
-/// missing components, cycles, nesting deeper than [maxDepth], components
-/// the root never reaches, and placements the catalog does not allow.
+/// missing components, cycles, nesting deeper than [maxDepth], placements
+/// the catalog does not allow, and, as warnings, components the root never
+/// reaches.
 List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
   final problems = <UiProblem>[];
   void report(UiProblemCode code, String path, String message) =>
@@ -64,10 +65,14 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
 
   visit(root, 'Surface', const []);
   for (final id in components.keys.where((id) => !reached.contains(id))) {
-    report(
-      UiProblemCode.validationFailed,
-      jsonPointer(['components', id]),
-      'The component $id is not reachable from root.',
+    problems.add(
+      UiProblem(
+        UiProblemCode.validationFailed,
+        'The component $id is not reachable from root, so it is not shown.',
+        surfaceId: surface.id,
+        path: jsonPointer(['components', id]),
+        warning: true,
+      ),
     );
   }
   return problems;

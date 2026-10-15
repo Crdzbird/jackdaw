@@ -15,7 +15,7 @@ void main() {
     final box = ToolBox([echo('a'), echo('b')]);
     expect(box['a']!.name, 'a');
     expect(box['missing'], isNull);
-    expect(box.specs.map((s) => s.name), ['a', 'b']);
+    expect(box.specsFor(const []).map((s) => s.name), ['a', 'b']);
   });
 
   test('rejects duplicate names', () {

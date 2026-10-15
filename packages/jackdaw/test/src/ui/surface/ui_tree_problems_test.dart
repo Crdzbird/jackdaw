@@ -57,7 +57,7 @@ void main() {
     ]);
     const unreachable =
         'VALIDATION_FAILED /components/b '
-        'The component b is not reachable from root.';
+        'The component b is not reachable from root, so it is not shown.';
     expect(problems(deep, maxDepth: 1), [
       'VALIDATION_FAILED /components/a Components are nested more than 1 deep.',
       unreachable,
