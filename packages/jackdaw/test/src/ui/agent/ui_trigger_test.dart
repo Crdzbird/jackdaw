@@ -43,6 +43,9 @@ void main() {
     final message = uiActionMessage(action);
     expect(message.role, Role.user);
     expect(message.text, startsWith('UI action: {"version":"v1.0"'));
+    expect(uiActionCaption(message), '');
+    expect(uiActionCaption(Message.user('Hello')), isNull);
+    expect(uiActionCaption(Message.assistant(message.text)), isNull);
   });
 
   test('a surface that sends its data adds it, with the user message', () {
@@ -66,6 +69,7 @@ void main() {
     });
     final text = uiActionMessage(action).text;
     expect(text, startsWith('Sign up \nUI action:'));
+    expect(uiActionCaption(uiActionMessage(action)), 'Sign up');
     expect(text, endsWith('Data model of signup: {"form":{"email":""}}'));
   });
 
