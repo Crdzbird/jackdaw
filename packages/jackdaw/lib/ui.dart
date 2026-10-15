@@ -4,12 +4,22 @@
 library;
 
 export 'src/ui/basic/basic_catalog.dart';
+export 'src/ui/basic/basic_date_text.dart';
+export 'src/ui/basic/basic_function_bodies.dart';
 export 'src/ui/catalog/ui_caller.dart';
 export 'src/ui/catalog/ui_catalog.dart';
 export 'src/ui/catalog/ui_component_definition.dart';
 export 'src/ui/catalog/ui_function_definition.dart';
 export 'src/ui/catalog/ui_return_type.dart';
 export 'src/ui/catalog/ui_type.dart';
+export 'src/ui/eval/ui_eval_exception.dart';
+export 'src/ui/eval/ui_evaluator.dart';
+export 'src/ui/eval/ui_format_string.dart';
+export 'src/ui/eval/ui_function_body.dart';
+export 'src/ui/eval/ui_host.dart';
+export 'src/ui/eval/ui_number_text.dart';
+export 'src/ui/eval/ui_scope.dart';
+export 'src/ui/eval/ui_truth.dart';
 export 'src/ui/schema/ui_catalog_guide.dart';
 export 'src/ui/schema/ui_message_schema.dart';
 export 'src/ui/schema/ui_schemas.dart';
