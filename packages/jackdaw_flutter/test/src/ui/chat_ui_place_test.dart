@@ -53,4 +53,41 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('^Assistant showed')), findsOneWidget);
     await chat.dispose();
   });
+
+  testWidgets('a restored chat shows its surfaces again', (tester) async {
+    final first = UiSurfaceController(basicCatalog);
+    final model = ScriptedModel([
+      show(signupForm, 'c1'),
+      textTurn(['Here.']),
+    ]);
+    final store = InMemorySessionStore();
+    final chat = ChatController(
+      agent: Agent(model: model, tools: [first.tool()], store: store),
+      sessionId: 's',
+      ui: first,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ChatView(controller: chat)),
+      ),
+    );
+    await settle(tester, chat.send('Show it'));
+    final history = chat.messages.value;
+    await chat.dispose();
+    final ui = UiSurfaceController(basicCatalog);
+    final restored = ChatController(
+      agent: Agent(model: model, tools: [ui.tool()], store: store),
+      sessionId: 's',
+      history: history,
+      ui: ui,
+    );
+    expect(ui.surfaces.surfaces.keys, ['signup']);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ChatView(controller: restored)),
+      ),
+    );
+    expect(find.text('Email'), findsOneWidget);
+    await restored.dispose();
+  });
 }

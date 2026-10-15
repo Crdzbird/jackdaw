@@ -8,6 +8,7 @@ export 'src/ui/agent/ui_action.dart';
 export 'src/ui/agent/ui_action_message.dart';
 export 'src/ui/agent/ui_adopt_orphans.dart';
 export 'src/ui/agent/ui_check_messages.dart';
+export 'src/ui/agent/ui_replay.dart';
 export 'src/ui/agent/ui_tool.dart';
 export 'src/ui/agent/ui_trigger.dart';
 export 'src/ui/basic/basic_catalog.dart';

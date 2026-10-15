@@ -10,29 +10,35 @@ import 'package:jackdaw_flutter/jackdaw_flutter.dart';
 const String _session = 'demo';
 
 /// State of [AgentChat]: restores the journal, then hands it to a
-/// [ChatController].
+/// [ChatController] that can also show UI the agent builds.
 class AgentChatState extends State<AgentChat> {
   late Future<ChatController> _chat = _open();
 
   Future<ChatController> _open() async {
     final store = FileSessionStore(Directory(widget.sessions)..createSync());
     final records = await store.load(_session);
+    final ui = UiSurfaceController(
+      basicCatalog,
+      host: UiHost(allowUrl: (url) => url.scheme == 'https'),
+    );
     return ChatController(
       agent: Agent(
         model: widget.model,
         store: store,
-        tools: demoTools(widget.sessions),
+        tools: [...demoTools(widget.sessions), ui.tool()],
         instructions:
             'You are a helpful assistant running on a phone. Answer general '
             'questions yourself. Use the tools whenever the user asks about '
-            'the time or about their notes.',
-        options: const GenerationOptions(maxOutputTokens: 384),
+            'the time or about their notes, and render_ui when they ask to '
+            'see a form, card, list or screen.',
+        options: const GenerationOptions(maxOutputTokens: 900),
         budget: ContextBudget(
           maxTokens: 3000,
           counter: TokenCounter.fromText(widget.model.countTokens),
         ),
       ),
       sessionId: _session,
+      ui: ui,
       history: [
         for (final MessageRecord(:message)
             in records.whereType<MessageRecord>())

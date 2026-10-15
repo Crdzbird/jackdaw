@@ -8,9 +8,9 @@ import 'package:jackdaw_flutter/src/ui/ui_surface_controller.dart';
 /// Drives one agent session for a chat UI: send, approve and stop. Its
 /// listenables come from a [ChatState].
 ///
-/// With [ui], the chat shows the surfaces the agent builds, and what the
-/// user does on them is sent to the agent, after the running turn if
-/// there is one.
+/// With [ui], the chat shows the surfaces the agent builds, rebuilt from
+/// the history it starts with, and what the user does on them is sent to
+/// the agent, after the running turn if there is one.
 final class ChatController {
   /// Creates a controller for [sessionId] of [agent], which needs a store.
   factory({
@@ -24,6 +24,7 @@ final class ChatController {
     }
     final chat = ChatController._(agent, sessionId, ChatState(history), ui);
     ui?.onAction ??= chat._act;
+    ui?.replay(history);
     chat._turns.onIdle = chat._next;
     return chat;
   }

@@ -3,8 +3,9 @@ import 'package:jackdaw_bench/src/app/agent_chat_state.dart';
 import 'package:jackdaw_native/jackdaw_native.dart';
 
 /// A multi-turn chat with an agent over the on-device model, using the
-/// jackdaw_flutter widgets. The session is journalled to [sessions], so it
-/// survives an app restart.
+/// jackdaw_flutter widgets; it can also show the forms and cards the agent
+/// builds. The session is journalled to [sessions], so it survives an app
+/// restart.
 class AgentChat extends StatefulWidget {
   const new({required this.model, required this.sessions, super.key});
 

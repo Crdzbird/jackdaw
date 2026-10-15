@@ -63,6 +63,13 @@ final class UiSurfaceController extends ChangeNotifier {
     return problems;
   }
 
+  /// Shows again the UI the tool named [tool] showed in [history], such as
+  /// a restored session; see `uiReplay`.
+  void replay(List<Message> history, {String tool = 'render_ui'}) {
+    uiReplay(surfaces, history, tool: tool);
+    notifyListeners();
+  }
+
   /// Applies A2UI messages from any agent and returns their problems.
   List<UiProblem> applyAll(List<Object?> messages) {
     final problems = surfaces.applyAll(messages);
