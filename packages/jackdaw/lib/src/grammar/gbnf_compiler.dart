@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:jackdaw/src/grammar/gbnf_members.dart';
 import 'package:jackdaw/src/grammar/gbnf_primitives.dart';
 import 'package:jackdaw/src/schema/schema.dart';
@@ -43,21 +41,22 @@ final class GbnfCompiler {
   /// for building a grammar from several schemas.
   String rule(Schema schema) => _shared[schema] ??= switch (schema) {
     StringSchema(enumValues: final values?) => _named(
-      values.map(_literal).join(' | '),
+      values.map(gbnfLiteral).join(' | '),
     ),
     StringSchema() => _use('string'),
     IntegerSchema() => _use('integer'),
     NumberSchema() => _use('number'),
     BooleanSchema() => _use('boolean'),
-    ArraySchema(:final items) => _repeat('"["', rule(items), '"]"'),
-    MapSchema(:final values) => _repeat(
-      '"{"',
-      '${_use('string')} ws ":" ws ${rule(values)}',
-      '"}"',
+    ArraySchema(:final items, :final minItems, :final maxItems) => _list(
+      gbnfRepeat('"["', rule(items), '"]"', minItems, maxItems),
+    ),
+    MapSchema(:final values) => _list(
+      gbnfRepeat('"{"', '${_use('string')} ws ":" ws ${rule(values)}', '"}"'),
     ),
     ObjectSchema() => _object(schema),
     UnionSchema(:final alternatives) => _choice(alternatives.values),
     AnyOfSchema(:final options) => _choice(options),
+    SummarizedSchema(schema: final inner) => rule(inner),
     RawSchema() => _value(),
   };
 
@@ -69,7 +68,7 @@ final class GbnfCompiler {
       gbnfObjectBody([
         for (final MapEntry(:key, :value) in schema.properties.entries)
           (
-            '${_literal(key)} ws ":" ws ${rule(value)}',
+            '${gbnfLiteral(key)} ws ":" ws ${rule(value)}',
             schema.required.contains(key),
           ),
       ]),
@@ -80,21 +79,17 @@ final class GbnfCompiler {
       ? throw ArgumentError('a choice needs an option')
       : _named(options.map(rule).join(' | '));
 
-  String _repeat(String open, String item, String close) {
-    _use('ws');
-    return _named('$open ws ($item (ws "," ws $item)*)? ws $close');
-  }
+  String _list(String body) => _named(body, uses: 'ws');
 
   String _use(String primitive) {
     _primitives.add(primitive);
     return primitive;
   }
 
-  String _named(String body) {
+  String _named(String body, {String? uses}) {
+    if (uses != null) _use(uses);
     final name = 'rule${_count++}';
     _rules.add('$name ::= $body');
     return name;
   }
-
-  static String _literal(String value) => text(jsonEncode(value));
 }

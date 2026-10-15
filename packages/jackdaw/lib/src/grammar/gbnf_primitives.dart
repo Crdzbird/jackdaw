@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// GBNF rules for the JSON primitives, keyed by rule name.
 ///
 /// Whitespace, digit runs and exponents are bounded so a constrained model
@@ -29,3 +31,6 @@ String gbnfText(String text) {
       .replaceAll('\n', r'\n');
   return '"$escaped"';
 }
+
+/// [value] as a GBNF literal that matches its JSON string encoding.
+String gbnfLiteral(String value) => gbnfText(jsonEncode(value));

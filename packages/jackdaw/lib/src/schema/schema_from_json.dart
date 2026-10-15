@@ -24,11 +24,10 @@ Schema schemaFromJson(Map<String, Object?> json) {
     'integer' when only({}) => IntegerSchema(description: text),
     'number' when only({}) => NumberSchema(description: text),
     'boolean' when only({}) => BooleanSchema(description: text),
-    'array' when only({'items'}) && json['items'] is Map<String, Object?> =>
-      ArraySchema(
-        items: schemaFromJson(json['items']! as Map<String, Object?>),
-        description: text,
-      ),
+    'array'
+        when only({'items', 'minItems', 'maxItems'}) &&
+            json['items'] is Map<String, Object?> =>
+      _array(json, text),
     'object'
         when only({'additionalProperties'}) &&
             json['additionalProperties'] is Map<String, Object?> =>
@@ -40,21 +39,6 @@ Schema schemaFromJson(Map<String, Object?> json) {
   };
 }
 
-/// Reads [json] as the arguments schema of a tool. A document that is not
-/// a plain object schema becomes an object that accepts any keys, with the
-/// document's description.
-ObjectSchema toolInputFromJson(Map<String, Object?> json) =>
-    switch (schemaFromJson(json)) {
-      final ObjectSchema schema => schema,
-      _ => ObjectSchema(
-        properties: const {},
-        additionalProperties: true,
-        description: json['description'] is String
-            ? json['description']! as String
-            : null,
-      ),
-    };
-
 Schema _string(Map<String, Object?> json, String? text) {
   final values = json['enum'];
   if (values == null) return StringSchema(description: text);
@@ -62,6 +46,21 @@ Schema _string(Map<String, Object?> json, String? text) {
     return RawSchema(json);
   }
   return StringSchema(enumValues: values.cast<String>(), description: text);
+}
+
+Schema _array(Map<String, Object?> json, String? text) {
+  final min = json['minItems'] ?? 0;
+  final max = json['maxItems'];
+  if (min is! int || min < 0 || (max != null && max is! int)) {
+    return RawSchema(json);
+  }
+  final items = json['items']! as Map<String, Object?>;
+  return ArraySchema(
+    items: schemaFromJson(items),
+    minItems: min,
+    maxItems: max as int?,
+    description: text,
+  );
 }
 
 Schema _map(Map<String, Object?> json, String? text) => switch (schemaFromJson(

@@ -8,7 +8,7 @@ final class BooleanSchema extends Schema {
   const new _({super.description}) : super._();
 
   @override
-  Map<String, Object?> toJson() => _base('boolean');
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => _base('boolean');
 
   @override
   List<SchemaViolation> validate(Object? value, {String path = r'$'}) =>

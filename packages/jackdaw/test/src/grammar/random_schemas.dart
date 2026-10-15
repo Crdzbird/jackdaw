@@ -29,7 +29,7 @@ Schema randomSchema(Random random, {int depth = 3}) {
     3 => const Schema.number(),
     4 => const Schema.boolean(),
     5 => const Schema.raw({}),
-    6 => Schema.array(items: randomSchema(random, depth: depth - 1)),
+    6 => _array(random, depth),
     7 => UnionSchema(
       discriminator: text(),
       variants: {
@@ -58,5 +58,16 @@ ObjectSchema _object(Random random, String Function() text, int depth) {
         if (random.nextBool()) key,
     ],
     additionalProperties: random.nextBool(),
+  );
+}
+
+ArraySchema _array(Random random, int depth) {
+  final min = random.nextInt(3);
+  return ArraySchema(
+    items: randomSchema(random, depth: depth - 1),
+    minItems: min,
+    maxItems: random.nextBool()
+        ? null
+        : (min < 1 ? 1 : min) + random.nextInt(3),
   );
 }

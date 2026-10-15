@@ -30,10 +30,10 @@ final class ObjectSchema extends Schema {
   final bool additionalProperties;
 
   @override
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => {
     ..._base('object'),
     'properties': {
-      for (final entry in properties.entries) entry.key: entry.value.toJson(),
+      for (final entry in properties.entries) entry.key: child(entry.value),
     },
     'required': required,
     'additionalProperties': additionalProperties,

@@ -5,6 +5,7 @@ import 'package:jackdaw/src/ui/catalog/ui_type.dart';
 
 final Schema _conditions = Schema.array(
   items: UiType.dynamicBoolean.ref(),
+  minItems: 2,
   description: 'Two or more conditions.',
 );
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:jackdaw/src/local/prompt_schema_json.dart';
 import 'package:jackdaw/src/message/part.dart';
 import 'package:jackdaw/src/tool/tool_spec.dart';
 
@@ -33,7 +34,7 @@ String toolInstructions(List<ToolSpec> tools) {
         'function': {
           'name': tool.name,
           'description': tool.description,
-          'parameters': tool.input.toJson(),
+          'parameters': promptSchemaJson(tool.input),
         },
       }),
   ].join('\n');

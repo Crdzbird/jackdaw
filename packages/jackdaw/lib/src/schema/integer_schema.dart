@@ -8,7 +8,7 @@ final class IntegerSchema extends Schema {
   const new _({super.description}) : super._();
 
   @override
-  Map<String, Object?> toJson() => _base('integer');
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => _base('integer');
 
   @override
   List<SchemaViolation> validate(Object? value, {String path = r'$'}) =>

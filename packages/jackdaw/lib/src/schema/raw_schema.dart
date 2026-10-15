@@ -16,7 +16,7 @@ final class RawSchema extends Schema {
   final Map<String, Object?> json;
 
   @override
-  Map<String, Object?> toJson() => json;
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => json;
 
   @override
   List<SchemaViolation> validate(Object? value, {String path = r'$'}) =>

@@ -12,9 +12,9 @@ final class MapSchema extends Schema {
   final Schema values;
 
   @override
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => {
     ..._base('object'),
-    'additionalProperties': values.toJson(),
+    'additionalProperties': child(values),
   };
 
   @override

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:jackdaw/src/local/prompt_schema_json.dart';
 import 'package:jackdaw/src/local/tool_call_format.dart';
 import 'package:jackdaw/src/message/message.dart';
 import 'package:jackdaw/src/message/part.dart';
@@ -48,4 +49,4 @@ List<(String, String)> localPrompt(ModelRequest request) {
 
 String _schemaNote(Schema schema) =>
     'Reply with JSON only, matching this JSON Schema: '
-    '${jsonEncode(schema.toJson())}';
+    '${jsonEncode(promptSchemaJson(schema))}';

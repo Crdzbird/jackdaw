@@ -9,7 +9,11 @@ part 'number_schema.dart';
 part 'object_schema.dart';
 part 'raw_schema.dart';
 part 'string_schema.dart';
+part 'summarized_schema.dart';
 part 'union_schema.dart';
+
+/// Writes a nested schema as a JSON Schema document.
+typedef SchemaEncoder = Map<String, Object?> Function(Schema schema);
 
 /// A JSON Schema subset that describes tool inputs and structured output.
 ///
@@ -39,9 +43,14 @@ sealed class Schema {
   /// Describes a JSON boolean.
   const factory boolean({String? description}) = BooleanSchema;
 
-  /// Describes a JSON array whose elements match [items].
-  const factory array({required Schema items, String? description}) =
-      ArraySchema;
+  /// Describes a JSON array of at least [minItems] and at most [maxItems]
+  /// elements that match [items].
+  const factory array({
+    required Schema items,
+    int minItems,
+    int? maxItems,
+    String? description,
+  }) = ArraySchema;
 
   /// Describes a JSON object with any keys whose values match [values].
   const factory map({required Schema values, String? description}) = MapSchema;
@@ -58,6 +67,10 @@ sealed class Schema {
   const factory anyOf(List<Schema> options, {String? description}) =
       AnyOfSchema;
 
+  /// Holds values to [schema] while local prompts show [summary] instead.
+  const factory summarized(Schema schema, {required String summary}) =
+      SummarizedSchema;
+
   /// Passes the JSON Schema document [json] through unchanged.
   const factory raw(Map<String, Object?> json) = RawSchema;
 
@@ -65,7 +78,11 @@ sealed class Schema {
   final String? description;
 
   /// The JSON Schema document for this schema.
-  Map<String, Object?> toJson();
+  Map<String, Object?> toJson() => toJsonWith((schema) => schema.toJson());
+
+  /// The JSON Schema document for this schema, with each nested schema
+  /// written by [child], for example as a reference to a shared definition.
+  Map<String, Object?> toJsonWith(SchemaEncoder child);
 
   /// Returns every violation of this schema by [value], or none when valid.
   List<SchemaViolation> validate(Object? value, {String path = r'$'});

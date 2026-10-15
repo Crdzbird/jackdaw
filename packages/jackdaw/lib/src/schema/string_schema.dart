@@ -12,7 +12,7 @@ final class StringSchema extends Schema {
   final List<String>? enumValues;
 
   @override
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => {
     ..._base('string'),
     if (enumValues != null) 'enum': enumValues,
   };

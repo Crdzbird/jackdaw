@@ -17,9 +17,9 @@ final class AnyOfSchema extends Schema {
   final List<Schema> options;
 
   @override
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => {
     if (description != null) 'description': description,
-    'anyOf': [for (final option in options) option.toJson()],
+    'anyOf': [for (final option in options) child(option)],
   };
 
   @override

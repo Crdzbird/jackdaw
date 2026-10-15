@@ -36,9 +36,9 @@ final class UnionSchema extends Schema {
   };
 
   @override
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJsonWith(SchemaEncoder child) => {
     if (description != null) 'description': description,
-    'anyOf': [for (final schema in alternatives.values) schema.toJson()],
+    'anyOf': [for (final schema in alternatives.values) child(schema)],
   };
 
   @override
