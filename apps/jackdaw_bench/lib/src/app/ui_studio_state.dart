@@ -50,6 +50,7 @@ class UiStudioState extends State<UiStudio> {
     ], (answer) => reply = answer);
     if (!mounted) return renderer.dispose();
     _history.addAll([request, Message.assistant(jsonEncode(reply))]);
+    if (problems.every((p) => p.warning)) await widget.onBuilt?.call();
     _show(renderer, switch (problems.where((p) => !p.warning).toList()) {
       [] =>
         'Built in ${watch.elapsed.inSeconds} s. Ask for a change, or '

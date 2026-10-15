@@ -29,12 +29,12 @@ the variants and lets the phone cool between them.
 
 | Stage | Where it runs | Before | Now |
 |---|---|---|---|
-| Compile the UI grammar | UI isolate | 9.7 ms per request | once per schema, then cached |
+| Compile the UI grammar | UI isolate | 9.7 ms per request | once per schema, warmed while the model loads |
 | Parse the grammar | native worker | 14.5 ms (179 KB) | 2.9 ms (28 KB) |
-| Apply the chat template | UI isolate, synchronous FFI | 1.1 to 2.8 ms | same |
-| Count tokens for the context budget | UI isolate, synchronous FFI | 3.7 ms for a 1,226 token prompt | same |
+| Apply the chat template | UI isolate, synchronous FFI | 1.1 to 2.8 ms | native worker |
+| Count tokens for the context budget | UI isolate, synchronous FFI | 3.7 ms for a 1,226 token prompt, every turn | once per message |
 | Process the 1,247 token prompt | native threads | 13 to 26 s | 0.39 s to the first token after `loadState` |
-| Generate about 160 tokens with the grammar | native threads | 9 to 13 tokens/s | about 22% faster |
+| Generate a UI answer | native threads | 225 tokens at 13 tokens/s | about 107 tokens at 20 tokens/s |
 | Validate and apply the answer | UI isolate | 0.1 ms and 1.7 ms | same |
 | Build the first frame of a 40 component screen | UI isolate | 55 to 70 ms | see C14 |
 
@@ -56,8 +56,13 @@ and embedder now keeps one pool for its whole life.
 | Before | 13.9, 12.3, 13.9, 12.8 |
 | After | 17.6, 15.5, 16.7, 15.4 |
 
-`llama-bench` reaches 19.8 tokens/s on a cool phone, so the core is now
-within the throttling noise of what llama.cpp itself does.
+Inside the app, with cool-downs between runs, generation now measures
+20.3 to 20.5 tokens/s, against 13.0 on 2026-10-12 and 20.8 for
+`llama-bench` on the same phone: the core is at parity with llama.cpp.
+
+`NativeSessionOptions.generateThreads` sets the generation threads apart
+from prompt processing. Two threads generate at 19.3 to 19.6 tokens/s,
+5% slower than four, which an app may trade for free cores.
 
 ### Saving and loading the processed prompt (C++ and Dart)
 
@@ -86,6 +91,39 @@ compiled grammar is kept per schema object, and tool call grammars are
 kept for the last 16 combinations of tools, so a repeated turn costs a
 lookup instead of 3.6 ms on the Mac and about 10 ms on the phone.
 
+### Compact JSON (Dart)
+
+The grammar no longer allows whitespace between JSON tokens. The same
+answer is 225 tokens pretty printed, 155 with single spaces and 107
+compact. On 20 UI cases (Mac CPU, same native code):
+
+| Whitespace allowed | Valid | Time |
+|---|---|---|
+| Up to four characters | 11 / 20 | 220 s |
+| One space | 17 / 20 | 119 s |
+| None | 19 / 20 | 63 s |
+
+The failures with whitespace were answers that ran out of tokens before
+the JSON closed. Structured output stayed at 200/200 (C1). Tool calls
+first fell to 75% right arguments, because the wrapper around the
+arguments was still spaced; written compact throughout they are back at
+96% (C2).
+
+### Less work on the UI isolate at send time (C++ and Dart)
+
+- `jackdaw_session_generate_chat` renders the chat template on the
+  session's worker, and `LocalModel.generate` uses it when the library
+  has it, so sending no longer renders the prompt on the UI isolate. A
+  library without it, such as the published 0.1.0-dev.5, still works:
+  the Dart side probes for it once and falls back.
+- `TokenCounter.fromText` remembers each message's count, so the budget
+  tokenizes only new messages instead of the whole history every turn.
+- The demo compiles the UI grammar while the model loads.
+
+In the C6 run that followed, the frame at the moment of sending took
+8.8 ms against the 8.3 ms budget, and 2 of 1,075 frames during
+generation went over.
+
 ## Tried and dropped
 
 | Idea | Result |
@@ -97,19 +135,15 @@ lookup instead of 3.6 ms on the Mac and about 10 ms on the phone.
 | Micro-batch 256 or 1,024 | No difference |
 | Read greedy tokens straight from the logits | No measurable gain |
 | Speculative decoding by prompt lookup | 12% of drafted tokens kept on UI answers; generation fell from 46 to 26 tokens/s on the Mac, because every drafted position computes logits over the 151,936 token vocabulary |
+| Compile the first grammar on another isolate | Not done: `Isolate.run` copies the schema graph on the calling isolate, which would eat much of the 10 ms; compiling while the model loads avoids both |
 
 ## Open
 
-- Whitespace: a pretty-printed UI answer is 225 tokens, the same answer
-  with single spaces 155 and compact 107. The grammar allows up to four
-  whitespace characters between tokens, and the model uses them. The
-  effect of restricting it on validity is being measured.
-- Two generation threads are as fast as four on this phone (20.5 against
-  20.8 tokens/s), because generation is bound by memory. Fewer threads
-  would leave cores to Flutter and run cooler.
-- Work at the moment of sending, on the UI isolate: the first grammar
-  compile, the chat template and token counting. This is the frame C6
-  still loses when a message is sent.
+- The native changes reach apps through the prebuilt libraries, so they
+  need a 0.1.0-dev.6 release; until then only source builds have them.
+- The frame at the moment of sending is 0.5 ms over budget.
 - A vague request such as "a sign-up form for a coffee shop" can make the
   1.5B model list fields until the token limit, so the JSON never closes.
 - The first frame of a new screen; see C14.
+- A Q4_0 model would let llama.cpp use its KleidiAI kernels; that needs a
+  new model download.

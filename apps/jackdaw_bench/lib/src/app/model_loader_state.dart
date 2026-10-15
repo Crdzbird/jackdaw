@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw_bench/src/app/demo_catalog.dart';
 import 'package:jackdaw_bench/src/app/demo_home.dart';
 import 'package:jackdaw_bench/src/app/model_loader.dart';
 import 'package:jackdaw_bench/src/app/model_path.dart';
@@ -16,7 +18,15 @@ class ModelLoaderState extends State<ModelLoader> {
   String get _folder =>
       modelPath.isEmpty ? dataFolder : File(modelPath).parent.path;
 
-  Future<LocalModel> _load() async {
+  Future<LocalModel> _load() async => await _prepare(await _open());
+
+  Future<LocalModel> _prepare(LocalModel model) async {
+    gbnfGrammar(demoCatalog.schemas.tree);
+    await model.loadState(uiStateFile('$_folder/sessions'));
+    return model;
+  }
+
+  Future<LocalModel> _open() async {
     if (modelPath.isNotEmpty) return await LocalModel.open(modelPath);
     const qwen = ModelFile.qwen25Instruct;
     final model = await LocalModel.download(
