@@ -24,9 +24,17 @@ String _first(List<(String, bool)> members, int index) {
   return '($head | ${_first(members, index + 1)})';
 }
 
+/// The largest repetition count a grammar spells out.
+///
+/// llama.cpp writes out a rule for every optional repetition, so larger
+/// bounds are left to validation, which still enforces them, instead of
+/// costing thousands of rules.
+const int gbnfMaxRepeat = 64;
+
 /// The GBNF body of a JSON list between [open] and [close] that starts
 /// with one element matching each rule of [prefix], in order, followed by
-/// elements matching [item], at least [min] and at most [max] in all.
+/// elements matching [item], at least [min] and at most [max] in all, as
+/// far as [gbnfMaxRepeat] allows.
 String gbnfRepeat(
   String open,
   String item,
@@ -59,9 +67,12 @@ String gbnfRepeat(
 
 int? _less(int? max, int count) => max == null ? null : max - count;
 
-String _times(String more, int low, int? high) => switch ((low, high)) {
+String _times(String more, int low, int? high) => switch ((
+  low < gbnfMaxRepeat ? low : gbnfMaxRepeat,
+  high == null || high > gbnfMaxRepeat ? null : high,
+)) {
   (_, 0) => '',
   (0, null) => '$more*',
-  (_, null) => '$more{$low,}',
-  (_, final int top) => '$more{$low,$top}',
+  (final from, null) => '$more{$from,}',
+  (final from, final int top) => '$more{$from,$top}',
 };

@@ -49,6 +49,14 @@ void main() {
       '"[" ws p (ws "," ws x){0,2} ws "]"',
     );
     expect(gbnfRepeat('"["', 'x', '"]"', max: 1), '"[" ws (x)? ws "]"');
+    expect(
+      gbnfRepeat('"["', 'x', '"]"', min: 500, max: 1999),
+      '"[" ws x (ws "," ws x){64,} ws "]"',
+    );
+    expect(
+      gbnfRepeat('"["', 'x', '"]"', max: 1999),
+      '"[" ws (x (ws "," ws x)*)? ws "]"',
+    );
     expect(() => gbnfRepeat('[', 'x', ']', prefix: ['p']), throwsArgumentError);
   });
 }
