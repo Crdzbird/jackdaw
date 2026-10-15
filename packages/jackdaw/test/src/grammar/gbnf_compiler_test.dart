@@ -63,4 +63,30 @@ void main() {
     expect(grammar, contains('string ::='));
     expect(grammar, contains('number ::='));
   });
+
+  test('unions compile to one alternative per variant', () {
+    final grammar = compile(
+      const Schema.union(
+        discriminator: 'kind',
+        variants: {
+          'a': ObjectSchema(properties: {}),
+          'b': ObjectSchema(properties: {'n': Schema.integer()}),
+        },
+      ),
+    );
+    expect(grammar, startsWith('root ::= rule4\n'));
+    expect(grammar, contains('rule4 ::= rule1 | rule3\n'));
+    expect(
+      grammar,
+      contains(
+        r'rule3 ::= "{" ws "\"kind\"" ws ":" ws rule2 ws "," ws '
+        r'"\"n\"" ws ":" ws integer ws "}"',
+      ),
+    );
+    expect(grammar, contains(r'rule2 ::= "\"b\""'));
+    expect(
+      () => compile(const Schema.union(discriminator: 'kind', variants: {})),
+      throwsArgumentError,
+    );
+  });
 }

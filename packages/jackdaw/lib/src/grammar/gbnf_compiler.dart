@@ -56,6 +56,7 @@ final class GbnfCompiler {
     BooleanSchema() => _use('boolean'),
     ArraySchema(:final items) => _array(items),
     ObjectSchema(:final properties) => _object(properties),
+    UnionSchema(:final alternatives) => _union(alternatives.values),
     RawSchema() => _value(),
   };
 
@@ -73,6 +74,10 @@ final class GbnfCompiler {
     if (members.isEmpty) return _named('"{" ws "}"');
     return _named('"{" ws ${members.join(' ws "," ws ')} ws "}"');
   }
+
+  String _union(Iterable<ObjectSchema> variants) => variants.isEmpty
+      ? throw ArgumentError('a union needs a variant')
+      : _named(variants.map(_rule).join(' | '));
 
   String _array(Schema items) {
     _use('ws');
