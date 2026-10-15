@@ -17,6 +17,7 @@ dependencies:
     path: ../../packages/jackdaw_flutter
   jackdaw_native:
     path: ../../packages/jackdaw_native
+  json_schema_builder: ^0.1.7
 
 dev_dependencies:
   flutter_test:

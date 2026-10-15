@@ -17,7 +17,7 @@ import 'package:jackdaw_native/jackdaw_native.dart';
 import 'bench_config.dart';
 import 'chat_screen.dart';
 import 'frame_bench.dart';
-import 'ui_frame_bench.dart';
+import 'ui_frame_modes.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +39,8 @@ void main() {
         binding.framePolicy =
             LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
       }
-      if (benchOnly == 'uiframes') {
-        return benchReport('uiframes', await runUiFrameBench(tester));
+      if (uiFrameModes[benchOnly] case final run?) {
+        return benchReport(benchOnly, await run(tester));
       }
       if (benchOnly == 'frametrace') {
         final model = await LocalModel.open(benchModel);

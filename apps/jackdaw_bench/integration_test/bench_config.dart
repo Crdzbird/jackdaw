@@ -12,7 +12,13 @@ const benchOnly = String.fromEnvironment('BENCH');
 const benchSemantics = bool.fromEnvironment('SEMANTICS');
 
 /// The modes that need every frame drawn live.
-const benchLive = {'uiframes', 'frametrace', 'frames', 'framesweep'};
+const benchLive = {
+  'uiframes',
+  'uicompare',
+  'frametrace',
+  'frames',
+  'framesweep',
+};
 
 /// Whether the benchmark [name] runs.
 bool benchWanted(String name) =>

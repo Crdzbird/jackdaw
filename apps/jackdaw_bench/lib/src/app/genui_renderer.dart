@@ -5,11 +5,14 @@ import 'package:a2ui_core/a2ui_core.dart' as a2ui;
 import 'package:flutter/material.dart';
 import 'package:genui/genui.dart' as genui;
 import 'package:jackdaw/jackdaw.dart';
+import 'package:jackdaw_bench/src/app/demo_catalog.dart';
+import 'package:jackdaw_bench/src/app/genui_catalog.dart';
 import 'package:jackdaw_bench/src/app/studio_renderer.dart';
 
 /// Screens drawn by Flutter's official genui package. jackdaw's genui
 /// target lowers each screen to A2UI v0.9 and hands it to genui's
-/// SurfaceController, which draws it with genui's basic catalog.
+/// SurfaceController, which draws it with genui's basic catalog and the
+/// demo's Panel.
 final class GenuiRenderer implements StudioRenderer {
   /// Creates the renderer; [onAction] describes each action the user
   /// takes on the screen.
@@ -18,7 +21,7 @@ final class GenuiRenderer implements StudioRenderer {
   new _(this._onAction) {
     _actions = _controller.onSubmit.listen(_submitted);
     _target = UiTarget.genui(
-      basicCatalog,
+      demoCatalog,
       send: (messages) {
         for (final message in messages) {
           _controller.handleMessage(a2ui.A2uiMessage.fromJson(message));
@@ -29,7 +32,7 @@ final class GenuiRenderer implements StudioRenderer {
 
   final void Function(String action) _onAction;
   final genui.SurfaceController _controller = genui.SurfaceController(
-    catalogs: [genui.BasicCatalogItems.asCatalog()],
+    catalogs: [demoGenuiCatalog],
   );
   late final StreamSubscription<genui.ChatMessage> _actions;
   late final UiTarget _target;
