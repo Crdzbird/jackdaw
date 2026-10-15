@@ -73,7 +73,7 @@ jobs:
       - name: Every grammar compiled from 500 random schemas parses in llama.cpp
         run: |
           mkdir -p "$RUNNER_TEMP/grammars"
-          (cd packages/jackdaw && JACKDAW_GRAMMAR_CORPUS="$RUNNER_TEMP/grammars" dart test test/src/grammar/random_schema_test.dart)
+          (cd packages/jackdaw && JACKDAW_GRAMMAR_CORPUS="$RUNNER_TEMP/grammars" dart test test/src/grammar/random_schema_test.dart test/src/ui/ui_schemas_test.dart)
           ./build/fuzz/jackdaw_grammar_check "$RUNNER_TEMP/grammars"
       - run: >
           ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=60 -max_len=4096
