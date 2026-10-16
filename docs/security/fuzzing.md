@@ -98,6 +98,25 @@ larger `minItems` and `maxItems` to validation. CI keeps every input a
 fuzzer fails on as the `fuzz-findings` artifact, and the `fuzz` workflow
 runs the grammar fuzzer for as long as asked.
 
+### The guard read literals differently from the parser (fixed)
+
+On 2026-10-15 the CI grammar fuzzer ran out of memory again on a 188
+byte input ending in ` i{5,3}*`, a reversed range the guard refuses.
+The guard skipped quoted literals byte by byte. Inside a literal or a
+character class, llama.cpp reads one character at a time with a UTF-8
+decoder that trusts the lead byte: a byte `0xC0` to `0xDF` takes the next
+byte with it, `0xE0` to `0xEF` the next two and `0xF0` and up the next
+three, whatever they are. In the input, a lone lead byte took the
+closing quote with it, so the parser read the range as grammar while the
+guard still counted it as text.
+
+The guard now steps through literals and classes the same way, and,
+like the parser, stops at the first NUL byte. The input is in
+`native/fuzz/corpus/grammar/utf8_swallowed_quote.bin`, and minimal
+cases are in `native/tests/grammar_guard_test.cpp`; replaying it with
+10,000 mutations gives no report. The fix ships in the dev.6 prebuilt
+libraries.
+
 ## Results
 
 - Grammar parser behind the guard: 2,000 mutations of the seed grammars

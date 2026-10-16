@@ -12,6 +12,13 @@ TEST(GrammarGuard, RefusesReversedRepetitions) {
   EXPECT_TRUE(jackdaw::grammar_problem("root ::= (\"a\"{\r\n5,\r\n0})"));
 }
 
+TEST(GrammarGuard, ReadsLiteralsTheWayTheParserDoes) {
+  EXPECT_TRUE(jackdaw::grammar_problem("root ::= \"\xC3\" \" a{5,3}\""));
+  EXPECT_TRUE(jackdaw::grammar_problem("root ::= \"\xF0\" x\" a{5,3}\""));
+  EXPECT_FALSE(jackdaw::grammar_problem("root ::= \"\xC3\xA9{9,1}\" \"b\""));
+  EXPECT_FALSE(jackdaw::grammar_problem(std::string_view("root ::= \"a\"\0{5,3}", 18)));
+}
+
 TEST(GrammarGuard, AcceptsValidRepetitionsAndIgnoresQuotedBraces) {
   EXPECT_FALSE(jackdaw::grammar_problem(R"(root ::= "a"{1,2} "b"{3} "c"{2,} "d"{0,0})"));
   EXPECT_FALSE(jackdaw::grammar_problem(R"(root ::= "{9,1}" [{9,1}] # {9,1})"));
