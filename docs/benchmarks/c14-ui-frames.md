@@ -17,13 +17,17 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 - genui 0.10.4 gets the same messages lowered to A2UI v0.9 by
   `uiLowerToV09`, done before the clock starts, through its
   `SurfaceController.handleMessage`, and draws them with its `Surface`.
-- After the screen is drawn, 120 data writes follow, one per frame.
-- A spinner keeps frames coming. The sides take turns in alternating
-  order: a warm-up round, then five reported rounds each. The run is
-  repeated four times, so each number below is the median of twenty
-  rounds. The runs alternate with the same app built on a patched
-  Flutter, so both builds meet the phone at the same temperature; see
-  "With the fix in Flutter".
+- Each side draws its screen alone on screen, in alternating order: a
+  warm-up round, then five reported rounds. The run is repeated four
+  times, so each number below is the median of twenty rounds.
+- Then both screens sit one above the other and take 120 data writes
+  each, the sides taking turns one frame each, so the writes of both
+  meet the core at the same clock; see "Writes on a shared clock". Each
+  frame counts for the side that wrote in it.
+- Before those writes, about 48 MB that dies at once is allocated, so
+  the two screens just mounted are promoted out of the young
+  generation instead of being copied in a collection during the writes.
+- A spinner keeps frames coming.
 - Each round checks that the screen was really drawn, down to its last
   text, field and checkbox, before its numbers count.
 - Frame timings arrive in batches, so each frame is assigned to the
@@ -38,29 +42,47 @@ Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 
 | Median of 20 rounds, Flutter 3.47.7 | jackdaw_flutter | genui |
 |---|---|---|
-| Applying the screen's messages | 0.20 ms | 0.39 ms |
-| Screen received to first frame | 8.5 ms | 10.8 ms |
-| Screen fully drawn | 9.2 ms | 12.0 ms |
-| Slowest build while creating | 7.8 ms | 9.1 ms |
-| Raster while creating, p99 | 4.3 ms | 5.0 ms |
-| Applying one data write | 0.102 ms | 0.085 ms |
-| Frame build during writes, p50 | 3.1 ms | 4.7 ms |
-| Frame build during writes, p99 | 4.7 ms | 10.2 ms |
-| Frame build during writes, max | 5.4 ms | 11.9 ms |
-| Raster during writes, p99 | 4.7 ms | 5.9 ms |
-| Builds over the budget during writes | 0 | 3 |
+| Applying the screen's messages | 0.18 ms | 0.40 ms |
+| Screen received to first frame | 8.2 ms | 11.4 ms |
+| Screen fully drawn | 8.7 ms | 13.0 ms |
+| Slowest build while creating | 7.5 ms | 9.3 ms |
+| Raster while creating, p99 | 4.4 ms | 4.8 ms |
+| Applying one data write | 0.092 ms | 0.120 ms |
+| Frame build during writes, p50 | 2.4 ms | 6.3 ms |
+| Frame build during writes, p99 | 5.5 ms | 13.5 ms |
+| Frame build during writes, max | 7.4 ms | 16.7 ms |
+| Raster during writes, p99 | 5.3 ms | 5.8 ms |
+| Builds over the budget during writes | 0 | 21.5 |
 
-Over all twenty rounds, jackdaw_flutter went over the 8.3 ms budget
-eight times: six times while creating (9.2 to 13.2 ms) and twice during
-writes (8.6 and 8.8 ms). genui went over in all 20 creations (up to
-17.6 ms) and 121 times during writes. Earlier traces put the slow write
-frames down to garbage collection pauses, so C14 is close but not met;
-see "Garbage collection".
+Over all twenty rounds, jackdaw_flutter went over the 8.3 ms budget 11
+times: three times while creating (10.6 to 13.8 ms) and eight times
+during writes (8.6 to 13.5 ms). genui went over in 16 of the 20
+creations and 499 times during writes. Earlier traces put
+jackdaw_flutter's slow write frames down to garbage collection pauses,
+so C14 is close but not met; see "Garbage collection".
 
-The table is from 2026-10-16, after every component got a layer of its
-own; see "Paint during writes" and "Native objects per frame".
+The table is from 2026-10-16, with one render object per component and
+dividers drawn by one; see "Memory per component".
+
+### Writes on a shared clock
+
+Writes used to be measured with each side alone on screen. That made
+jackdaw_flutter look slower to apply a write, 0.102 ms against 0.085
+ms, because its write frames are lighter and the core clocked down
+further between them. Timed in the same frames, a write costs 23 us
+against 54 us for genui, and with one write per frame, the sides
+alternating, 90 us against 117 us. The writes now alternate frame by
+frame on one screen for the same reason. With both screens freshly
+mounted together, the first young collection during the writes copied
+both, a pause of 17 to 45 ms that landed on whichever side owned the
+frame, so the heap is settled first. With each side alone, the medians
+were 3.1 ms against 4.7 ms at p50 and 4.7 ms against 10.2 ms at p99:
+genui's frames grew most once the clock was shared.
 
 ### With the fix in Flutter
+
+These runs predate the shared clock for writes and the single render
+object per component.
 
 Every render object built semantics state when it was attached, even
 with semantics off; see "Memory per component". The fix is proposed in
@@ -86,7 +108,11 @@ creating and once during writes (9.9 ms); genui went over in 13 of the
 
 The build in the whole creation window, which also covers the half
 second of spinner frames after the screen, is higher for jackdaw_flutter,
-but not because it does more. A trace of six rounds per side found the
+83 ms against 58 ms, but not because it does more. With the core kept
+equally busy between frames on both sides, by a 2 ms spin after each
+frame, the window came to 119.2 ms against 118.8 ms, idle frames to
+0.96 ms against 0.98 ms each, and the five frames after the screen to
+1.9 ms against 2.9 ms. A trace of six rounds per side found the
 same work in every idle frame on both sides: the spinner's
 AnimatedBuilder and CustomPaint and the same scroll and semantics
 layers, and nothing in either surface rebuilt or repainted after it was
@@ -197,23 +223,25 @@ what one component keeps alive on the Pixel:
 
 | Per component | jackdaw_flutter | genui |
 |---|---|---|
-| Mixed bench screen | 35.5 KB, 803 objects | 40.4 KB, 899 objects |
-| Text | 7.8 KB | 15.6 KB |
-| TextField | 75.9 KB | 77.7 KB |
-| CheckBox | 51.5 KB | 55.1 KB |
-| Slider | 27.2 KB | 35.3 KB |
-| Divider | 12.2 KB | 9.0 KB |
+| Mixed bench screen | 33.2 KB | 40.4 KB |
+| Text | 6.8 KB | 15.4 KB |
+| TextField | 74.9 KB | 78.6 KB |
+| CheckBox | 50.6 KB | 55.5 KB |
+| Slider | 26.3 KB | 35.5 KB |
+| Divider | 3.3 KB | 9.8 KB |
 
 - Almost all of it is Flutter's own widgets. A Material text field
   keeps about 76 KB on either side, with 156 closures, 8 animation
   controllers and 59 observer lists, and the eight fields hold 600 of
   the mixed screen's 1,385 KB.
-- jackdaw's own objects, the component, its node, its widget and state
-  and the stretch wrapper, take about 0.3 KB per component.
-- jackdaw_flutter adds two render objects to each component, its layer
-  and the stretch wrapper, which is why a Divider is 3.2 KB heavier.
-  Folding the layer into the wrapper would save about 0.9 KB per
-  component, under 3% of the screen.
+- jackdaw's own objects, the component, its node, its widget and state,
+  take about 0.3 KB per component.
+- jackdaw_flutter gave each component two render objects, its layer
+  and, in a column, a stretch wrapper, and a Divider kept 12.2 KB
+  against 9.0 KB for genui. `UiLayer` is now both, one render object,
+  and a Divider is `UiRule`, one render object that paints the same
+  pixels as Material's eight in Material 2 and 3. The mixed screen
+  keeps 1,293 KB instead of 1,385 KB.
 - Every render object keeps semantics state even with semantics off:
   `RenderObject.attach` reads its semantics configuration before
   anything checks for a semantics owner, which builds a
@@ -272,8 +300,9 @@ because every data write redrew the whole surface.
   root, by lookup. The whole surface is redrawn only when components
   change.
 - Columns no longer build their children inside a LayoutBuilder, which
-  moved all of their building into the layout phase. `UiStretch` gives
-  each child the full width when it is bounded, during layout. On the
+  moved all of their building into the layout phase. `UiStretch`, now
+  part of `UiLayer`, gives each child the full width when it is
+  bounded, during layout. On the
   Pixel this cut the creation frame's layout from 31 ms to 9 ms and its
   paint from 15 ms to 6 ms.
 - Each surface sits on its own repaint boundary, so animations around it
