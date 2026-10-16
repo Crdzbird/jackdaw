@@ -112,7 +112,9 @@ guard still counted it as text.
 
 The guard now steps through literals and classes the same way, and,
 like the parser, stops at the first NUL byte. The input is in
-`native/fuzz/corpus/grammar/utf8_swallowed_quote.bin`, and minimal
+`native/fuzz/regressions/grammar/utf8_swallowed_quote.bin`, which
+the fuzzer replays through the guard, unlike the corpus that
+`jackdaw_grammar_check` parses directly, and minimal
 cases are in `native/tests/grammar_guard_test.cpp`; replaying it with
 10,000 mutations gives no report. The fix ships in the dev.6 prebuilt
 libraries.

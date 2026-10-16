@@ -79,7 +79,7 @@ jobs:
       - run: >
           ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=60 -max_len=4096
           -artifact_prefix="$RUNNER_TEMP/findings/"
-          native/fuzz/corpus/grammar
+          native/fuzz/corpus/grammar native/fuzz/regressions/grammar
       - run: >
           ./build/fuzz/jackdaw_index_load_fuzz -max_total_time=60 -max_len=65536
           -artifact_prefix="$RUNNER_TEMP/findings/" native/fuzz/corpus/index

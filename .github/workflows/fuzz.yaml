@@ -31,6 +31,7 @@ jobs:
           ./build/fuzz/jackdaw_grammar_fuzz -max_total_time=$((MINUTES * 60))
           -max_len=4096 -rss_limit_mb=2048
           -artifact_prefix="$RUNNER_TEMP/findings/" native/fuzz/corpus/grammar
+          native/fuzz/regressions/grammar
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
