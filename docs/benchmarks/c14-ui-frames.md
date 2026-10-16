@@ -49,11 +49,24 @@ Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 | Builds over the budget during writes | 4.5 | 2.5 |
 
 jackdaw_flutter applies and draws a new screen faster, and keeps that
-frame within the budget; the two are level while data is written. The
-build in the whole creation window, which also covers the half second
-of spinner frames after it, is higher for jackdaw_flutter and is not
-explained yet. Neither side keeps every write frame within 8.3 ms, so
-C14 is not met yet.
+frame within the budget; the two are level while data is written.
+Neither side keeps every write frame within 8.3 ms, so C14 is not met
+yet.
+
+The build in the whole creation window, which also covers the half
+second of spinner frames after the screen, is higher for jackdaw_flutter,
+but not because it does more. A trace of six rounds per side found the
+same work in every idle frame on both sides: the spinner's
+AnimatedBuilder and CustomPaint and the same scroll and semantics
+layers, and nothing in either surface rebuilt or repainted after it was
+drawn. The creation frame and the five after it took 7.7 and 3.1 ms
+with jackdaw_flutter against 13.6 and 4.8 ms with genui. The rest of the
+window cost 1.43 ms per frame against 1.06 ms for the same work: having
+finished sooner, the CPU clocks down sooner, and by 200 ms after the
+screen a spinner frame takes 1.43 ms against 0.81 ms. jackdaw_flutter
+also draws 60 frames in the window against 55, because genui's longer
+creation frame skips vsyncs. The window total measures the clock and the
+skipped frames, so the table above leans on the creation frame itself.
 
 ## The clock speed
 
