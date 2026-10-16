@@ -1,0 +1,4 @@
+jackdaw_dom draws icons from SVG paths converted from the glyphs of the
+Material Icons font that ships with Flutter. Material Icons are by Google
+and licensed under the Creative Commons Attribution 4.0 International
+License; see LICENSES/Material-Icons-CC-BY-4.0.txt.

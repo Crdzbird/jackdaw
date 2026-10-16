@@ -8,18 +8,19 @@ import 'package:web/web.dart' as web;
   List<Map<String, Object?>> components, {
   Map<String, Object?> data = const {},
   void Function(UiAction action)? onAction,
+  UiHost links = const UiHost(),
 }) {
-  final controller = UiDomController(basicCatalog, onAction: onAction)
-    ..applyAll([
-      {
-        'version': 'v1.0',
-        'createSurface': {
-          'surfaceId': 's',
-          'components': components,
-          'dataModel': data,
+  final controller =
+      UiDomController(basicCatalog, host: links, onAction: onAction)..applyAll([
+        {
+          'version': 'v1.0',
+          'createSurface': {
+            'surfaceId': 's',
+            'components': components,
+            'dataModel': data,
+          },
         },
-      },
-    ]);
+      ]);
   final host = web.HTMLDivElement();
   web.document.body!.append(host);
   final view = UiDomView(controller: controller, surfaceId: 's', host: host);

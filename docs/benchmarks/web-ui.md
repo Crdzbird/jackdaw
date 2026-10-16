@@ -87,14 +87,12 @@ draws the bench screen with only that library, compiled the same way:
 
 | Page script | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| JavaScript | 192 KB, 60 KB gzipped | 508 KB, 141 KB gzipped |
-| WebAssembly | 144 KB, 58 KB gzipped | 476 KB, 161 KB gzipped |
+| JavaScript | 219 KB, 69 KB gzipped | 508 KB, 141 KB gzipped |
+| WebAssembly | 172 KB, 68 KB gzipped | 476 KB, 161 KB gzipped |
 
+Both draw all 18 components of the basic catalog, icons included.
 jackdaw_dom's page carries jackdaw's schemas, validation, data model and
 expression evaluator, and genui_jaspr's carries Jaspr and a2ui_core.
-genui_jaspr's catalog has all 18 components of the basic catalog and
-jackdaw_dom draws 10 so far, so part of the gap will close as the other
-eight are added.
 
 ## Why they differ
 

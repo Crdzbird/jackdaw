@@ -4,9 +4,13 @@ import 'package:jackdaw_dom/src/ui_dom_node.dart';
 /// Reads a node's props in its scope and writes back where they are bound.
 extension UiDomNodeValues on UiDomNode {
   /// The value of [prop], or `null` when it is unset or cannot be read.
-  Object? value(String prop) {
+  Object? value(String prop) => read(component.props[prop]);
+
+  /// [value], with its bindings and calls read in this node's scope, or
+  /// `null` when it cannot be read.
+  Object? read(Object? value) {
     try {
-      return controller.evaluator.evaluate(component.props[prop], scope);
+      return controller.evaluator.evaluate(value, scope);
     } on UiEvalException {
       return null;
     }
