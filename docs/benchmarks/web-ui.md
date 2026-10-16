@@ -49,32 +49,34 @@ Medians of 20 rounds for times, and of 6 rounds for memory.
 
 | Compiled to JavaScript | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| Applying the screen's messages | 1.08 ms | 0.50 ms |
-| Messages to drawn DOM | 2.8 ms | 11.8 ms |
-| Layout the screen forces | 1.3 ms | 1.4 ms |
-| Messages to the next frame | 6.8 ms | 16.0 ms |
+| Applying the screen's messages | 1.49 ms | 0.41 ms |
+| Messages to drawn DOM | 3.4 ms | 11.4 ms |
+| Layout the screen forces | 1.4 ms | 1.4 ms |
+| Messages to the next frame | 9.8 ms | 18.2 ms |
 | Elements of the screen | 80 | 81 |
-| Memory the screen adds, JavaScript and DOM | 75 KB | 260 KB |
+| Memory the screen adds, JavaScript and DOM | 69 KB | 217 KB |
 | Write to the DOM showing it, p50 | 0.25 ms | 0.36 ms |
-| Write to the DOM showing it, p99 | 0.70 ms | 1.29 ms |
-| Write to the DOM showing it, max | 0.99 ms | 1.89 ms |
-| Layout a write forces, p99 | 0.75 ms | 0.86 ms |
+| Write to the DOM showing it, p99 | 1.15 ms | 1.25 ms |
+| Write to the DOM showing it, max | 1.58 ms | 1.84 ms |
+| Layout a write forces, p99 | 0.90 ms | 0.94 ms |
 
 | Compiled to WebAssembly | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| Applying the screen's messages | 0.58 ms | 0.23 ms |
-| Messages to drawn DOM | 2.3 ms | 7.0 ms |
-| Layout the screen forces | 1.5 ms | 1.5 ms |
-| Messages to the next frame | 7.4 ms | 13.4 ms |
+| Applying the screen's messages | 0.60 ms | 0.22 ms |
+| Messages to drawn DOM | 1.9 ms | 7.5 ms |
+| Layout the screen forces | 1.4 ms | 1.4 ms |
+| Messages to the next frame | 6.5 ms | 13.0 ms |
 | Elements of the screen | 80 | 81 |
 | Memory the screen adds, JavaScript and DOM | 51 KB | 233 KB |
-| Write to the DOM showing it, p50 | 0.18 ms | 0.24 ms |
-| Write to the DOM showing it, p99 | 0.65 ms | 0.81 ms |
-| Write to the DOM showing it, max | 0.90 ms | 1.24 ms |
-| Layout a write forces, p99 | 0.81 ms | 0.82 ms |
+| Write to the DOM showing it, p50 | 0.17 ms | 0.23 ms |
+| Write to the DOM showing it, p99 | 0.58 ms | 0.80 ms |
+| Write to the DOM showing it, max | 0.80 ms | 1.62 ms |
+| Layout a write forces, p99 | 0.87 ms | 1.02 ms |
 
-jackdaw_dom draws the screen three to four times sooner, keeps about a quarter
-of the memory, and shows a write sooner at every percentile. Applying the
+These runs are from 2026-10-16, with all 18 components in jackdaw_dom.
+jackdaw_dom draws the screen three to four times sooner, keeps a quarter
+to a third of the memory, and shows a write sooner at every percentile,
+though at p99 compiled to JavaScript only by 0.1 ms. Applying the
 messages takes it longer: that time is jackdaw validating them, and for
 a write it also includes the DOM update, which genui_jaspr makes in the
 microtask after. The layout the browser does afterwards is the same for
