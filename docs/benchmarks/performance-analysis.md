@@ -137,10 +137,11 @@ generation went over.
 | Speculative decoding by prompt lookup | 12% of drafted tokens kept on UI answers; generation fell from 46 to 26 tokens/s on the Mac, because every drafted position computes logits over the 151,936 token vocabulary |
 | Compile the first grammar on another isolate | Not done: `Isolate.run` copies the schema graph on the calling isolate, which would eat much of the 10 ms; compiling while the model loads avoids both |
 
+The native changes ship in the native-v0.1.0-dev.6 prebuilt libraries,
+which the hook pins.
+
 ## Open
 
-- The native changes reach apps through the prebuilt libraries, so they
-  need a 0.1.0-dev.6 release; until then only source builds have them.
 - The frame at the moment of sending is 0.5 ms over budget.
 - A vague request such as "a sign-up form for a coffee shop" can make the
   1.5B model list fields until the token limit, so the JSON never closes.
