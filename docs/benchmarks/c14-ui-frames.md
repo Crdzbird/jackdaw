@@ -20,7 +20,8 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 - After the screen is drawn, 120 data writes follow, one per frame.
 - A spinner keeps frames coming. The sides take turns in alternating
   order: a warm-up round, then five reported rounds each. The run is
-  repeated, so each number below is the median of ten rounds.
+  repeated four times, so each number below is the median of twenty
+  rounds.
 - Each round checks that the screen was really drawn, down to its last
   text, field and checkbox, before its numbers count.
 - Frame timings arrive in batches, so each frame is assigned to the
@@ -33,29 +34,29 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 
 Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 
-| Median of 10 rounds | jackdaw_flutter | genui |
+| Median of 20 rounds | jackdaw_flutter | genui |
 |---|---|---|
-| Applying the screen's messages | 0.19 ms | 0.43 ms |
-| Screen received to first frame | 8.8 ms | 12.6 ms |
-| Screen fully drawn | 9.3 ms | 13.9 ms |
-| Slowest build while creating | 7.8 ms | 10.5 ms |
-| Raster while creating, p99 | 4.3 ms | 5.1 ms |
-| Applying one data write | 0.100 ms | 0.085 ms |
-| Frame build during writes, p50 | 3.5 ms | 4.9 ms |
-| Frame build during writes, p99 | 6.1 ms | 11.4 ms |
-| Frame build during writes, max | 7.4 ms | 13.9 ms |
-| Raster during writes, p99 | 4.6 ms | 5.7 ms |
-| Builds over the budget during writes | 0 | 6 |
+| Applying the screen's messages | 0.19 ms | 0.38 ms |
+| Screen received to first frame | 8.7 ms | 11.2 ms |
+| Screen fully drawn | 9.2 ms | 11.7 ms |
+| Slowest build while creating | 8.0 ms | 8.9 ms |
+| Raster while creating, p99 | 4.5 ms | 4.9 ms |
+| Applying one data write | 0.104 ms | 0.085 ms |
+| Frame build during writes, p50 | 3.1 ms | 4.8 ms |
+| Frame build during writes, p99 | 5.0 ms | 10.9 ms |
+| Frame build during writes, max | 5.8 ms | 13.6 ms |
+| Raster during writes, p99 | 4.8 ms | 5.6 ms |
+| Builds over the budget during writes | 0 | 4.5 |
 
-Over all ten rounds, jackdaw_flutter went over the 8.3 ms budget four
-times: twice while creating (9.7 and 9.8 ms) and twice during writes
-(8.9 and 10.4 ms). genui went over once in every creation and 94 times
-during writes. Traces put the slow frames that remain down to garbage
-collection pauses of 7 to 18 ms, so C14 is close but not met; see
+Over all twenty rounds, jackdaw_flutter went over the 8.3 ms budget ten
+times: seven times while creating (8.6 to 12.1 ms) and three times
+during writes (11.8, 13.5 and 19.1 ms). genui went over in 19 of the 20
+creations and 105 times during writes. Traces put the slow write frames
+down to garbage collection pauses, so C14 is close but not met; see
 "Garbage collection".
 
-The table is from 2026-10-16, after each data-bound component got a
-layer of its own; see "Paint during writes".
+The table is from 2026-10-16, after every component got a layer of its
+own; see "Paint during writes" and "Native objects per frame".
 
 The build in the whole creation window, which also covers the half
 second of spinner frames after the screen, is higher for jackdaw_flutter,
@@ -79,17 +80,18 @@ apart from those with a garbage collection, spent 5 to 8 ms in paint,
 against under 1 ms in build and about 1 ms in layout, on both sides.
 A write changes one text, but the nearest repaint boundary was the whole
 surface, so all 40 components were painted again. Each component that
-reads data now sits on a repaint boundary of its own, and components
-that cannot change on a write do not, to keep the layer count down.
-Paint during writes fell to 1.3 ms at the median against 2.8 ms for
-genui, and over-budget frames during writes from 17 in four traced
-rounds to none.
+reads data now sits on a repaint boundary of its own. Paint during
+writes fell to 1.3 ms at the median against 2.8 ms for genui, and
+over-budget frames during writes from 17 in four traced rounds to none.
+At first, components that read no data got no boundary, to keep the
+layer count down; "Native objects per frame" shows why they now get one
+too.
 
 ## Garbage collection
 
 Traces of creation and 600 writes per side, with the VM's own
 collection events, show why jackdaw_flutter's few slow frames are longer
-than genui's many.
+than genui's many. These traces predate the layer on every component.
 
 | During writes | jackdaw_flutter | genui |
 |---|---|---|
@@ -124,6 +126,40 @@ frame on both sides, although genui paints the whole surface again on
 every write and jackdaw_flutter one component. Most of it seems to come
 with every frame, from the spinner and the scene, not from either
 surface.
+
+## Native objects per frame
+
+The VM's allocation tracing, turned on for every native class of
+`dart:ui`, counts each picture, recorder, canvas, path, paragraph and
+engine layer a frame leaves for the finalizers, with the stack that made
+it. Over 60 frames of each kind:
+
+| Native objects per frame | Pictures | Engine layers | Paths | All |
+|---|---|---|---|---|
+| The spinner alone | 1 | 7 | 1 | 13 |
+| jackdaw_flutter, idle | 1 | 7 | 1 | 13 |
+| jackdaw_flutter, a write, before | 11 | 11 | 8 | 56 |
+| jackdaw_flutter, a write, now | 4 | 12 | 1 | 29 |
+| genui, idle | 1 | 15 | 1 | 21 |
+| genui, a write | 26 | 33 | 16 | 131 |
+
+A write changes one text, which could change its size, so Flutter lays
+out everything up to the nearest relayout boundary: the surface's
+column, the scroll view and, in this screen, the Scaffold. Flutter
+repaints every object it lays out. The column's repaint drew the seven
+dividers again, each in a picture of its own between the layers of its
+bound neighbours, with a path for its border: 28 of the 43 objects a
+write added. With a layer on every component, the column's repaint
+only places layers that are already drawn. What is left is the changed
+text's picture and paragraph and the Scaffold's own repaint, which genui
+pays too.
+
+The finalizers' share of the young collections fell from about 10 ms to
+0.6 to 1.8 ms, 3.5 us a frame against 38.9 us for genui. The pauses that
+remain, 6 to 10 ms, are now the copy of the new screen's objects, which
+comes when the young generation first fills, during the writes. The
+same copy took 2.3 to 3.7 ms when it came right after the screen was
+drawn, on a busier and faster core; see "Garbage collection".
 
 ## The clock speed
 

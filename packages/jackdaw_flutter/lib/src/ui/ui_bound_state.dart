@@ -40,8 +40,10 @@ final class _UiBoundState extends State<UiBound> {
 
   void _changed() => setState(() {});
 
-  /// A component that reads data sits on a layer of its own, so a write
-  /// repaints only it, not the whole surface.
+  /// Each component sits on a layer of its own, so a write repaints only
+  /// the components that read it. A write that changes a size lays the
+  /// column out again, and Flutter repaints what it lays out, so components
+  /// that read no data need a layer too.
   @override
   Widget build(BuildContext context) {
     final node = widget.node;
@@ -49,6 +51,6 @@ final class _UiBoundState extends State<UiBound> {
       node,
       node.builders[node.component.type]?.call(node) ?? const SizedBox.shrink(),
     );
-    return _reads.isEmpty ? drawn : RepaintBoundary(child: drawn);
+    return RepaintBoundary(child: drawn);
   }
 }
