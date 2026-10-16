@@ -51,6 +51,6 @@ final class _UiBoundState extends State<UiBound> {
       node,
       node.builders[node.component.type]?.call(node) ?? const SizedBox.shrink(),
     );
-    return RepaintBoundary(child: drawn);
+    return UiLayer(stretch: widget.stretch, child: drawn);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jackdaw_flutter/src/ui/builders/ui_stretch.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node_values.dart';
 
@@ -46,7 +45,7 @@ Widget uiRowWidget(UiNode node) => LayoutBuilder(
 );
 
 /// A Column component: children one above the other, stretched across
-/// by [UiStretch] unless told otherwise or the width is unbounded.
+/// unless told otherwise or the width is unbounded.
 Widget uiColumnWidget(UiNode node) => _column(node, 'justify');
 
 /// A List component: a column, or a row that scrolls sideways.
@@ -72,11 +71,7 @@ Widget _column(UiNode node, String? justify) {
     crossAxisAlignment: _align(align, stretchable: false),
     children: [
       for (final child in node.nodes('children'))
-        if (align == 'stretch')
-          UiStretch(
-            key: ValueKey((child.scope.path, child.component.id)),
-            child: child.build(),
-          ),
+        if (align == 'stretch') child.build(stretch: true),
       if (align != 'stretch')
         for (final child in node.nodes('children')) child.build(),
     ],

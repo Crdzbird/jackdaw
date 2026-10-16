@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jackdaw_flutter/src/ui/builders/ui_leaf.dart';
+import 'package:jackdaw_flutter/src/ui/builders/ui_rule.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node_values.dart';
 
@@ -22,7 +23,7 @@ Widget uiTextWidget(UiNode node) => Builder(
 Widget uiDividerWidget(UiNode node) =>
     node.component.props['axis'] == 'vertical'
     ? const SizedBox(height: 24, child: VerticalDivider())
-    : const Divider();
+    : const UiRule();
 
 /// A Card component: an outlined box around its child.
 Widget uiCardWidget(UiNode node) => Builder(

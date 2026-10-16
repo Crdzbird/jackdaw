@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_flutter/jackdaw_flutter.dart';
 import 'package:jackdaw_flutter/src/ui/ui_bound_paths.dart';
+import 'package:jackdaw_flutter/src/ui/ui_layer.dart';
 
 Map<String, Object?> _text(String id, String path) => {
   'id': id,
@@ -84,10 +85,7 @@ void main() {
     expect(find.text('four'), findsOneWidget);
     expect(built, {'a': 2, 'b': 2});
     expect(
-      find.ancestor(
-        of: find.text('four'),
-        matching: find.byType(RepaintBoundary),
-      ),
+      find.ancestor(of: find.text('four'), matching: find.byType(UiLayer)),
       findsWidgets,
     );
   });

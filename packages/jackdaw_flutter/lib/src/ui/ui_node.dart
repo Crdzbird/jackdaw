@@ -88,7 +88,11 @@ final class UiNode {
       const SizedBox.shrink();
 
   /// The widget of this node, with its accessibility attributes. It
-  /// redraws by itself when data it reads is written.
-  Widget build() =>
-      UiBound(key: ValueKey('${scope.path}#${component.id}'), node: this);
+  /// redraws by itself when data it reads is written, and takes the full
+  /// width of its column when [stretch] is set.
+  Widget build({bool stretch = false}) => UiBound(
+    key: ValueKey('${scope.path}#${component.id}'),
+    node: this,
+    stretch: stretch,
+  );
 }

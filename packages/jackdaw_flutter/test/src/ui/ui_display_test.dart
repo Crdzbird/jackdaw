@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jackdaw_flutter/src/ui/builders/ui_rule.dart';
 
 import 'support/show_surface.dart';
 
@@ -17,7 +18,7 @@ void main() {
     ]);
     expect(find.text('Body'), findsOneWidget);
     expect(find.text('Small'), findsOneWidget);
-    expect(find.byType(Divider), findsOneWidget);
+    expect(find.byType(UiRule), findsOneWidget);
     expect(find.byType(VerticalDivider), findsOneWidget);
   });
 
