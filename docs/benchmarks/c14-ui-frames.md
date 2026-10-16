@@ -21,7 +21,9 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 - A spinner keeps frames coming. The sides take turns in alternating
   order: a warm-up round, then five reported rounds each. The run is
   repeated four times, so each number below is the median of twenty
-  rounds.
+  rounds. The runs alternate with the same app built on a patched
+  Flutter, so both builds meet the phone at the same temperature; see
+  "With the fix in Flutter".
 - Each round checks that the screen was really drawn, down to its last
   text, field and checkbox, before its numbers count.
 - Frame timings arrive in batches, so each frame is assigned to the
@@ -34,29 +36,53 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 
 Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 
-| Median of 20 rounds | jackdaw_flutter | genui |
+| Median of 20 rounds, Flutter 3.47.7 | jackdaw_flutter | genui |
 |---|---|---|
-| Applying the screen's messages | 0.19 ms | 0.38 ms |
-| Screen received to first frame | 8.7 ms | 11.2 ms |
-| Screen fully drawn | 9.2 ms | 11.7 ms |
-| Slowest build while creating | 8.0 ms | 8.9 ms |
-| Raster while creating, p99 | 4.5 ms | 4.9 ms |
-| Applying one data write | 0.104 ms | 0.085 ms |
-| Frame build during writes, p50 | 3.1 ms | 4.8 ms |
-| Frame build during writes, p99 | 5.0 ms | 10.9 ms |
-| Frame build during writes, max | 5.8 ms | 13.6 ms |
-| Raster during writes, p99 | 4.8 ms | 5.6 ms |
-| Builds over the budget during writes | 0 | 4.5 |
+| Applying the screen's messages | 0.20 ms | 0.39 ms |
+| Screen received to first frame | 8.5 ms | 10.8 ms |
+| Screen fully drawn | 9.2 ms | 12.0 ms |
+| Slowest build while creating | 7.8 ms | 9.1 ms |
+| Raster while creating, p99 | 4.3 ms | 5.0 ms |
+| Applying one data write | 0.102 ms | 0.085 ms |
+| Frame build during writes, p50 | 3.1 ms | 4.7 ms |
+| Frame build during writes, p99 | 4.7 ms | 10.2 ms |
+| Frame build during writes, max | 5.4 ms | 11.9 ms |
+| Raster during writes, p99 | 4.7 ms | 5.9 ms |
+| Builds over the budget during writes | 0 | 3 |
 
-Over all twenty rounds, jackdaw_flutter went over the 8.3 ms budget ten
-times: seven times while creating (8.6 to 12.1 ms) and three times
-during writes (11.8, 13.5 and 19.1 ms). genui went over in 19 of the 20
-creations and 105 times during writes. Traces put the slow write frames
-down to garbage collection pauses, so C14 is close but not met; see
-"Garbage collection".
+Over all twenty rounds, jackdaw_flutter went over the 8.3 ms budget
+eight times: six times while creating (9.2 to 13.2 ms) and twice during
+writes (8.6 and 8.8 ms). genui went over in all 20 creations (up to
+17.6 ms) and 121 times during writes. Earlier traces put the slow write
+frames down to garbage collection pauses, so C14 is close but not met;
+see "Garbage collection".
 
 The table is from 2026-10-16, after every component got a layer of its
 own; see "Paint during writes" and "Native objects per frame".
+
+### With the fix in Flutter
+
+Every render object built semantics state when it was attached, even
+with semantics off; see "Memory per component". The fix is proposed in
+[flutter/flutter#194557](https://github.com/flutter/flutter/pull/194557),
+for [flutter/flutter#194556](https://github.com/flutter/flutter/issues/194556).
+Built on Flutter 3.47.7 with that change, alternated with the runs above:
+
+| Median of 20 rounds | jackdaw_flutter | genui |
+|---|---|---|
+| Screen received to first frame | 8.1 ms | 10.6 ms |
+| Screen fully drawn | 8.7 ms | 11.7 ms |
+| Slowest build while creating | 7.4 ms | 8.7 ms |
+| Frame build during writes, p99 | 5.0 ms | 10.1 ms |
+| Frame build during writes, max | 5.7 ms | 12.6 ms |
+| Builds over the budget during writes | 0 | 3 |
+| Live heap per component, mixed screen | 25.4 KB | 31.5 KB |
+
+Creation got faster on both sides and the writes did not change, as
+the fix only removes work done when a render object is attached.
+jackdaw_flutter went over the budget eight times again, seven while
+creating and once during writes (9.9 ms); genui went over in 13 of the
+20 creations and 103 times during writes.
 
 The build in the whole creation window, which also covers the half
 second of spinner frames after the screen, is higher for jackdaw_flutter,
@@ -194,7 +220,10 @@ what one component keeps alive on the Pixel:
   `SemanticsConfiguration`, five `AttributedString`s, four lists and a
   map, about 560 bytes. No `SemanticsNode` existed on these screens, and
   this state was 23% of jackdaw_flutter's screen and 18% of genui's.
-  It is in the framework, so only fewer render objects reduce it here.
+  With a semantics owner check before that read, proposed in
+  [flutter/flutter#194557](https://github.com/flutter/flutter/pull/194557),
+  the mixed screen keeps 991 KB instead of 1,385 KB with
+  jackdaw_flutter and 1,229 KB instead of 1,575 KB with genui.
 
 ## The clock speed
 
