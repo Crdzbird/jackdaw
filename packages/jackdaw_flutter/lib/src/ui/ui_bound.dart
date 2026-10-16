@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:jackdaw_flutter/src/ui/ui_bound_paths.dart';
+import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_flutter/src/ui/ui_layer.dart';
 import 'package:jackdaw_flutter/src/ui/ui_node.dart';
 import 'package:jackdaw_flutter/src/ui/ui_semantics.dart';

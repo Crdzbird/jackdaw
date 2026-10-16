@@ -1,23 +1,21 @@
-import 'package:flutter/foundation.dart';
-
 String _key(String path) => path == '/' ? '' : path;
 
 /// The callbacks watching data paths of one surface, indexed by path, so
 /// a write reaches its own path, its ancestors and the root by lookup,
 /// and scans for paths below it only when some are watched there.
 final class UiWatchers {
-  final Map<String, Set<VoidCallback>> _byPath = {};
+  final Map<String, Set<void Function()>> _byPath = {};
   final Map<String, int> _below = {};
 
   /// Watches [paths] with [onWrite].
-  void add(Set<String> paths, VoidCallback onWrite) {
+  void add(Set<String> paths, void Function() onWrite) {
     for (final path in paths.map(_key)) {
       if ((_byPath[path] ??= {}).add(onWrite)) _count(path, 1);
     }
   }
 
   /// Stops [onWrite] watching [paths]; returns whether none are left.
-  bool remove(Set<String> paths, VoidCallback onWrite) {
+  bool remove(Set<String> paths, void Function() onWrite) {
     for (final path in paths.map(_key)) {
       final set = _byPath[path];
       if (set == null || !set.remove(onWrite)) continue;
@@ -37,8 +35,8 @@ final class UiWatchers {
   /// Calls, once each, the watchers a write at [pointer] touches.
   void wrote(String pointer) {
     final at = _key(pointer);
-    final called = <VoidCallback>{};
-    void call(Set<VoidCallback>? set) {
+    final called = <void Function()>{};
+    void call(Set<void Function()>? set) {
       for (final onWrite in [...?set]) {
         if (called.add(onWrite)) onWrite();
       }

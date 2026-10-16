@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jackdaw/jackdaw.dart';
 import 'package:jackdaw_flutter/jackdaw_flutter.dart';
-import 'package:jackdaw_flutter/src/ui/ui_bound_paths.dart';
 import 'package:jackdaw_flutter/src/ui/ui_layer.dart';
 
 Map<String, Object?> _text(String id, String path) => {
@@ -12,25 +11,6 @@ Map<String, Object?> _text(String id, String path) => {
 };
 
 void main() {
-  test('bound paths cover bindings, calls, templates and formats', () {
-    expect(
-      uiBoundPaths({
-        'text': {'@path': 'name'},
-        'checks': [
-          {
-            '@call': 'required',
-            'args': {
-              'value': {'@path': '/email'},
-            },
-          },
-        ],
-        'children': {'componentId': 'row', 'path': '/items'},
-      }, '/form'),
-      {'/form/name', '/email', '/items'},
-    );
-    expect(uiBoundPaths({'text': r'Hi ${/name}'}, ''), {'/'});
-  });
-
   testWidgets('a write redraws only the components that read it', (
     tester,
   ) async {

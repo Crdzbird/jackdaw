@@ -9,6 +9,7 @@ workspace:
   - packages/jackdaw_a2ui
   - packages/jackdaw_anthropic
   - packages/jackdaw_cli
+  - packages/jackdaw_dom
   - packages/jackdaw_gemini
   - packages/jackdaw_mcp
   - packages/jackdaw_native

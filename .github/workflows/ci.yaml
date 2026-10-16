@@ -57,6 +57,22 @@ jobs:
       - run: dart test -p chrome --compiler dart2wasm
       - run: dart pub publish --dry-run
 
+  dom:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/jackdaw_dom
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test -p chrome --coverage-path=coverage/lcov.info
+      - run: ../../tool/check_coverage.sh coverage/lcov.info 'jackdaw_dom/lib/'
+      - run: dart test -p chrome --compiler dart2wasm
+      - run: dart pub publish --dry-run
+
   flutter:
     runs-on: ubuntu-latest
     defaults:
