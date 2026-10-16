@@ -40,12 +40,15 @@ final class _UiBoundState extends State<UiBound> {
 
   void _changed() => setState(() {});
 
+  /// A component that reads data sits on a layer of its own, so a write
+  /// repaints only it, not the whole surface.
   @override
   Widget build(BuildContext context) {
     final node = widget.node;
-    return uiSemantics(
+    final drawn = uiSemantics(
       node,
       node.builders[node.component.type]?.call(node) ?? const SizedBox.shrink(),
     );
+    return _reads.isEmpty ? drawn : RepaintBoundary(child: drawn);
   }
 }

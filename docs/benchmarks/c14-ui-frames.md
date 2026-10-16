@@ -35,23 +35,26 @@ Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 
 | Median of 10 rounds | jackdaw_flutter | genui |
 |---|---|---|
-| Applying the screen's messages | 0.19 ms | 0.35 ms |
-| Screen received to first frame | 7.9 ms | 10.0 ms |
-| Screen fully drawn | 8.4 ms | 10.5 ms |
-| Slowest build while creating | 7.3 ms | 8.7 ms |
-| Raster while creating, p99 | 4.1 ms | 5.0 ms |
-| Build in the whole creation window | 81.1 ms | 59.9 ms |
-| Applying one data write | 0.077 ms | 0.085 ms |
-| Frame build during writes, p50 | 4.6 ms | 4.5 ms |
-| Frame build during writes, p99 | 11.0 ms | 11.4 ms |
-| Frame build during writes, max | 13.9 ms | 13.2 ms |
-| Raster during writes, p99 | 4.6 ms | 5.8 ms |
-| Builds over the budget during writes | 4.5 | 2.5 |
+| Applying the screen's messages | 0.19 ms | 0.43 ms |
+| Screen received to first frame | 8.8 ms | 12.6 ms |
+| Screen fully drawn | 9.3 ms | 13.9 ms |
+| Slowest build while creating | 7.8 ms | 10.5 ms |
+| Raster while creating, p99 | 4.3 ms | 5.1 ms |
+| Applying one data write | 0.100 ms | 0.085 ms |
+| Frame build during writes, p50 | 3.5 ms | 4.9 ms |
+| Frame build during writes, p99 | 6.1 ms | 11.4 ms |
+| Frame build during writes, max | 7.4 ms | 13.9 ms |
+| Raster during writes, p99 | 4.6 ms | 5.7 ms |
+| Builds over the budget during writes | 0 | 6 |
 
-jackdaw_flutter applies and draws a new screen faster, and keeps that
-frame within the budget; the two are level while data is written.
-Neither side keeps every write frame within 8.3 ms, so C14 is not met
-yet.
+Over all ten rounds, jackdaw_flutter went over the 8.3 ms budget four
+times: twice while creating (9.7 and 9.8 ms) and twice during writes
+(8.9 and 10.4 ms). genui went over once in every creation and 94 times
+during writes. Traces put the slow frames that remain down to garbage
+collection pauses of 7 to 18 ms, so C14 is close but not met.
+
+The table is from 2026-10-16, after each data-bound component got a
+layer of its own; see "Paint during writes".
 
 The build in the whole creation window, which also covers the half
 second of spinner frames after the screen, is higher for jackdaw_flutter,
@@ -67,6 +70,19 @@ screen a spinner frame takes 1.43 ms against 0.81 ms. jackdaw_flutter
 also draws 60 frames in the window against 55, because genui's longer
 creation frame skips vsyncs. The window total measures the clock and the
 skipped frames, so the table above leans on the creation frame itself.
+
+## Paint during writes
+
+A trace of 120 writes per side found that every frame over budget,
+apart from those with a garbage collection, spent 5 to 8 ms in paint,
+against under 1 ms in build and about 1 ms in layout, on both sides.
+A write changes one text, but the nearest repaint boundary was the whole
+surface, so all 40 components were painted again. Each component that
+reads data now sits on a repaint boundary of its own, and components
+that cannot change on a write do not, to keep the layer count down.
+Paint during writes fell to 1.3 ms at the median against 2.8 ms for
+genui, and over-budget frames during writes from 17 in four traced
+rounds to none.
 
 ## The clock speed
 

@@ -83,5 +83,12 @@ void main() {
     await tester.pump();
     expect(find.text('four'), findsOneWidget);
     expect(built, {'a': 2, 'b': 2});
+    expect(
+      find.ancestor(
+        of: find.text('four'),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsWidgets,
+    );
   });
 }
