@@ -8,16 +8,11 @@ final class _RenderUiStretch extends RenderProxyBox {
 
   @override
   Size computeDryLayout(BoxConstraints constraints) =>
-      child?.getDryLayout(_stretched(constraints)) ?? constraints.smallest;
+      child!.getDryLayout(_stretched(constraints));
 
   @override
   void performLayout() {
-    final box = child;
-    if (box == null) {
-      size = constraints.smallest;
-      return;
-    }
-    box.layout(_stretched(constraints), parentUsesSize: true);
-    size = box.size;
+    child!.layout(_stretched(constraints), parentUsesSize: true);
+    size = child!.size;
   }
 }

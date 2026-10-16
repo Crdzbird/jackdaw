@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:jackdaw_flutter/src/ui/builders/ui_stretch.dart';
+
 import 'support/show_surface.dart';
 
 void main() {
@@ -34,5 +36,20 @@ void main() {
     final short = tester.getSize(find.text('Short')).width;
     final long = tester.getSize(find.text('A longer line')).width;
     expect(short, lessThan(long));
+  });
+
+  testWidgets('its dry layout matches its layout', (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: UiStretch(child: SizedBox(height: 10))),
+      ),
+    );
+    final box = tester.renderObject<RenderBox>(find.byType(UiStretch));
+    expect(
+      box.getDryLayout(const BoxConstraints(maxWidth: 100)),
+      const Size(100, 10),
+    );
+    expect(box.getDryLayout(const BoxConstraints()), const Size(0, 10));
   });
 }
