@@ -26,6 +26,8 @@ profile mode. No model is involved: both sides get the same A2UI messages.
 - Frame timings arrive in batches, so each frame is assigned to the
   creation or the write phase by the time its build started, not by when
   its timing arrived.
+- Before the screen arrives, the UI thread is kept busy for 200 ms, as
+  it is at the end of a generation; see "The clock speed" below.
 
 ## Results on the reference device
 
@@ -33,24 +35,42 @@ Pixel 7 Pro, Android, 120 Hz, so the frame budget is 8.3 ms.
 
 | Median of 10 rounds | jackdaw_flutter | genui |
 |---|---|---|
-| Applying the screen's messages | 1.66 ms | 4.42 ms |
-| Screen received to first frame | 70.6 ms | 66.6 ms |
-| Slowest build while creating | 66.5 ms | 59.0 ms |
-| Applying one data write | 0.072 ms | 0.076 ms |
-| Frame build during writes, p50 | 4.4 ms | 4.6 ms |
-| Frame build during writes, p99 | 9.7 ms | 11.7 ms |
-| Frame build during writes, max | 14.9 ms | 15.0 ms |
-| Raster during writes, p99 | 4.7 ms | 5.8 ms |
-| Builds over the budget during writes | 3.5 | 4.5 |
+| Applying the screen's messages | 0.19 ms | 0.35 ms |
+| Screen received to first frame | 7.9 ms | 10.0 ms |
+| Screen fully drawn | 8.4 ms | 10.5 ms |
+| Slowest build while creating | 7.3 ms | 8.7 ms |
+| Raster while creating, p99 | 4.1 ms | 5.0 ms |
+| Build in the whole creation window | 81.1 ms | 59.9 ms |
+| Applying one data write | 0.077 ms | 0.085 ms |
+| Frame build during writes, p50 | 4.6 ms | 4.5 ms |
+| Frame build during writes, p99 | 11.0 ms | 11.4 ms |
+| Frame build during writes, max | 13.9 ms | 13.2 ms |
+| Raster during writes, p99 | 4.6 ms | 5.8 ms |
+| Builds over the budget during writes | 4.5 | 2.5 |
 
-jackdaw_flutter is ahead on applying messages and on every measure of
-the write phase. genui is ahead on creating the screen, by about 4 to
-10 ms in the creation frame. Taking the text fields out of the screen
-brings both sides to about the same creation time, so the gap is in how
-the 8 text fields are built in jackdaw's tree; it is being traced.
+jackdaw_flutter applies and draws a new screen faster, and keeps that
+frame within the budget; the two are level while data is written. The
+build in the whole creation window, which also covers the half second
+of spinner frames after it, is higher for jackdaw_flutter and is not
+explained yet. Neither side keeps every write frame within 8.3 ms, so
+C14 is not met yet.
 
-Neither side keeps every write frame within 8.3 ms, so C14 is not met
-yet on either renderer.
+## The clock speed
+
+Earlier runs started each screen after 600 ms of idle frames, and found
+genui 4 to 10 ms faster at creating it. Tracing a screen of 8 text
+fields showed why. Each field has the same 52 elements and 24 render
+objects on both sides, and in jackdaw_flutter's slow rounds build,
+layout and paint were all about 2.4 times longer at once, while its fast
+rounds took 17.7 ms against genui's best of 25.0 ms. Every phase growing
+together is what a slower clock does, not more work. After the idle
+wait the cores clock down; jackdaw_flutter applies the screen in about
+2 ms and draws at once, on a cold core, while genui's longer apply warms
+it first. With the UI thread kept busy for 200 ms before the screen
+arrives, the 8 fields took 5.4 ms with jackdaw_flutter and 6.2 ms with
+genui from apply to the end of the frame. A screen in an app arrives at
+the end of a generation, with the cores busy, so the warm numbers are
+the ones that apply.
 
 ## Results on the emulator
 

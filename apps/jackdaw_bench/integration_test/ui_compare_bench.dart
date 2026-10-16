@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'bench_config.dart';
 import 'compare_side.dart';
+import 'cpu_warm.dart';
 import 'frame_summary.dart';
 import 'genui_side.dart';
 import 'jackdaw_side.dart';
@@ -48,6 +49,7 @@ Future<Map<String, Object>> _measure(
   SchedulerBinding.instance.addTimingsCallback(collect);
   final rate = tester.view.display.refreshRate;
   await Future<void>.delayed(const Duration(seconds: 1));
+  warmCpu();
   final start = Timeline.now;
   final watch = Stopwatch()..start();
   side.apply(create);
