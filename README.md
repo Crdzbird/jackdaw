@@ -21,8 +21,9 @@ cloud models, models on the device and models in the browser. Pre-release.
 - Generative UI on A2UI v1.0: the agent answers with forms, cards and
   screens built from a catalog of components, held to the catalog by a
   grammar on local models and validated again on the device; what the
-  user does goes back to the agent. `jackdaw_flutter` draws it, or it
-  goes to genui, an a2ui_core renderer or any other UI library through a
+  user does goes back to the agent. `jackdaw_flutter` draws it in
+  Flutter and `jackdaw_dom` as plain HTML in a web page, or it goes to
+  genui, an a2ui_core renderer or any other UI library through a
   `UiTarget`.
 
 The design and its reasoning are in
@@ -98,6 +99,7 @@ final chat = ChatController(
 | [jackdaw_native](packages/jackdaw_native) | On-device GGUF models, embeddings and vector index | Android, iOS, macOS, Linux, Windows |
 | [jackdaw_web](packages/jackdaw_web) | GGUF models and embeddings in the browser through wllama | Web |
 | [jackdaw_flutter](packages/jackdaw_flutter) | Chat controller and widgets, and the renderer of agent-built UI | Flutter |
+| [jackdaw_dom](packages/jackdaw_dom) | Agent-built UI as plain HTML elements, with no framework | Web |
 | [jackdaw_a2ui](packages/jackdaw_a2ui) | Agent-built UI on any renderer built on a2ui_core | All, including web |
 | [jackdaw_mcp](packages/jackdaw_mcp) | MCP client over Streamable HTTP and stdio, plus a dart_mcp backend | All; stdio on desktop |
 | [jackdaw_cli](packages/jackdaw_cli) | Inspect journals and traces, print grammars, validate JSON | Desktop |
