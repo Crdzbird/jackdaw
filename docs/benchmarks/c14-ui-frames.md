@@ -51,7 +51,8 @@ Over all ten rounds, jackdaw_flutter went over the 8.3 ms budget four
 times: twice while creating (9.7 and 9.8 ms) and twice during writes
 (8.9 and 10.4 ms). genui went over once in every creation and 94 times
 during writes. Traces put the slow frames that remain down to garbage
-collection pauses of 7 to 18 ms, so C14 is close but not met.
+collection pauses of 7 to 18 ms, so C14 is close but not met; see
+"Garbage collection".
 
 The table is from 2026-10-16, after each data-bound component got a
 layer of its own; see "Paint during writes".
@@ -83,6 +84,46 @@ that cannot change on a write do not, to keep the layer count down.
 Paint during writes fell to 1.3 ms at the median against 2.8 ms for
 genui, and over-budget frames during writes from 17 in four traced
 rounds to none.
+
+## Garbage collection
+
+Traces of creation and 600 writes per side, with the VM's own
+collection events, show why jackdaw_flutter's few slow frames are longer
+than genui's many.
+
+| During writes | jackdaw_flutter | genui |
+|---|---|---|
+| Young collections per second | 0.38 | 1.21 |
+| Young collection time per second | 5.3 ms | 5.8 ms |
+| Usual young collection | 10 to 13 ms | 4 to 5 ms |
+| Objects surviving one | 18 to 44 KB | 63 to 80 KB |
+
+- Nothing piles up. Across 600 writes the live heap grew by the same
+  amount on both sides, and that growth was the probe's own records.
+- Survivors do not set the pause. Each round has one collection that
+  copies the new screen, about 1.4 MB with jackdaw_flutter and 1.5 MB
+  with genui. It took 2.3 to 3.7 ms when it came 0.2 s after the screen,
+  and the collections with only 20 KB to copy took 12 to 19 ms.
+- In the slow collections, 9.9 of 11.1 ms and 10.9 of 12.6 ms went to
+  `MournWeakHandles`: the VM running the finalizers of `dart:ui`'s
+  native objects, such as pictures, canvases, engine layers and
+  paragraphs, inside the pause. Every frame leaves some, on both sides.
+- jackdaw_flutter's writes allocate so little that its young generation
+  fills only every 2 to 3 seconds, and each collection then finalizes 2
+  to 3 seconds of frames at once. genui's fills about every 0.8 seconds.
+  The total is the same; jackdaw_flutter pays it in fewer, longer
+  pauses.
+- Adding a collection before the writes, to clear the messages the
+  bench prepares, changed nothing: 8.1 against 7.6 ms at the median.
+
+None of this is work jackdaw_flutter could drop: the finalizers belong to
+the engine, and allocating more on purpose to collect more often would
+trade the pauses for more work in every frame. Fewer native objects per
+frame would shorten the pauses, but the finalizing cost is about 35 us a
+frame on both sides, although genui paints the whole surface again on
+every write and jackdaw_flutter one component. Most of it seems to come
+with every frame, from the spinner and the scene, not from either
+surface.
 
 ## The clock speed
 
