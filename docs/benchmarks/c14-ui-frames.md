@@ -161,6 +161,41 @@ comes when the young generation first fills, during the writes. The
 same copy took 2.3 to 3.7 ms when it came right after the screen was
 drawn, on a busier and faster core; see "Garbage collection".
 
+## Memory per component
+
+The pauses that remain copy the new screen's objects, so their size
+matters. A class by class diff of the live heap before and after each
+screen was applied, with a full collection before each count and the
+probe's own records (about 190 KB) taken out by an empty run, gives
+what one component keeps alive on the Pixel:
+
+| Per component | jackdaw_flutter | genui |
+|---|---|---|
+| Mixed bench screen | 35.5 KB, 803 objects | 40.4 KB, 899 objects |
+| Text | 7.8 KB | 15.6 KB |
+| TextField | 75.9 KB | 77.7 KB |
+| CheckBox | 51.5 KB | 55.1 KB |
+| Slider | 27.2 KB | 35.3 KB |
+| Divider | 12.2 KB | 9.0 KB |
+
+- Almost all of it is Flutter's own widgets. A Material text field
+  keeps about 76 KB on either side, with 156 closures, 8 animation
+  controllers and 59 observer lists, and the eight fields hold 600 of
+  the mixed screen's 1,385 KB.
+- jackdaw's own objects, the component, its node, its widget and state
+  and the stretch wrapper, take about 0.3 KB per component.
+- jackdaw_flutter adds two render objects to each component, its layer
+  and the stretch wrapper, which is why a Divider is 3.2 KB heavier.
+  Folding the layer into the wrapper would save about 0.9 KB per
+  component, under 3% of the screen.
+- Every render object keeps semantics state even with semantics off:
+  `RenderObject.attach` reads its semantics configuration before
+  anything checks for a semantics owner, which builds a
+  `SemanticsConfiguration`, five `AttributedString`s, four lists and a
+  map, about 560 bytes. No `SemanticsNode` existed on these screens, and
+  this state was 23% of jackdaw_flutter's screen and 18% of genui's.
+  It is in the framework, so only fewer render objects reduce it here.
+
 ## The clock speed
 
 Earlier runs started each screen after 600 ms of idle frames, and found
