@@ -1,7 +1,10 @@
 """Builds the browser bench, serves it cross-origin isolated so the page
 clock is precise, runs it in headless Chrome and prints the medians.
 
-Usage: python3 tool/run_bench.py [js|wasm] [runs]
+Usage: python3 tool/run_bench.py [js|wasm] [runs] [entry]
+
+The entry is a page in web/, main by default; apply_breakdown times the
+steps of applying the screen's messages.
 """
 import json
 import os
@@ -17,16 +20,16 @@ CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def build(mode):
+def build(mode, entry):
     out = os.path.join(HERE, 'build', mode)
     os.makedirs(out, exist_ok=True)
     if mode == 'js':
         target = os.path.join(out, 'main.dart.js')
-        subprocess.run(['dart', 'compile', 'js', '-O2', '-o', target, 'web/main.dart'], cwd=HERE, check=True, capture_output=True)
+        subprocess.run(['dart', 'compile', 'js', '-O2', '-o', target, f'web/{entry}.dart'], cwd=HERE, check=True, capture_output=True)
         shutil.copy(os.path.join(HERE, 'web', 'index.html'), os.path.join(out, 'index.html'))
     if mode == 'wasm':
         target = os.path.join(out, 'main.wasm')
-        subprocess.run(['dart', 'compile', 'wasm', '-O2', '-o', target, 'web/main.dart'], cwd=HERE, check=True, capture_output=True)
+        subprocess.run(['dart', 'compile', 'wasm', '-O2', '-o', target, f'web/{entry}.dart'], cwd=HERE, check=True, capture_output=True)
         shutil.copy(os.path.join(HERE, 'web', 'index_wasm.html'), os.path.join(out, 'index.html'))
     return out
 
@@ -90,7 +93,8 @@ def run_once(root):
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else 'js'
     runs = int(sys.argv[2]) if len(sys.argv) > 2 else 2
-    root = build(mode)
+    entry = sys.argv[3] if len(sys.argv) > 3 else 'main'
+    root = build(mode, entry)
     rows = [row for _ in range(runs) for row in run_once(root)]
     html = {r['side']: r.pop('html') for r in rows if 'html' in r}
     for side, text in html.items():

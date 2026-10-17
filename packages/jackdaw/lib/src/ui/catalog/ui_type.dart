@@ -53,8 +53,12 @@ enum UiType {
 
   /// The type [schema] refers to, or `null` when it is not a reference.
   static UiType? of(Schema schema) => switch (schema) {
-    RawSchema(json: {r'$ref': final String ref}) =>
-      values.where((t) => ref.endsWith('/${t.name}')).firstOrNull,
+    RawSchema(json: {r'$ref': final String ref}) => _byRef.putIfAbsent(
+      ref,
+      () => values.where((t) => ref.endsWith('/${t.name}')).firstOrNull,
+    ),
     _ => null,
   };
+
+  static final Map<String, UiType?> _byRef = {};
 }

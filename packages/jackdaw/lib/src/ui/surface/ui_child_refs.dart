@@ -9,6 +9,7 @@ import 'package:jackdaw/src/ui/catalog/ui_type.dart';
 /// depth, such as the `child` of each tab in a Tabs component; a template
 /// counts as one child.
 List<(String, String)> uiChildRefs(ObjectSchema schema, Object? props) {
+  if (!(_holdsChildren[schema] ??= _mayHold(schema))) return const [];
   final refs = <(String, String)>[];
   void walk(Schema node, Object? value, String path) {
     switch ((UiType.of(node), node, value)) {
@@ -34,3 +35,12 @@ List<(String, String)> uiChildRefs(ObjectSchema schema, Object? props) {
   walk(schema, props, '');
   return refs;
 }
+
+final Expando<bool> _holdsChildren = Expando();
+
+bool _mayHold(Schema schema) => switch ((UiType.of(schema), schema)) {
+  (UiType.child || UiType.childList, _) => true,
+  (_, ObjectSchema(:final properties)) => properties.values.any(_mayHold),
+  (_, ArraySchema(:final items)) => _mayHold(items),
+  _ => false,
+};

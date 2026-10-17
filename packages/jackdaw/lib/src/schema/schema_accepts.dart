@@ -37,9 +37,12 @@ bool _isObject(Object? value) =>
     value is Map && value.keys.every((key) => key is String);
 
 bool _object(ObjectSchema schema, Object? value) {
-  if (value is! Map || !_isObject(value)) return false;
-  if (!schema.required.every(value.containsKey)) return false;
+  if (value is! Map) return false;
+  for (final key in schema.required) {
+    if (!value.containsKey(key)) return false;
+  }
   for (final MapEntry(:key, value: item) in value.entries) {
+    if (key is! String) return false;
     final property = schema.properties[key];
     if (property == null && !schema.additionalProperties) return false;
     if (property != null && !property.accepts(item)) return false;
