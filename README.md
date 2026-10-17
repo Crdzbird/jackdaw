@@ -24,7 +24,9 @@ cloud models, models on the device and models in the browser. Pre-release.
   user does goes back to the agent. `jackdaw_flutter` draws it in
   Flutter and `jackdaw_dom` as plain HTML in a web page, or it goes to
   genui, an a2ui_core renderer or any other UI library through a
-  `UiTarget`.
+  `UiTarget`. Every message is checked against the catalog before it
+  reaches the screen, unless the app marks it as coming from a source it
+  fully trusts.
 
 The design and its reasoning are in
 [docs/adr/0001-scope-and-architecture.md](docs/adr/0001-scope-and-architecture.md),
@@ -107,6 +109,8 @@ final chat = ChatController(
 
 `apps/jackdaw_bench` is a demo app and the on-device benchmark runner;
 open the repository in VS Code to run it from `.vscode/launch.json`.
+`apps/jackdaw_web_bench` compares `jackdaw_dom` with genui_jaspr in
+headless Chrome.
 
 ## Claims and evidence
 
@@ -130,6 +134,35 @@ for generative UI. Their status:
 | C13 at least 99% of UI answers from a local model validate against the catalog | Measuring | [ADR 0002](docs/adr/0002-generative-ui.md) |
 | C14 applying UI loses no frame on the reference device | Close: 11 slow frames in 20 rounds; genui 515 | [C14](docs/benchmarks/c14-ui-frames.md) |
 
+## Drawing agent-built UI
+
+The same screen of 40 components, drawn and then written to 120 times.
+In Flutter, against Flutter's genui on a Pixel 7 Pro
+([C14](docs/benchmarks/c14-ui-frames.md)), medians of 20 rounds:
+
+| Flutter | jackdaw_flutter | genui |
+|---|---|---|
+| Screen fully drawn | 8.7 ms | 13.0 ms |
+| Frame build during writes, p99 | 5.5 ms | 13.5 ms |
+| Frames over the 8.3 ms budget, 20 rounds | 11 | 515 |
+| Memory a component keeps | 33.2 KB | 40.4 KB |
+
+In the browser, against Very Good Ventures' genui_jaspr in headless
+Chrome ([web UI](docs/benchmarks/web-ui.md)), medians of 60 rounds:
+
+| Browser, compiled to WebAssembly | jackdaw_dom | genui_jaspr |
+|---|---|---|
+| Messages to drawn DOM | 1.7 ms | 5.5 ms |
+| Write to the DOM showing it, p99 | 0.59 ms | 0.80 ms |
+| Memory the screen adds | 51 KB | 233 KB |
+| Page script, gzipped | 68 KB | 161 KB |
+| Applying the screen's messages | 0.41 ms, 0.14 ms trusted | 0.19 ms |
+
+jackdaw checks every message against the catalog's schemas and the
+component tree before it applies it, which genui_jaspr does not; that
+is the whole difference in applying the messages, and an app can skip
+it with `trusted: true` for messages from its own server.
+
 ## Development
 
 The pure Dart packages form a pub workspace; run `dart pub get` once at the
@@ -152,6 +185,13 @@ cd packages/jackdaw && dart test --coverage-path=coverage/lcov.info --coverage-p
 
 ```bash
 cd packages/jackdaw && dart test -p chrome && dart test -p chrome --compiler dart2wasm
+```
+
+The browser comparison builds with `dart compile` and runs headless
+Chrome; `js` or `wasm`, and the number of runs of ten rounds:
+
+```bash
+cd apps/jackdaw_web_bench && dart pub get && python3 tool/run_bench.py wasm 2
 ```
 
 Tests that need a model read its path from `JACKDAW_TEST_MODEL`, for
