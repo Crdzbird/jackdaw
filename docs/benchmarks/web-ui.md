@@ -50,37 +50,35 @@ table says otherwise.
 
 | Compiled to JavaScript, 60 rounds | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| Applying the screen's messages | 1.30 ms | 0.41 ms |
-| Messages to drawn DOM | 3.0 ms | 11.0 ms |
+| Applying the screen's messages | 1.03 ms | 0.44 ms |
+| Messages to drawn DOM | 2.9 ms | 11.5 ms |
 | Layout the screen forces | 1.3 ms | 1.4 ms |
-| Messages to the next frame | 8.7 ms | 16.3 ms |
+| Messages to the next frame | 7.9 ms | 17.2 ms |
 | Elements of the screen | 80 | 81 |
-| Memory the screen adds, JavaScript and DOM | 69 KB | 234 KB |
-| Write to the DOM showing it, p50 | 0.24 ms | 0.34 ms |
-| Write to the DOM showing it, p99 | 0.84 ms | 1.14 ms |
-| Write to the DOM showing it, max | 1.41 ms | 1.56 ms |
-| Layout a write forces, p99 | 0.73 ms | 0.78 ms |
+| Memory the screen adds, JavaScript and DOM | 69 KB | 247 KB |
+| Write to the DOM showing it, p50 | 0.22 ms | 0.34 ms |
+| Write to the DOM showing it, p99 | 0.69 ms | 1.05 ms |
+| Write to the DOM showing it, max | 0.99 ms | 1.45 ms |
+| Layout a write forces, p99 | 0.76 ms | 0.74 ms |
 
 | Compiled to WebAssembly, 60 rounds | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| Applying the screen's messages | 0.58 ms | 0.20 ms |
-| Messages to drawn DOM | 1.9 ms | 6.3 ms |
-| Layout the screen forces | 1.4 ms | 1.4 ms |
-| Messages to the next frame | 6.9 ms | 12.2 ms |
+| Applying the screen's messages | 0.43 ms | 0.18 ms |
+| Messages to drawn DOM | 1.7 ms | 6.2 ms |
+| Layout the screen forces | 1.4 ms | 1.3 ms |
+| Messages to the next frame | 6.0 ms | 10.8 ms |
 | Elements of the screen | 80 | 81 |
 | Memory the screen adds, JavaScript and DOM | 51 KB | 233 KB |
-| Write to the DOM showing it, p50 | 0.16 ms | 0.22 ms |
-| Write to the DOM showing it, p99 | 0.53 ms | 0.73 ms |
-| Write to the DOM showing it, max | 0.81 ms | 1.38 ms |
-| Layout a write forces, p99 | 0.86 ms | 0.80 ms |
+| Write to the DOM showing it, p50 | 0.16 ms | 0.21 ms |
+| Write to the DOM showing it, p99 | 0.48 ms | 0.69 ms |
+| Write to the DOM showing it, max | 0.92 ms | 1.29 ms |
+| Layout a write forces, p99 | 0.82 ms | 0.76 ms |
 
-These runs are from 2026-10-16 and 17, with all 18 components in
-jackdaw_dom. Each table pools three runs of 20 rounds. Compiled to
-JavaScript, one run put jackdaw_dom's write p99 at 1.14 ms and the other
-two at 0.74 and 0.82 ms; compiled to WebAssembly, the three runs gave
-0.58, 0.58 and 0.48 ms against 0.80, 0.58 and 0.87 ms for genui_jaspr. A
-round's p99 ranges from about 0.3 to 3.8 ms on both sides, and a few
-rounds on each side reach 10 to 19 ms.
+These runs are from 2026-10-17, with all 18 components in jackdaw_dom
+and the lighter checks of "Applying the messages". Each table pools
+three runs of 20 rounds, since one run of 20 can move a write's p99 by
+0.3 to 0.4 ms: a round's p99 ranges from about 0.3 to 3.8 ms on both
+sides, and a few rounds on each side reach 10 to 19 ms.
 
 Pooled, jackdaw_dom draws the screen three to four times sooner, keeps a
 fifth to a third of the memory, and shows a write sooner at every
@@ -89,6 +87,40 @@ validating them, and for a write it also includes the DOM update, which
 genui_jaspr makes in the microtask after. The layout the browser does
 afterwards is about the same for both, since both draw the same
 elements.
+
+## Applying the messages
+
+`web/apply_breakdown.dart` times each step of applying the screen's
+`createSurface` on fresh surfaces, 300 times in a loop and 60 times
+once each after a pause filled with other work, the way the bench meets
+it. Before the changes below, compiled to JavaScript:
+
+| One screen | Warm | After a pause |
+|---|---|---|
+| jackdaw_dom, all of applying | 0.105 ms | 0.29 ms |
+| of which the schema check | 0.040 ms | 0.12 ms |
+| of which the tree check | 0.040 ms | 0.09 ms |
+| of which the components and data model | 0.015 ms | 0.08 ms |
+| genui_jaspr, parsing and processing | 0.045 ms | 0.15 ms |
+
+The tree check walked the whole props schema of every component looking
+for child references, and compared each schema reference against every
+common type by building a string per type. Leaves, 35 of the screen's
+40 components, now skip the walk, and a reference's type is looked up
+once. The schema check went over each object's keys twice and now does
+it once. Warm, applying the screen fell to 0.070 ms compiled to
+JavaScript and 0.035 ms compiled to WebAssembly, and in the bench above
+from 1.30 to 1.03 ms and from 0.58 to 0.43 ms. The bench's figures are
+larger than the breakdown's because each round applies a screen once,
+after seconds of writes and frames, with the core at background
+priority.
+
+What is left is jackdaw checking what it is sent: the message against
+the catalog's schemas and the tree for missing children, cycles and
+placements, which genui_jaspr's path does not do. Checking a write
+against only the variant its envelope names was tried and left out:
+the variants tried first fail on their first required key, so it saved
+nothing measurable.
 
 ## Script size
 
