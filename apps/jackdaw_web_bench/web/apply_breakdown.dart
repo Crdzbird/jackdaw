@@ -15,6 +15,11 @@ Future<void> main() async {
   final message = uiFrameSurface(40);
   final lowered = uiLowerToV09([message], basicCatalog);
   final schema = UiSurfaces(basicCatalog).schemas.message;
+  final writer = UiSurfaces(basicCatalog)..applyAll([message]);
+  final genuiWriter = MessageProcessor<JasprComponent>(
+    catalogs: [BasicJasprCatalog()],
+  )..processMessages([for (final m in lowered) A2uiMessage.fromJson(m)]);
+  var writes = 0;
   final steps = <String, double Function()>{
     'jackdaw UiDomController.applyAll': () {
       final ui = UiDomController(basicCatalog);
@@ -49,6 +54,19 @@ Future<void> main() async {
       UiDataModel(body['dataModel']);
       return pageNow() - start;
     },
+    'jackdaw write': () {
+      final start = pageNow();
+      writer.applyAll([uiFrameWrite(writes++, 40)]);
+      return pageNow() - start;
+    },
+    'genui_jaspr write': () {
+      final change = uiLowerToV09([uiFrameWrite(writes++, 40)], basicCatalog);
+      final start = pageNow();
+      genuiWriter.processMessages([
+        for (final m in change) A2uiMessage.fromJson(m),
+      ]);
+      return pageNow() - start;
+    },
     'genui_jaspr parse and process': () {
       final processor = MessageProcessor<JasprComponent>(
         catalogs: [BasicJasprCatalog()],
@@ -69,7 +87,7 @@ Future<void> main() async {
     if (round % 30 == 0) await nextFrame();
   }
   final keys = steps.keys.toList();
-  for (var round = 0; round < 60; round++) {
+  for (var round = 0; round < 240; round++) {
     final key = keys[round % keys.length];
     final junk = <List<int>>[];
     for (var i = 0; i < 2000; i++) {
