@@ -4,13 +4,19 @@ import 'package:jackdaw_web_bench/web_side.dart';
 import 'package:web/web.dart' as web;
 
 /// jackdaw_dom: the A2UI v1.0 messages go to a UiDomController as they
-/// are, and a UiDomView draws them.
+/// are, checked unless [trusted], and a UiDomView draws them.
 final class JackdawDomSide implements WebSide {
+  /// A side that checks what it applies, unless [trusted].
+  new({this.trusted = false});
+
+  /// Whether messages skip jackdaw's checks.
+  final bool trusted;
+
   final UiDomController _ui = UiDomController(basicCatalog);
   UiDomView? _view;
 
   @override
-  String get name => 'jackdaw_dom';
+  String get name => trusted ? 'jackdaw_dom_trusted' : 'jackdaw_dom';
 
   @override
   List<Object?> prepare(Map<String, Object?> message) => [message];
@@ -22,7 +28,8 @@ final class JackdawDomSide implements WebSide {
   }
 
   @override
-  void apply(List<Object?> messages) => _ui.applyAll(messages);
+  void apply(List<Object?> messages) =>
+      _ui.applyAll(messages, trusted: trusted);
 
   @override
   void dispose() => _view?.dispose();

@@ -40,13 +40,17 @@ Future<void> _run() async {
   web.document.head!.append(styles);
   runApp(const JasprHost(), attachTo: '#genui_jaspr');
   final hosts = {
-    for (final id in ['jackdaw_dom', 'genui_jaspr'])
+    for (final id in ['jackdaw_dom', 'jackdaw_dom_trusted', 'genui_jaspr'])
       id: web.document.getElementById(id)! as web.HTMLElement,
   };
   final rows = <Map<String, Object>>[];
   for (var round = 0; round <= _rounds; round++) {
     await _post('/log', 'round $round');
-    final made = <WebSide>[JackdawDomSide(), GenuiJasprSide()];
+    final made = <WebSide>[
+      JackdawDomSide(),
+      JackdawDomSide(trusted: true),
+      GenuiJasprSide(),
+    ];
     final sides = round.isEven ? made : made.reversed.toList();
     final created = {
       for (final side in sides)

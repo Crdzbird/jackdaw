@@ -50,9 +50,10 @@ final class UiSurfaceController extends ChangeNotifier {
   /// Receives what the user did on a surface.
   void Function(UiAction action)? onAction;
 
-  /// Applies A2UI messages from any agent and returns their problems.
-  List<UiProblem> applyAll(List<Object?> messages) {
-    final problems = surfaces.applyAll(messages);
+  /// Applies A2UI messages from any agent and returns their problems; see
+  /// [UiSurfaces.applyAll] for [trusted], which skips the checks.
+  List<UiProblem> applyAll(List<Object?> messages, {bool trusted = false}) {
+    final problems = surfaces.applyAll(messages, trusted: trusted);
     changes.announce(messages);
     return problems;
   }

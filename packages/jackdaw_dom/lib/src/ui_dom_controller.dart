@@ -1,8 +1,7 @@
 import 'package:jackdaw/jackdaw.dart';
 
-/// The surfaces of a catalog for a web page. Messages and inputs go
-/// through here: a data write reaches only the watchers of the paths it
-/// touches, and any other change reaches the listeners of its surface.
+/// The surfaces of a catalog for a web page: a data write reaches only
+/// the watchers of the paths it touches, any other change its listeners.
 final class UiDomController {
   /// Creates a controller for [catalog]; [host] decides which links and
   /// images may load and [functions] implements the catalog's functions.
@@ -33,9 +32,10 @@ final class UiDomController {
   final Map<String, UiWatchers> _watchers = {};
   final Map<String, List<void Function()>> _listeners = {};
 
-  /// Applies A2UI messages from any agent and returns their problems.
-  List<UiProblem> applyAll(List<Object?> messages) {
-    final problems = surfaces.applyAll(messages);
+  /// Applies A2UI messages from any agent and returns their problems; see
+  /// [UiSurfaces.applyAll] for [trusted], which skips the checks.
+  List<UiProblem> applyAll(List<Object?> messages, {bool trusted = false}) {
+    final problems = surfaces.applyAll(messages, trusted: trusted);
     final changed = <String>{};
     for (final message in messages) {
       if (uiMessageParts(message) case (
@@ -85,7 +85,7 @@ final class UiDomController {
     };
   }
 
-  /// Calls [onChange] when anything but data changes on [surfaceId], and
+  /// Calls [onChange] when anything but data changes on [surfaceId] and
   /// returns what stops it.
   void Function() listen(String surfaceId, void Function() onChange) {
     final listeners = (_listeners[surfaceId] ??= [])..add(onChange);

@@ -135,6 +135,33 @@ against only the variant its envelope names was tried and left out:
 the variants tried first fail on their first required key, so it saved
 nothing measurable.
 
+## Trusted messages
+
+The checks stay on by default. An app can pass `trusted: true` to
+`UiDomController.applyAll`, or to `UiSurfaces.applyAll` and jackdaw_flutter's
+`UiSurfaceController.applyAll`, for messages from a source it fully
+trusts, such as its own server; those skip the schema check and the
+tree check. Never for a model's answer or another agent's: a malformed
+message is then not caught, and may throw or draw wrongly. The renderers
+still draw nothing for an unknown component, a missing child or a cycle.
+
+The bench runs a third side, jackdaw_dom with `trusted: true`, in the
+same rounds. Medians of 60 rounds:
+
+| | jackdaw_dom | jackdaw_dom, trusted | genui_jaspr |
+|---|---|---|---|
+| Applying the screen, JavaScript | 0.68 ms | 0.26 ms | 0.45 ms |
+| Messages to drawn DOM, JavaScript | 2.4 ms | 1.9 ms | 11.0 ms |
+| Write to the DOM showing it, p50, JavaScript | 0.21 ms | 0.19 ms | 0.32 ms |
+| Applying the screen, WebAssembly | 0.41 ms | 0.14 ms | 0.19 ms |
+| Messages to drawn DOM, WebAssembly | 1.7 ms | 1.3 ms | 5.5 ms |
+| Write to the DOM showing it, p50, WebAssembly | 0.15 ms | 0.14 ms | 0.21 ms |
+
+Trusted, jackdaw_dom applies the screen faster than genui_jaspr; checked,
+the price of the checks is about 0.4 ms compiled to JavaScript and
+0.3 ms compiled to WebAssembly for this screen, and it still reaches the
+drawn DOM four times sooner.
+
 ## Script size
 
 What each library adds to a page, measured with the smallest page that
