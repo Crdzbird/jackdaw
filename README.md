@@ -1,4 +1,9 @@
-# jackdaw
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/jackdaw-logo-dark.svg">
+    <img src="docs/brand/jackdaw-logo.svg" alt="jackdaw" width="360">
+  </picture>
+</h1>
 
 An agent framework for Dart and Flutter that runs the same agent against
 cloud models, models on the device and models in the browser. Pre-release.
