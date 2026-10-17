@@ -1,8 +1,8 @@
 # jackdaw brand
 
-The mark is a jackdaw perched on a branch, drawn from circles, triangles
-and bars: a black cap and face, the pale eye and the grey nape that set
-a jackdaw apart from other crows, on a blue badge.
+The mark is a jackdaw perched in side profile on a blue badge: the black
+cap, the pale eye and the grey nape that set a jackdaw apart from other
+crows, a forward body with a darker wing, and a wedge tail.
 
 | File | Use |
 |---|---|
@@ -16,11 +16,10 @@ a jackdaw apart from other crows, on a blue badge.
 | | |
 |---|---|
 | Badge | `#3D63F5` |
-| Plumage | `#0A1838` |
-| Body | `#14296A` |
-| Wing | `#1E3A8E` |
-| Nape | `#C5D3F0` |
-| Branch | `#0A0F1C` |
+| Plumage | `#0E1220` |
+| Wing | `#232B45` |
+| Nape | `#B9C4D6` |
+| Eye | `#FFFFFF` |
 | Name on light | `#14171C` |
 | Name on dark | `#F2F4F7` |
 
