@@ -3,7 +3,7 @@ description: >-
   Test utilities for jackdaw: a scripted language model that records requests
   and replays prepared responses without network access, and a contract
   test suite that every LanguageModel must pass.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_test
 topics: [ai, llm, testing]
 
@@ -13,7 +13,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
   matcher: ^0.12.17
   test_api: '>=0.7.0 <0.8.0'
 

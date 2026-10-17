@@ -1,6 +1,6 @@
 # jackdaw_mcp
 
-MCP client for `jackdaw`. Pre-release.
+MCP client for `jackdaw`.
 
 Turns the tools of a Model Context Protocol server into jackdaw tools. Two
 backends implement the same `McpSession`, so the tools behave the same

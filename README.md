@@ -6,7 +6,7 @@
 </h1>
 
 An agent framework for Dart and Flutter that runs the same agent against
-cloud models, models on the device and models in the browser. Pre-release.
+cloud models, models on the device and models in the browser.
 
 - One `Agent` with typed tools, human approval, durable sessions that
   survive a killed process, sub-agents, context budgets and tracing.

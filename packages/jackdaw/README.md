@@ -1,6 +1,6 @@
 # jackdaw
 
-Agent framework for Dart and Flutter. Pre-release: the API will change.
+Agent framework for Dart and Flutter.
 
 - Codegen-free schemas that serialize for providers and validate offline.
 - Typed tools: arguments are validated before your code runs; failures,

@@ -3,7 +3,7 @@ description: >-
   MCP client for jackdaw. Turns the tools of Model Context Protocol servers
   into jackdaw tools, with servers treated as untrusted. Ships its own
   client over Streamable HTTP and stdio, and an adapter for dart_mcp.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_mcp
 topics: [ai, llm, mcp, agents]
 
@@ -15,7 +15,7 @@ resolution: workspace
 dependencies:
   dart_mcp: ^0.5.2
   http: ^1.6.0
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
   stream_channel: ^2.1.4
 
 dev_dependencies:

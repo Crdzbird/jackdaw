@@ -2,7 +2,7 @@ name: jackdaw_web
 description: >-
   In-browser inference for jackdaw. Runs GGUF models with wllama (llama.cpp
   compiled to WebAssembly) through the same LanguageModel interface.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_web
 topics: [ai, llm, web, wasm]
 
@@ -15,10 +15,10 @@ platforms:
   web:
 
 dependencies:
-  jackdaw: ^0.1.0-dev.1
-  jackdaw_openai: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
+  jackdaw_openai: ^1.0.0
 
 dev_dependencies:
-  jackdaw_test: ^0.1.0-dev.1
+  jackdaw_test: ^1.0.0
   test: ^1.33.0
   very_good_analysis: ^11.0.0

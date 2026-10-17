@@ -2,7 +2,7 @@ name: jackdaw_anthropic
 description: >-
   Anthropic provider for jackdaw. Streams Claude messages with tool calls,
   structured output and thinking blocks that are replayed unchanged.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_anthropic
 topics: [ai, llm, anthropic, claude]
 
@@ -13,7 +13,7 @@ resolution: workspace
 
 dependencies:
   http: ^1.6.0
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
 
 dev_dependencies:
   test: ^1.33.0

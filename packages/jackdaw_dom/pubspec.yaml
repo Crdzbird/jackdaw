@@ -3,7 +3,7 @@ description: >-
   Draws jackdaw's A2UI surfaces as plain HTML elements, with no framework:
   each component is built once, and a data write updates only the elements
   that read what it wrote.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_dom
 topics: [a2ui, genui, web, html]
 
@@ -16,7 +16,7 @@ platforms:
   web:
 
 dependencies:
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
   web: ^1.1.1
 
 dev_dependencies:

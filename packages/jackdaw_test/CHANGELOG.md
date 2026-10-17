@@ -1,4 +1,6 @@
-## 0.1.0-dev.1
+## 1.0.0
 
-- Initial walking skeleton.
-- languageModelContract: six tests every LanguageModel must pass.
+First stable release.
+
+- A scripted model for tests, and `languageModelContract`: the tests
+  every `LanguageModel` must pass.

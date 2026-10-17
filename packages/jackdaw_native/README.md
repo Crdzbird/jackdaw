@@ -1,6 +1,6 @@
 # jackdaw_native
 
-On-device inference for `jackdaw`. Pre-release. Native platforms only.
+On-device inference for `jackdaw`. Native platforms only.
 
 `LocalModel` runs a GGUF model through a small C++ core built on
 llama.cpp, and plugs into any jackdaw `Agent` like a cloud model.

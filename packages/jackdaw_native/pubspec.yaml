@@ -2,7 +2,7 @@ name: jackdaw_native
 description: >-
   On-device inference for jackdaw. Runs GGUF models through a C++ core with
   grammar-constrained output, prefix reuse and cancellation. Native only.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_native
 topics: [ai, llm, ffi, on-device]
 
@@ -23,10 +23,10 @@ dependencies:
   crypto: ^3.0.7
   ffi: ^2.2.0
   hooks: ^2.2.0
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
 
 dev_dependencies:
   ffigen: ^23.0.0
-  jackdaw_test: ^0.1.0-dev.1
+  jackdaw_test: ^1.0.0
   test: ^1.33.0
   very_good_analysis: ^11.0.0

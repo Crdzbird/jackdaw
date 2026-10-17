@@ -1,7 +1,7 @@
 # jackdaw_dom
 
 Draws jackdaw's A2UI surfaces in a web page as plain HTML elements, with
-no framework. Pre-release. Web only.
+no framework. Web only.
 
 ```dart
 final ui = UiDomController(basicCatalog);

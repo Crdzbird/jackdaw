@@ -1,6 +1,6 @@
 # jackdaw_web
 
-In-browser inference for `jackdaw`. Pre-release. Web only.
+In-browser inference for `jackdaw`. Web only.
 
 `WebLocalModel` runs a GGUF model with [wllama](https://github.com/ngxson/wllama)
 3.8, llama.cpp compiled to WebAssembly, behind the same `LanguageModel`

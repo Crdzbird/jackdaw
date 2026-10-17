@@ -2,7 +2,7 @@ name: jackdaw
 description: >-
   Agent framework for Dart and Flutter. Models, typed tools, an agent loop and
   streaming that work the same on native and web.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw
 topics: [ai, llm, agents, flutter]
 
@@ -15,6 +15,6 @@ dependencies:
   http: ^1.6.0
 
 dev_dependencies:
-  jackdaw_test: ^0.1.0-dev.1
+  jackdaw_test: ^1.0.0
   test: ^1.33.0
   very_good_analysis: ^11.0.0

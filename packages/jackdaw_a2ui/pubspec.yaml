@@ -3,7 +3,7 @@ description: >-
   A2UI renderers for jackdaw agents. Sends the UI a jackdaw agent builds to
   an a2ui_core message processor, so any renderer built on a2ui_core can
   draw it, and turns its actions back into messages for the agent.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_a2ui
 topics: [ai, llm, a2ui, generative-ui]
 
@@ -14,7 +14,7 @@ resolution: workspace
 
 dependencies:
   a2ui_core: ^0.2.2
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
 
 dev_dependencies:
   test: ^1.33.0

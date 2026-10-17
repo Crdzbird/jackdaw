@@ -3,7 +3,7 @@ description: >-
   Command line tools for jackdaw. Inspect session journals and traces,
   compile JSON Schemas to the GBNF grammars used for constrained output,
   and validate JSON against a schema.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_cli
 topics: [ai, llm, cli, agents]
 
@@ -16,7 +16,7 @@ executables:
   jackdaw:
 
 dependencies:
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
 
 dev_dependencies:
   test: ^1.33.0

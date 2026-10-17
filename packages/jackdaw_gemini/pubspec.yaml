@@ -2,7 +2,7 @@ name: jackdaw_gemini
 description: >-
   Gemini provider for jackdaw. Streams generateContent with function calls,
   JSON schema output and thought signatures replayed unchanged.
-version: 0.1.0-dev.1
+version: 1.0.0
 repository: https://github.com/Crdzbird/jackdaw/tree/main/packages/jackdaw_gemini
 topics: [ai, llm, gemini, google]
 
@@ -13,7 +13,7 @@ resolution: workspace
 
 dependencies:
   http: ^1.6.0
-  jackdaw: ^0.1.0-dev.1
+  jackdaw: ^1.0.0
 
 dev_dependencies:
   test: ^1.33.0

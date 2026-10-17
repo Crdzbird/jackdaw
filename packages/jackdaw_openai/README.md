@@ -1,6 +1,6 @@
 # jackdaw_openai
 
-OpenAI provider for `jackdaw`. Pre-release.
+OpenAI provider for `jackdaw`.
 
 Streams chat completions with tool calls and token usage. Works with any
 OpenAI-compatible server by setting `baseUrl`, for example Ollama

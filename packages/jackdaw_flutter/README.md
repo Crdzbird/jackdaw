@@ -1,6 +1,6 @@
 # jackdaw_flutter
 
-Flutter widgets for `jackdaw` agents. Pre-release.
+Flutter widgets for `jackdaw` agents.
 
 ```dart
 final chat = ChatController(

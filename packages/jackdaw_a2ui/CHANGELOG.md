@@ -1,4 +1,4 @@
-## 0.1.0-dev.1
+## 1.0.0
 
 - A2uiCoreTarget sends the UI a jackdaw agent builds to an a2ui_core
   MessageProcessor, lowered to A2UI v0.9, and reports what a2ui_core

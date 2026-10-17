@@ -1,6 +1,6 @@
 # jackdaw_test
 
-Test utilities for `jackdaw`. Pre-release.
+Test utilities for `jackdaw`.
 
 `ScriptedModel` replays prepared turns and records every request, so agents
 can be tested without network access or API keys.

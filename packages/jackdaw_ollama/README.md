@@ -1,6 +1,6 @@
 # jackdaw_ollama
 
-Native Ollama provider for `jackdaw`. Pre-release.
+Native Ollama provider for `jackdaw`.
 
 Talks to Ollama's own `/api/chat` endpoint rather than the OpenAI-compatible
 one, so it can set the context size, `top_k` and how long the model stays

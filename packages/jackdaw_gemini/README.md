@@ -1,6 +1,6 @@
 # jackdaw_gemini
 
-Gemini provider for `jackdaw`. Pre-release.
+Gemini provider for `jackdaw`.
 
 Streams the Gemini API's `generateContent` with function calls, JSON schema
 output (`responseJsonSchema`) and token usage including thinking tokens.

@@ -1,6 +1,6 @@
 # jackdaw_cli
 
-Command line tools for `jackdaw`. Pre-release.
+Command line tools for `jackdaw`.
 
 ```text
 dart run jackdaw_cli:jackdaw <command> [arguments]

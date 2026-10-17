@@ -1,6 +1,6 @@
 # jackdaw_anthropic
 
-Anthropic provider for `jackdaw`. Pre-release.
+Anthropic provider for `jackdaw`.
 
 Streams Claude messages through the Messages API with tool calls,
 structured output (`output_config.format`) and token usage including cached

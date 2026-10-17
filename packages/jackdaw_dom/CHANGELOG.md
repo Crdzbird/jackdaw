@@ -1,4 +1,4 @@
-## 0.1.0-dev.1
+## 1.0.0
 
 - UiDomController and UiDomView: A2UI v1.0 surfaces drawn as plain HTML,
   each component built once and updated in place by the data writes it
