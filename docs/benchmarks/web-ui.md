@@ -61,30 +61,34 @@ table says otherwise.
 | Write to the DOM showing it, max | 1.41 ms | 1.56 ms |
 | Layout a write forces, p99 | 0.73 ms | 0.78 ms |
 
-| Compiled to WebAssembly | jackdaw_dom | genui_jaspr |
+| Compiled to WebAssembly, 60 rounds | jackdaw_dom | genui_jaspr |
 |---|---|---|
-| Applying the screen's messages | 0.60 ms | 0.22 ms |
-| Messages to drawn DOM | 1.9 ms | 7.5 ms |
+| Applying the screen's messages | 0.58 ms | 0.20 ms |
+| Messages to drawn DOM | 1.9 ms | 6.3 ms |
 | Layout the screen forces | 1.4 ms | 1.4 ms |
-| Messages to the next frame | 6.5 ms | 13.0 ms |
+| Messages to the next frame | 6.9 ms | 12.2 ms |
 | Elements of the screen | 80 | 81 |
 | Memory the screen adds, JavaScript and DOM | 51 KB | 233 KB |
-| Write to the DOM showing it, p50 | 0.17 ms | 0.23 ms |
-| Write to the DOM showing it, p99 | 0.58 ms | 0.80 ms |
-| Write to the DOM showing it, max | 0.80 ms | 1.62 ms |
-| Layout a write forces, p99 | 0.87 ms | 1.02 ms |
+| Write to the DOM showing it, p50 | 0.16 ms | 0.22 ms |
+| Write to the DOM showing it, p99 | 0.53 ms | 0.73 ms |
+| Write to the DOM showing it, max | 0.81 ms | 1.38 ms |
+| Layout a write forces, p99 | 0.86 ms | 0.80 ms |
 
 These runs are from 2026-10-16 and 17, with all 18 components in
-jackdaw_dom. The JavaScript figures pool three runs of 20 rounds, since
-one of them put jackdaw_dom's write p99 at 1.14 ms and the other two at
-0.74 and 0.82 ms; a round's p99 ranges from 0.4 to 3.8 ms on both sides,
-with one jackdaw_dom round at 12.4 ms. jackdaw_dom draws the screen three
-to four times sooner, keeps a quarter to a third of the memory, and
-shows a write sooner at every percentile. Applying the
-messages takes it longer: that time is jackdaw validating them, and for
-a write it also includes the DOM update, which genui_jaspr makes in the
-microtask after. The layout the browser does afterwards is the same for
-both, since both draw the same elements.
+jackdaw_dom. Each table pools three runs of 20 rounds. Compiled to
+JavaScript, one run put jackdaw_dom's write p99 at 1.14 ms and the other
+two at 0.74 and 0.82 ms; compiled to WebAssembly, the three runs gave
+0.58, 0.58 and 0.48 ms against 0.80, 0.58 and 0.87 ms for genui_jaspr. A
+round's p99 ranges from about 0.3 to 3.8 ms on both sides, and a few
+rounds on each side reach 10 to 19 ms.
+
+Pooled, jackdaw_dom draws the screen three to four times sooner, keeps a
+fifth to a third of the memory, and shows a write sooner at every
+percentile. Applying the messages takes it longer: that time is jackdaw
+validating them, and for a write it also includes the DOM update, which
+genui_jaspr makes in the microtask after. The layout the browser does
+afterwards is about the same for both, since both draw the same
+elements.
 
 ## Script size
 
