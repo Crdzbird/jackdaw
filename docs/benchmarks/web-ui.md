@@ -115,7 +115,20 @@ larger than the breakdown's because each round applies a screen once,
 after seconds of writes and frames, with the core at background
 priority.
 
-What is left is jackdaw checking what it is sent: the message against
+The tree check then stopped copying its list of ancestors for every
+child and looks each component up in the catalog once instead of three
+times, and the schema check loops where it built a closure for each
+choice of schemas and each map. Over 60 more rounds, applying the
+screen took 0.83 ms against 0.47 ms for genui_jaspr compiled to
+JavaScript, from 1.03 ms against 0.44 ms, and 0.35 ms against 0.20 ms
+compiled to WebAssembly, from 0.43 ms against 0.18 ms. That pair of
+runs was slower overall, for genui_jaspr too, so only the apply rows
+are compared here.
+
+Run without its checks, jackdaw applies the screen in 0.42 ms against
+0.39 ms for genui_jaspr, compiled to JavaScript over 20 rounds; without
+the schema check alone 0.84 ms, and without the tree check alone
+0.76 ms, against 1.09 ms with both. What is left is jackdaw checking what it is sent: the message against
 the catalog's schemas and the tree for missing children, cycles and
 placements, which genui_jaspr's path does not do. Checking a write
 against only the variant its envelope names was tried and left out:

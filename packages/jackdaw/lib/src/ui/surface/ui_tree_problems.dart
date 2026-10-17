@@ -27,7 +27,8 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
     return problems;
   }
   final reached = <String>{};
-  void visit(UiComponent node, String parent, List<String> stack) {
+  final stack = <String>[];
+  void visit(UiComponent node, String parent) {
     String at() => jsonPointer(['components', node.id]);
     if (stack.contains(node.id)) {
       report(
@@ -37,7 +38,8 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
       );
       return;
     }
-    uiPlacementProblems(surface, node, parent, at, report);
+    final definition = surface.catalog.component(node.type);
+    uiPlacementProblems(surface, node, definition, parent, at, report);
     if (!reached.add(node.id)) return;
     if (stack.length >= maxDepth) {
       report(
@@ -47,8 +49,8 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
       );
       return;
     }
-    final definition = surface.catalog.component(node.type);
     if (definition == null) return;
+    stack.add(node.id);
     for (final (path, id) in uiChildRefs(definition.props, node.props)) {
       final child = components[id];
       if (child == null) {
@@ -59,11 +61,12 @@ List<UiProblem> uiTreeProblems(UiSurface surface, {int maxDepth = 32}) {
         );
         continue;
       }
-      visit(child, node.type, [...stack, node.id]);
+      visit(child, node.type);
     }
+    stack.removeLast();
   }
 
-  visit(root, 'Surface', const []);
+  visit(root, 'Surface');
   for (final id in components.keys.where((id) => !reached.contains(id))) {
     problems.add(
       UiProblem(

@@ -1,18 +1,20 @@
+import 'package:jackdaw/src/ui/catalog/ui_component_definition.dart';
 import 'package:jackdaw/src/ui/surface/ui_component.dart';
 import 'package:jackdaw/src/ui/surface/ui_problem_code.dart';
 import 'package:jackdaw/src/ui/surface/ui_surface.dart';
 
 /// Reports through [report] when [node], found at [at], sits in a [parent]
-/// its catalog entry does not allow, or [parent] may not contain it.
+/// its catalog entry, [definition], does not allow, or [parent] may not
+/// contain it.
 void uiPlacementProblems(
   UiSurface surface,
   UiComponent node,
+  UiComponentDefinition? definition,
   String parent,
   String Function() at,
   void Function(UiProblemCode, String, String) report,
 ) {
   final catalog = surface.catalog;
-  final definition = catalog.component(node.type);
   if (definition == null) {
     report(
       UiProblemCode.validationFailed,
